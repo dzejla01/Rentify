@@ -44,6 +44,7 @@ namespace Rentify.Services.Migrations
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
                     PasswordSalt = table.Column<string>(type: "text", nullable: false),
                     UserImage = table.Column<string>(type: "text", nullable: false),
+                    DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IsVlasnik = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
@@ -247,8 +248,8 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "Description", "IsActive", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 1, 30, 14, 26, 1, 410, DateTimeKind.Utc).AddTicks(9574), "Standardni korisnik aplikacije", true, "Korisnik" },
-                    { 2, new DateTime(2026, 1, 30, 14, 26, 1, 410, DateTimeKind.Utc).AddTicks(9576), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
+                    { 1, new DateTime(2026, 2, 2, 20, 18, 43, 937, DateTimeKind.Utc).AddTicks(9843), "Standardni korisnik aplikacije", true, "Korisnik" },
+                    { 2, new DateTime(2026, 2, 2, 20, 18, 43, 937, DateTimeKind.Utc).AddTicks(9846), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
                 });
 
             migrationBuilder.CreateIndex(

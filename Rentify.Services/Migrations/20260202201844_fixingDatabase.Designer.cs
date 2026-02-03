@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Rentify.Services.Migrations
 {
     [DbContext(typeof(RentifyDbContext))]
-    [Migration("20260130142601_fixingDatabase")]
+    [Migration("20260202201844_fixingDatabase")]
     partial class fixingDatabase
     {
         /// <inheritdoc />
@@ -249,7 +249,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 30, 14, 26, 1, 410, DateTimeKind.Utc).AddTicks(9574),
+                            CreatedAt = new DateTime(2026, 2, 2, 20, 18, 43, 937, DateTimeKind.Utc).AddTicks(9843),
                             Description = "Standardni korisnik aplikacije",
                             IsActive = true,
                             Name = "Korisnik"
@@ -257,7 +257,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 30, 14, 26, 1, 410, DateTimeKind.Utc).AddTicks(9576),
+                            CreatedAt = new DateTime(2026, 2, 2, 20, 18, 43, 937, DateTimeKind.Utc).AddTicks(9846),
                             Description = "Vlasnik nekretnina koji može upravljati objektima",
                             IsActive = true,
                             Name = "Vlasnik"
@@ -273,6 +273,9 @@ namespace Rentify.Services.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("DateOfBirth")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Email")

@@ -31,6 +31,8 @@ namespace Rentify.Services.Database
         public string PasswordSalt { get; set; } = string.Empty;
         public string UserImage { get; set; }
 
+        public DateTime? DateOfBirth { get; set; }
+
         public bool IsActive { get; set; } = true;
         public bool IsVlasnik { get; set; } = false;
 

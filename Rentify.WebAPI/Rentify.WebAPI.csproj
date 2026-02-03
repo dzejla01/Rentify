@@ -26,4 +26,9 @@
     <ProjectReference Include="..\Rentify.Services\Rentify.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\properties\" />
+    <Folder Include="wwwroot\images\users\" />
+  </ItemGroup>
+
 </Project>

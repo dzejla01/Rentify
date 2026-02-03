@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/models/login_request.dart';
 import 'package:rentify_desktop/providers/auth_provider.dart';
+import 'package:rentify_desktop/routes/app_routes.dart';
 import 'package:rentify_desktop/screens/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -21,6 +22,13 @@ class _LoginScreenState extends State<LoginScreen> {
   late AuthProvider _authProvider;
   TextEditingController _username = TextEditingController();
   TextEditingController _password = TextEditingController();
+
+  bool? _hoverForForgotPassword;
+
+  Future<void> _forgotPasswordOrUsername() async{
+
+
+  }
 
 
   Future<void> login() async{
@@ -47,11 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return;
   }
 
-  Navigator.of(context).pushReplacement(
-    MaterialPageRoute(
-      builder: (_) => const HomeScreen(),
-    ),
-  );
+  Navigator.pushReplacementNamed(context, AppRoutes.home);
  }
 
  @override
@@ -167,12 +171,22 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Zaboravili ste korisničko ime ili lozinku?',
-                      style: TextStyle(
-                        color: Color(0xFF7A7A7A),
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      onEnter: (_) => setState(() => _hoverForForgotPassword = true),
+                      onExit: (_) => setState(() => _hoverForForgotPassword = false),
+                      child: GestureDetector(
+                        onTap: () {
+                          _forgotPasswordOrUsername();
+                        },
+                        child: const Text(
+                          'Zaboravili ste korisničko ime ili lozinku?',
+                          style: TextStyle(
+                            color: Color(0xFF7A7A7A),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ],

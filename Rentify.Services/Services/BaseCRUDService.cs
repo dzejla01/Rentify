@@ -88,17 +88,6 @@ namespace Rentify.Services.Services
 
         }
 
-        // private ProductTypeResponse MapToResponse(ProductType productType)
-        // {
-        //     return new ProductTypeResponse
-        //     {
-        //         Id = productType.Id,
-        //         Name = productType.Name,
-        //         Description = productType.Description,
-        //         IsActive = productType.IsActive,
-        //         CreatedAt = productType.CreatedAt,
-        //         UpdatedAt = productType.UpdatedAt
-        //     };
-        // }
+        
     }
 } 

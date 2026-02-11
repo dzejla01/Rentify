@@ -12,7 +12,7 @@ import 'package:rentify_desktop/models/user.dart';
 import 'package:rentify_desktop/providers/image_provider.dart';
 import 'package:rentify_desktop/providers/user_provider.dart';
 import 'package:rentify_desktop/routes/app_routes.dart';
-import 'package:rentify_desktop/screens/base_dialogs.dart';
+import 'package:rentify_desktop/dialogs/base_dialogs.dart';
 import 'package:rentify_desktop/utils/session.dart';
 import 'package:path/path.dart' as p;
 
@@ -54,17 +54,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _logout(BuildContext context) async {
+    Session.odjava();
 
-   Session.odjava();
- 
-   if (!context.mounted) return;
- 
-   Navigator.of(context).pushNamedAndRemoveUntil(
-     AppRoutes.login,
-     (route) => false,
-   );
+    if (!context.mounted) return;
+
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(AppRoutes.login, (route) => false);
   }
-
 
   Future<void> _confirmExitAndMaybeRevert(BuildContext context) async {
     final bool confirm = await ConfirmDialogs.yesNoConfirmation(
@@ -92,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (picked == null) return;
 
     setState(() {
-      _pickedImage = picked; 
+      _pickedImage = picked;
       _isImageChanged = true;
       _saved = false;
     });
@@ -107,7 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
         fields.setText('lastName', user.lastName);
         fields.setText('email', user.email);
         fields.setText('username', user.username);
-        if(user.dateOfBirth != null) {fields.setText('birthDate', DateHelper.format(user.dateOfBirth!));}
+        if (user.dateOfBirth != null) {
+          fields.setText('birthDate', DateHelper.format(user.dateOfBirth!));
+        }
         fields.setText('phoneNumber', user.phoneNumber ?? '');
       }
 
@@ -129,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'email',
       'username',
       'phoneNumber',
-      'birthDate'
+      'birthDate',
     ]);
     loadUser();
   }
@@ -339,7 +338,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 final ok = _formKey.currentState?.validate() ?? false;
                 if (!ok) return;
 
-                String finalImage = _loadedUser!.userImage;
+                String? finalImage = _loadedUser?.userImage;
+                if (finalImage != null && finalImage.trim().isEmpty) {
+                  finalImage = null;
+                }
 
                 if (_pickedImage != null) {
                   final uploadedFileName = await ImageAppProvider.upload(
@@ -355,7 +357,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   'email': fields.text("email"),
                   'username': fields.text("username"),
                   'phoneNumber': fields.text("phoneNumber"),
-                  'dateOfBirth': DateHelper.toIsoFromUi(fields.text("birthDate")),
+                  'dateOfBirth': DateHelper.toIsoFromUi(
+                    fields.text("birthDate"),
+                  ),
                   'userImage': finalImage,
                   'isActive': _loadedUser!.isActive,
                   'isVlasnik': _loadedUser!.isVlasnik,
@@ -363,10 +367,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   'lastLoginAt': _loadedUser!.lastLoginAt?.toIso8601String(),
                 });
 
-                // (opcionalno) obriši staru sliku tek sad, nakon uspjeha
                 if (_pickedImage != null) {
-                  final oldImg = _loadedUser!.userImage;
-                  if (oldImg.isNotEmpty &&
+                  final oldImg = _loadedUser?.userImage;
+                  if (oldImg != null &&
+                      oldImg.trim().isNotEmpty &&
                       !ImageHelper.isHttp(oldImg) &&
                       oldImg != finalImage) {
                     await ImageAppProvider.delete(
@@ -427,22 +431,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color(0x11000000),
                   child: _pickedImage != null
                       ? Image.file(_pickedImage!, fit: BoxFit.cover)
-                      : Image.network(
-                          ImageHelper.httpCheck(user.userImage),
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Center(
-                            child: Text(
-                              user.username.isNotEmpty
-                                  ? user.username[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF4A4A4A),
-                              ),
-                            ),
-                          ),
-                        ),
+                      : (ImageHelper.hasValidImage(user.userImage)
+                            ? Image.network(
+                                ImageHelper.safeUserImageUrl(user.userImage),
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    ImageHelper.userPlaceholder(user.username),
+                              )
+                            : ImageHelper.userPlaceholder(user.username)),
                 ),
               ),
               const SizedBox(width: 14),

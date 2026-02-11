@@ -12,7 +12,7 @@ namespace Rentify.Model.ResponseObjects
         public DateTime? DateOfBirth { get; set; }
         public bool IsActive { get; set; }
         public bool IsVlasnik { get; set; }
-        public string UserImage { get; set; }
+        public string? UserImage { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
         public string? PhoneNumber { get; set; }

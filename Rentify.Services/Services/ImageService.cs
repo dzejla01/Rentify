@@ -8,13 +8,6 @@ namespace Rentify.Services
 {
     public class ImageService : IImageService
     {
-        private static readonly HashSet<string> AllowedFolders = new(StringComparer.OrdinalIgnoreCase)
-        {
-            "users",
-            "properties",
-            "products"
-            // dodaj po potrebi
-        };
 
         private static readonly HashSet<string> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -39,8 +32,7 @@ namespace Rentify.Services
                 throw new ArgumentException("Slika je prevelika (max 10MB).");
 
             var folder = NormalizeFolder(nameOfTheFolder);
-            if (!AllowedFolders.Contains(folder))
-                throw new ArgumentException("Folder nije dozvoljen.");
+           
 
             var ext = Path.GetExtension(file.FileName);
             if (string.IsNullOrWhiteSpace(ext) || !AllowedExtensions.Contains(ext))
@@ -82,8 +74,7 @@ namespace Rentify.Services
         public Task<bool> DeleteAsync(string fileName, string nameOfTheFolder, CancellationToken ct = default)
         {
             var folder = NormalizeFolder(nameOfTheFolder);
-            if (!AllowedFolders.Contains(folder))
-                throw new ArgumentException("Folder nije dozvoljen.");
+            
 
             var safeName = MakeSafeFileName(fileName);
             if (string.IsNullOrWhiteSpace(safeName))

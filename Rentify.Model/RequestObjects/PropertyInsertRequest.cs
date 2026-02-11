@@ -12,11 +12,16 @@ namespace Rentify.Model.RequestObjects
         public string Name { get; set; } = null!;
 
         [Required]
+        public string City { get; set; }
+
+        [Required]
         public string Location { get; set; } = null!;
 
         [Range(0, double.MaxValue)]
-        public double Price { get; set; }
+        public double PricePerDay { get; set; }
 
+        [Range(0, double.MaxValue)]
+        public double PricePerMonth { get; set; }
         public List<string>? Tags { get; set; }
 
         public string? NumberOfsquares { get; set; }

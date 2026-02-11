@@ -29,6 +29,20 @@ class SnackbarHelper {
     );
   }
 
+  static void showUpdate(
+    BuildContext context,
+    String message,
+  ) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: const Color.fromARGB(255, 209, 194, 58),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
   static void showInfo(
     BuildContext context,
     String message,

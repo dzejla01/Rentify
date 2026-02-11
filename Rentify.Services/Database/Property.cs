@@ -18,11 +18,13 @@ namespace Rentify.Services.Database
         public User User { get; set; }
         public string Name { get; set; }
         public string Location { get; set; }
-        public double Price { get; set; }
+        public string City { get; set; }
+        public double PricePerDay { get; set; }
+        public double PricePerMonth { get; set; }
         public List<string> Tags { get; set; }
         public string NumberOfsquares { get; set; }
         public string Details { get; set; }
         public bool IsAvailable { get; set; }
-
+        public bool IsActiveOnApp { get; set; }
     }
 }

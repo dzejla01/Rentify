@@ -10,12 +10,12 @@ class User {
   final String email;
   final String username;
   DateTime? dateOfBirth;
-  final String userImage;
+  String? userImage;
   final bool isActive;
   final bool isVlasnik;
   final DateTime createdAt;
   final DateTime? lastLoginAt;
-  final String? phoneNumber;
+  String? phoneNumber;
 
   User({
     required this.id,
@@ -24,7 +24,7 @@ class User {
     required this.email,
     required this.username,
     this.dateOfBirth,
-    required this.userImage,
+    this.userImage,
     required this.isActive,
     required this.isVlasnik,
     required this.createdAt,

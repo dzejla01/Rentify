@@ -15,7 +15,7 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
   dateOfBirth: json['dateOfBirth'] == null
       ? null
       : DateTime.parse(json['dateOfBirth'] as String),
-  userImage: json['userImage'] as String,
+  userImage: json['userImage'] as String?,
   isActive: json['isActive'] as bool,
   isVlasnik: json['isVlasnik'] as bool,
   createdAt: DateTime.parse(json['createdAt'] as String),

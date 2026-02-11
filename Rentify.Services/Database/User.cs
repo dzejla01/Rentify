@@ -29,14 +29,14 @@ namespace Rentify.Services.Database
         public string PasswordHash { get; set; } = string.Empty;
 
         public string PasswordSalt { get; set; } = string.Empty;
-        public string UserImage { get; set; }
+        public string? UserImage { get; set; }
 
         public DateTime? DateOfBirth { get; set; }
 
         public bool IsActive { get; set; } = true;
         public bool IsVlasnik { get; set; } = false;
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime? LastLoginAt { get; set; }
 

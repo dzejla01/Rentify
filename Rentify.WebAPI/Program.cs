@@ -58,6 +58,7 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IPropertyImageService, PropertyImageService>();
 
 
 

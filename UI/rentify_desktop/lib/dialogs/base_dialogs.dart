@@ -22,7 +22,6 @@ class RentifyBaseDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(24),
       child: Container(
         width: width,
         height: height,
@@ -44,7 +43,7 @@ class RentifyBaseDialog extends StatelessWidget {
             // 🔹 HEADER
             Container(
               decoration: const BoxDecoration(
-                color: Color(0xFF5F9F3B), // ✅ zelena boja headera
+                color: Color(0xFF5F9F3B), 
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Padding(
@@ -60,7 +59,7 @@ class RentifyBaseDialog extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white, // ✅ bijeli tekst
+                          color: Colors.white, 
                         ),
                       ),
                     ),

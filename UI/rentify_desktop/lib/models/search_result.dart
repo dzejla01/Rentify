@@ -1,19 +1,19 @@
 class SearchResult<T> {
-  int count;
+  int totalCount;
   List<T> items;
 
   SearchResult({
-    this.count = 0,
+    this.totalCount = 0,
     List<T>? items,
   }) : items = items ?? [];
 
   void clear() {
-    count = 0;
+    totalCount = 0;
     items.clear();
   }
 
   void add(T value) {
     items.add(value);
-    count = items.length;
+    totalCount = items.length;
   }
 }

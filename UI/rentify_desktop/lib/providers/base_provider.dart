@@ -30,14 +30,14 @@ abstract class BaseProvider<T> with ChangeNotifier {
     final result = SearchResult<T>();
 
     if (json is Map && json.containsKey("items")) {
-      result.count = json["count"] ?? json["items"].length;
+      result.totalCount = json["totalCount"] ?? json["items"].length;
 
       for (var item in json["items"]) {
         result.items.add(fromJson(item));
       }
     } else if (json is List) {
       // fallback – API vraća listu
-      result.count = json.length;
+      result.totalCount = json.length;
 
       for (var item in json) {
         result.add(fromJson(item));

@@ -18,6 +18,7 @@ Property _$PropertyFromJson(Map<String, dynamic> json) => Property(
   tags: (json['tags'] as List<dynamic>?)?.map((e) => e as String).toList(),
   details: json['details'] as String,
   isAvailable: json['isAvailable'] as bool,
+  isRentingPerDay: json['isRentingPerDay'] as bool,
   isActiveOnApp: json['isActiveOnApp'] as bool,
 );
 
@@ -33,5 +34,6 @@ Map<String, dynamic> _$PropertyToJson(Property instance) => <String, dynamic>{
   'tags': instance.tags,
   'details': instance.details,
   'isAvailable': instance.isAvailable,
+  'isRentingPerDay': instance.isRentingPerDay,
   'isActiveOnApp': instance.isActiveOnApp,
 };

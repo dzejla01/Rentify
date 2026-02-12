@@ -25,6 +25,7 @@ namespace Rentify.Services.Database
         public string NumberOfsquares { get; set; }
         public string Details { get; set; }
         public bool IsAvailable { get; set; }
+        public bool IsRentingPerDay {get; set;}
         public bool IsActiveOnApp { get; set; }
     }
 }

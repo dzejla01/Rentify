@@ -65,6 +65,9 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
   LatLng? _pickedPoint;
   bool _isReverseLoading = false;
 
+  late bool _isActiveOnApp;
+  late bool _isRentingPerDay;
+
   void _addError(String field, String message) {
     _fieldErrors[field] = message;
     setState(() {});
@@ -217,6 +220,15 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
   bool valid() {
     _clearErrors();
 
+    if (_isRentingPerDay) {
+      ErrorAutoRemoval.removeErrorOnTextField(
+        field: 'pricePerDay',
+        fieldErrors: _fieldErrors,
+        controller: fields.controller('pricePerDay'),
+        setState: () => setState(() {}),
+      );
+    }
+
     final isValid = ValidationEngine.validate([
       Rules.requiredText(
         'name',
@@ -250,6 +262,25 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
         "Cijena mora biti validan broj veći od 0",
       ),
 
+      Rules.requiredText(
+        'pricePerMonth',
+        fields.text('pricePerMonth'),
+        "Cijena je obavezna",
+      ),
+
+      if (_isRentingPerDay)
+        Rules.requiredText(
+          'pricePerDay',
+          fields.text('pricePerDay'),
+          "Cijena je obavezna",
+        ),
+
+      Rules.positiveNumber(
+        'pricePerDay',
+        fields.text('pricePerDay'),
+        "Cijena mora biti validan broj veći od 0",
+      ),
+
       if (fields.text('location').isEmpty)
         Rules.requiredMapPoint(
           'location',
@@ -267,7 +298,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
         _imagesDisplay,
         "Morate označiti jednu glavnu sliku",
       ),
-
       Rules.atLeastOneTag(
         'tags',
         _selectedTags,
@@ -293,7 +323,9 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           'name': fields.text('name').trim(),
           'city': fields.text('city').trim(),
           'location': fields.text('location').trim(),
-          'pricePerDay': 0.0,
+          'pricePerDay': _isRentingPerDay
+            ? double.tryParse(fields.controller('pricePerDay').text) ?? 0.0
+            : 0.0,
           'pricePerMonth': toDouble(fields.text('pricePerMonth')),
           'tags': _selectedTags.isEmpty ? null : _selectedTags,
           'numberOfsquares': fields.text('square').trim().isEmpty
@@ -303,6 +335,8 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
               ? null
               : fields.text('details').trim(),
           'isAvailable': true,
+          'IsRentingPerDay': _isRentingPerDay,
+          'IsActiveOnApp': _isActiveOnApp
         };
 
         int propertyId;
@@ -324,7 +358,10 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
         if (!mounted) return;
 
         // Resetujemo _isEditing
-        setState(() { _isEditing = false; widget.onEditingChanged?.call(false);});
+        setState(() {
+          _isEditing = false;
+          widget.onEditingChanged?.call(false);
+        });
       } catch (e) {
         debugPrint('saveChanges error: $e');
         if (mounted) {
@@ -378,9 +415,15 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     super.initState();
     creatingProviders();
     creatingTextFieldsAndOther();
-    if(!widget.isCreate){
+    if (!widget.isCreate) {
       fillingTextFieldsAndOther();
       loadImages(widget.property!.id);
+
+      _isActiveOnApp = widget.property?.isActiveOnApp ?? false;
+      _isRentingPerDay = widget.property?.isRentingPerDay ?? false;
+    } else {
+      _isActiveOnApp = false;
+      _isRentingPerDay = false;
     }
     addingErrorAutoRemovals();
     isEditingOrNot();
@@ -402,6 +445,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       'details',
       'location',
       'city',
+      'pricePerDay',
     ]);
   }
 
@@ -414,6 +458,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       fields.setText('details', p.details);
       fields.setText('location', p.location);
       fields.setText('city', p.city);
+      fields.setText('pricePerDay', p.pricePerDay.toString());
 
       if (p.tags != null) {
         _selectedTags = List<String>.from(p.tags!);
@@ -490,10 +535,9 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
 
   void isEditingOrNot() {
     _isEditing = widget.isCreate;
-    if(!widget.isCreate){
+    if (!widget.isCreate) {
       widget.onEditingChanged?.call(false);
-    }
-    else{
+    } else {
       widget.onEditingChanged?.call(true);
     }
   }
@@ -524,6 +568,11 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isActiveOnApp =
+        !widget.isCreate && (widget.property?.isActiveOnApp ?? false);
+
+    final bool isRentingPerDay =
+        !widget.isCreate && (widget.property?.isRentingPerDay ?? false);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -572,6 +621,39 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
                         ),
                     ],
                   ),
+
+                  const SizedBox(height: 50),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildToggleBadge(
+                        text: "Aktivna",
+                        value: _isActiveOnApp,
+                        icon: Icons.check_circle,
+                        onTap: () {
+                          setState(() {
+                            _isActiveOnApp = !_isActiveOnApp;
+                            _isEditedForCreateButton = true;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(width: 8),
+
+                      _buildToggleBadge(
+                        text: "Po danu",
+                        value: _isRentingPerDay,
+                        icon: Icons.calendar_today,
+                        onTap: () {
+                          setState(() {
+                            _isRentingPerDay = !_isRentingPerDay;
+                            _isEditedForCreateButton = true;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -601,12 +683,12 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
               children: [
                 _rowTop(),
                 const SizedBox(height: 14),
-                _rowMiddle(),
+                _priceAndCitySection(),
                 const SizedBox(height: 14),
                 _rowBottom(),
                 const SizedBox(height: 14),
-                
-                if(!widget.isCreate)
+
+                if (!widget.isCreate)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -641,19 +723,17 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                         ),
-  
+
                       const SizedBox(width: 12),
                       _saveButton(),
                     ],
                   ),
-                
-                if(widget.isCreate)
-                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                   children: [
-                     _addButton(),
-                   ],
-                 )
+
+                if (widget.isCreate)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [_addButton()],
+                  ),
               ],
             ),
           ),
@@ -761,6 +841,40 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     );
   }
 
+  Widget _buildToggleBadge({
+    required String text,
+    required bool value,
+    required VoidCallback onTap,
+    required IconData icon,
+  }) {
+    return InkWell(
+      onTap: _isEditing ? onTap : null,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: value ? Colors.green : Colors.grey.shade400,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              value ? Icons.check_circle : Icons.cancel,
+              color: Colors.white,
+              size: 14,
+            ),
+            const SizedBox(width: 4),
+            Text(
+              text,
+              style: const TextStyle(color: Colors.white, fontSize: 11),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _housePlaceholder() {
     return Container(
       color: const Color(0xFFF2F2F2),
@@ -824,20 +938,33 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     );
   }
 
-  Widget _rowMiddle() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _priceAndCitySection() {
+    return Column(
       children: [
-        Expanded(
-          child: _field(
-            label: "Cijena (mjesečno):",
-            controller: fields.controller('pricePerMonth'),
-            keyboardType: TextInputType.number,
-            errorType: _fieldErrors['pricePerMonth'],
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _field(
+                label: "Cijena (mjesečno):",
+                controller: fields.controller('pricePerMonth'),
+                keyboardType: TextInputType.number,
+                errorType: _fieldErrors['pricePerMonth'],
+              ),
+            ),
+            const SizedBox(width: 14),
+            if (_isRentingPerDay)
+              Expanded(
+                child: _field(
+                  label: "Cijena (dnevno):",
+                  controller: fields.controller('pricePerDay'),
+                  keyboardType: TextInputType.number,
+                  errorType: _fieldErrors['pricePerDay'],
+                ),
+              ),
+          ],
         ),
-        const SizedBox(width: 14),
-        Expanded(child: _cityField()),
+        const SizedBox(height: 14),
+        _cityField(),
       ],
     );
   }
@@ -954,9 +1081,9 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
                 (context, controller, focusNode, onFieldSubmitted) {
                   return TextField(
                     onChanged: (value) {
-                       setState(() {
-                         _isEditedForCreateButton = true;
-                       });
+                      setState(() {
+                        _isEditedForCreateButton = true;
+                      });
                     },
                     controller: controller,
                     focusNode: focusNode,

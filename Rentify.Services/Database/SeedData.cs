@@ -96,6 +96,7 @@ public static class SeedData
         NumberOfsquares = "55",
         Details = "Bright apartment in central Sarajevo.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -111,6 +112,7 @@ public static class SeedData
         NumberOfsquares = "48",
         Details = "Flat near the old town.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -126,6 +128,7 @@ public static class SeedData
         NumberOfsquares = "60",
         Details = "Apartment with city views.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -141,6 +144,7 @@ public static class SeedData
         NumberOfsquares = "62",
         Details = "Modern loft style apartment.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -156,6 +160,7 @@ public static class SeedData
         NumberOfsquares = "50",
         Details = "Calm residential apartment.",
         IsAvailable = false,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -171,6 +176,7 @@ public static class SeedData
         NumberOfsquares = "57",
         Details = "Sunny apartment with open layout.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -186,6 +192,7 @@ public static class SeedData
         NumberOfsquares = "32",
         Details = "Compact studio apartment.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -201,6 +208,7 @@ public static class SeedData
         NumberOfsquares = "70",
         Details = "Residence with panoramic city view.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
 
@@ -220,6 +228,7 @@ public static class SeedData
         NumberOfsquares = "58",
         Details = "Apartment near the river.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -235,6 +244,7 @@ public static class SeedData
         NumberOfsquares = "65",
         Details = "Flat with a view of the Old Bridge.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -250,6 +260,7 @@ public static class SeedData
         NumberOfsquares = "50",
         Details = "Traditional stone apartment.",
         IsAvailable = false,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -265,6 +276,7 @@ public static class SeedData
         NumberOfsquares = "60",
         Details = "Apartment with sunny terrace.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -280,6 +292,7 @@ public static class SeedData
         NumberOfsquares = "54",
         Details = "Quiet apartment in city center.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -295,6 +308,7 @@ public static class SeedData
         NumberOfsquares = "45",
         Details = "Minimalist apartment.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -310,6 +324,7 @@ public static class SeedData
         NumberOfsquares = "56",
         Details = "Warm and relaxed living space.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
 
@@ -329,6 +344,7 @@ public static class SeedData
         NumberOfsquares = "48",
         Details = "Apartment in city center.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -344,6 +360,7 @@ public static class SeedData
         NumberOfsquares = "55",
         Details = "Flat near salt lakes.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -359,6 +376,7 @@ public static class SeedData
         NumberOfsquares = "30",
         Details = "Studio in a quiet area.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -374,6 +392,7 @@ public static class SeedData
         NumberOfsquares = "50",
         Details = "Modern city flat.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -389,6 +408,7 @@ public static class SeedData
         NumberOfsquares = "62",
         Details = "Spacious apartment for families.",
         IsAvailable = false,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -404,6 +424,7 @@ public static class SeedData
         NumberOfsquares = "53",
         Details = "Flat with great sunlight.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -419,6 +440,7 @@ public static class SeedData
         NumberOfsquares = "49",
         Details = "Calm and balanced apartment.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
 
@@ -438,6 +460,7 @@ public static class SeedData
         NumberOfsquares = "60",
         Details = "Urban loft in city center.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -453,6 +476,7 @@ public static class SeedData
         NumberOfsquares = "58",
         Details = "Apartment near river walk.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -468,6 +492,7 @@ public static class SeedData
         NumberOfsquares = "47",
         Details = "Minimalist residence.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -483,6 +508,7 @@ public static class SeedData
         NumberOfsquares = "64",
         Details = "Family-friendly city home.",
         IsAvailable = false,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -498,6 +524,7 @@ public static class SeedData
         NumberOfsquares = "33",
         Details = "Bright compact studio.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -513,6 +540,7 @@ public static class SeedData
         NumberOfsquares = "68",
         Details = "Flat with panoramic view.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -528,6 +556,7 @@ public static class SeedData
         NumberOfsquares = "46",
         Details = "Quiet corner apartment.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     },
     new Property
@@ -543,6 +572,7 @@ public static class SeedData
         NumberOfsquares = "61",
         Details = "Elegant flat in urban area.",
         IsAvailable = true,
+        IsRentingPerDay = true,
         IsActiveOnApp = true
     }
 );

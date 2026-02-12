@@ -29,5 +29,11 @@ namespace Rentify.Model.RequestObjects
         public string? Details { get; set; }
 
         public bool IsAvailable { get; set; } = true;
+
+        public bool IsRentingPerDay {get; set;}
+
+        public bool IsActiveOnApp {get; set;}
+
+
     }
 }

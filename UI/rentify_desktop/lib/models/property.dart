@@ -15,6 +15,7 @@ class Property {
   List<String>? tags;
   final String details;
   final bool isAvailable;
+  final bool isRentingPerDay;
   final bool isActiveOnApp;
 
   Property({
@@ -29,6 +30,7 @@ class Property {
     this.tags,
     required this.details,
     required this.isAvailable,
+    required this.isRentingPerDay,
     required this.isActiveOnApp,
   });
 

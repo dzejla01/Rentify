@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Rentify.Services.Migrations
 {
     [DbContext(typeof(RentifyDbContext))]
-    [Migration("20260203203924_fixingDatabase")]
-    partial class fixingDatabase
+    [Migration("20260212184456_addingisRentingPerDay")]
+    partial class addingisRentingPerDay
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -111,6 +111,9 @@ namespace Rentify.Services.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("boolean");
 
+                    b.Property<bool>("IsRentingPerDay")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
@@ -150,6 +153,7 @@ namespace Rentify.Services.Migrations
                             Details = "Bright apartment in central Sarajevo.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Zmaja od Bosne 12",
                             Name = "Central City Apartment",
                             NumberOfsquares = "55",
@@ -165,6 +169,7 @@ namespace Rentify.Services.Migrations
                             Details = "Flat near the old town.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Bistrik 7",
                             Name = "Old Town Flat",
                             NumberOfsquares = "48",
@@ -180,6 +185,7 @@ namespace Rentify.Services.Migrations
                             Details = "Apartment with city views.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Alipašina 42",
                             Name = "Hillside View Apartment",
                             NumberOfsquares = "60",
@@ -195,6 +201,7 @@ namespace Rentify.Services.Migrations
                             Details = "Modern loft style apartment.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Kolodvorska 18",
                             Name = "Modern Loft",
                             NumberOfsquares = "62",
@@ -210,6 +217,7 @@ namespace Rentify.Services.Migrations
                             Details = "Calm residential apartment.",
                             IsActiveOnApp = true,
                             IsAvailable = false,
+                            IsRentingPerDay = true,
                             Location = "Grbavička 91",
                             Name = "Quiet Residential Flat",
                             NumberOfsquares = "50",
@@ -225,6 +233,7 @@ namespace Rentify.Services.Migrations
                             Details = "Sunny apartment with open layout.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Hamze Hume 5",
                             Name = "Sunny Apartment",
                             NumberOfsquares = "57",
@@ -240,6 +249,7 @@ namespace Rentify.Services.Migrations
                             Details = "Compact studio apartment.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Logavina 23",
                             Name = "Compact Studio",
                             NumberOfsquares = "32",
@@ -255,6 +265,7 @@ namespace Rentify.Services.Migrations
                             Details = "Residence with panoramic city view.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Skenderija 10",
                             Name = "Panorama Residence",
                             NumberOfsquares = "70",
@@ -270,6 +281,7 @@ namespace Rentify.Services.Migrations
                             Details = "Apartment near the river.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Maršala Tita 14",
                             Name = "River Side Apartment",
                             NumberOfsquares = "58",
@@ -285,6 +297,7 @@ namespace Rentify.Services.Migrations
                             Details = "Flat with a view of the Old Bridge.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Rade Bitange 3",
                             Name = "Old Bridge View Flat",
                             NumberOfsquares = "65",
@@ -300,6 +313,7 @@ namespace Rentify.Services.Migrations
                             Details = "Traditional stone apartment.",
                             IsActiveOnApp = true,
                             IsAvailable = false,
+                            IsRentingPerDay = true,
                             Location = "Braće Fejića 27",
                             Name = "Stone House Apartment",
                             NumberOfsquares = "50",
@@ -315,6 +329,7 @@ namespace Rentify.Services.Migrations
                             Details = "Apartment with sunny terrace.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Adema Buća 9",
                             Name = "Sunny Terrace Flat",
                             NumberOfsquares = "60",
@@ -330,6 +345,7 @@ namespace Rentify.Services.Migrations
                             Details = "Quiet apartment in city center.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Kralja Tvrtka 6",
                             Name = "Quiet Center Apartment",
                             NumberOfsquares = "54",
@@ -345,6 +361,7 @@ namespace Rentify.Services.Migrations
                             Details = "Minimalist apartment.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Splitska 22",
                             Name = "Minimal Flat",
                             NumberOfsquares = "45",
@@ -360,6 +377,7 @@ namespace Rentify.Services.Migrations
                             Details = "Warm and relaxed living space.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Put Mladih Muslimana 4",
                             Name = "Evening Light Apartment",
                             NumberOfsquares = "56",
@@ -375,6 +393,7 @@ namespace Rentify.Services.Migrations
                             Details = "Apartment in city center.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Slatina 15",
                             Name = "City Center Apartment",
                             NumberOfsquares = "48",
@@ -390,6 +409,7 @@ namespace Rentify.Services.Migrations
                             Details = "Flat near salt lakes.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Turalibegova 8",
                             Name = "Salt Lake View Flat",
                             NumberOfsquares = "55",
@@ -405,6 +425,7 @@ namespace Rentify.Services.Migrations
                             Details = "Studio in a quiet area.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Batva 21",
                             Name = "Quiet Residential Studio",
                             NumberOfsquares = "30",
@@ -420,6 +441,7 @@ namespace Rentify.Services.Migrations
                             Details = "Modern city flat.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Krečka 33",
                             Name = "Modern Flat",
                             NumberOfsquares = "50",
@@ -435,6 +457,7 @@ namespace Rentify.Services.Migrations
                             Details = "Spacious apartment for families.",
                             IsActiveOnApp = true,
                             IsAvailable = false,
+                            IsRentingPerDay = true,
                             Location = "Brčanska Malta 12",
                             Name = "Family Apartment",
                             NumberOfsquares = "62",
@@ -450,6 +473,7 @@ namespace Rentify.Services.Migrations
                             Details = "Flat with great sunlight.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Stupine A2",
                             Name = "Sunlit Flat",
                             NumberOfsquares = "53",
@@ -465,6 +489,7 @@ namespace Rentify.Services.Migrations
                             Details = "Calm and balanced apartment.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Irac 6",
                             Name = "Calm Living Space",
                             NumberOfsquares = "49",
@@ -480,6 +505,7 @@ namespace Rentify.Services.Migrations
                             Details = "Urban loft in city center.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Kralja Petra I Karađorđevića 19",
                             Name = "City Loft",
                             NumberOfsquares = "60",
@@ -495,6 +521,7 @@ namespace Rentify.Services.Migrations
                             Details = "Apartment near river walk.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Obala Stepe Stepanovića 7",
                             Name = "River Walk Apartment",
                             NumberOfsquares = "58",
@@ -510,6 +537,7 @@ namespace Rentify.Services.Migrations
                             Details = "Minimalist residence.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Cara Dušana 41",
                             Name = "Minimal Residence",
                             NumberOfsquares = "47",
@@ -525,6 +553,7 @@ namespace Rentify.Services.Migrations
                             Details = "Family-friendly city home.",
                             IsActiveOnApp = true,
                             IsAvailable = false,
+                            IsRentingPerDay = true,
                             Location = "Bulevar Vojvode Stepe 88",
                             Name = "Family City Home",
                             NumberOfsquares = "64",
@@ -540,6 +569,7 @@ namespace Rentify.Services.Migrations
                             Details = "Bright compact studio.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Gundulićeva 10",
                             Name = "Bright Studio",
                             NumberOfsquares = "33",
@@ -555,6 +585,7 @@ namespace Rentify.Services.Migrations
                             Details = "Flat with panoramic view.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Kninska 25",
                             Name = "Panorama Flat",
                             NumberOfsquares = "68",
@@ -570,6 +601,7 @@ namespace Rentify.Services.Migrations
                             Details = "Quiet corner apartment.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Solunska 3",
                             Name = "Quiet Corner Apartment",
                             NumberOfsquares = "46",
@@ -585,6 +617,7 @@ namespace Rentify.Services.Migrations
                             Details = "Elegant flat in urban area.",
                             IsActiveOnApp = true,
                             IsAvailable = true,
+                            IsRentingPerDay = true,
                             Location = "Vase Pelagića 17",
                             Name = "Elegant City Flat",
                             NumberOfsquares = "61",
@@ -711,7 +744,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 3, 20, 39, 23, 754, DateTimeKind.Utc).AddTicks(1783),
+                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3297),
                             Description = "Standardni korisnik aplikacije",
                             IsActive = true,
                             Name = "Korisnik"
@@ -719,7 +752,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 3, 20, 39, 23, 754, DateTimeKind.Utc).AddTicks(1785),
+                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3300),
                             Description = "Vlasnik nekretnina koji može upravljati objektima",
                             IsActive = true,
                             Name = "Vlasnik"
@@ -734,7 +767,7 @@ namespace Rentify.Services.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime>("CreatedAt")
+                    b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("DateOfBirth")
@@ -792,40 +825,40 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 3, 20, 39, 23, 754, DateTimeKind.Utc).AddTicks(1905),
+                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3435),
                             Email = "marko.petrov@rentify.dev",
                             FirstName = "Marko",
                             IsActive = true,
                             IsVlasnik = true,
                             LastName = "Petrov",
-                            PasswordHash = "pLQytI47cHdFiyhPPZI8HpD49melhW3dUSa1mK+u4q/i6zW+klV0cNjaoPPpjw+HNSZee8wEnoJr+4emyIT9hw==",
-                            PasswordSalt = "kT4OxqHDuP1qkLw2D7EmQHLnOBCVlvrtvNk1zKe1Yck57obYgo/w6RFQIjoAdqVGwI2Vvs1rHvNohfs2pToH0BqjXfICFToTD4LlskX+2lKUxk9E21MDFmvS8zb7qyASc6tpkUFAGbXNYEmD1/sl0dttJ0aYbxY5CE1ivj0FDuA=",
+                            PasswordHash = "XNkQRGp+2dqdbwNz05fHEajjeI8RvxHME19epSCpfehGjEck9MXDi1jn0j6XeZHYQr991VQDulmnJpX24kucHg==",
+                            PasswordSalt = "5oMAqqQli4s1BkdzX9onmBq/9R6q0jya7qFv8xhTccyH10wxIOnDNJYYoJH8ac15DStwX/j3VqIAjWwszUkiLqGBs9qK63htH2maE8QhWVX+4ampjrXMzqjN2GUDVJSD3HJ+dcVOditi3hd0J+lQhiUowbxd66jQ0UQoM/IEFQw=",
                             Username = "owner1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 3, 20, 39, 23, 754, DateTimeKind.Utc).AddTicks(1911),
+                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3443),
                             Email = "ivana.kovac@rentify.dev",
                             FirstName = "Ivana",
                             IsActive = true,
                             IsVlasnik = false,
                             LastName = "Kovac",
-                            PasswordHash = "pLQytI47cHdFiyhPPZI8HpD49melhW3dUSa1mK+u4q/i6zW+klV0cNjaoPPpjw+HNSZee8wEnoJr+4emyIT9hw==",
-                            PasswordSalt = "kT4OxqHDuP1qkLw2D7EmQHLnOBCVlvrtvNk1zKe1Yck57obYgo/w6RFQIjoAdqVGwI2Vvs1rHvNohfs2pToH0BqjXfICFToTD4LlskX+2lKUxk9E21MDFmvS8zb7qyASc6tpkUFAGbXNYEmD1/sl0dttJ0aYbxY5CE1ivj0FDuA=",
+                            PasswordHash = "XNkQRGp+2dqdbwNz05fHEajjeI8RvxHME19epSCpfehGjEck9MXDi1jn0j6XeZHYQr991VQDulmnJpX24kucHg==",
+                            PasswordSalt = "5oMAqqQli4s1BkdzX9onmBq/9R6q0jya7qFv8xhTccyH10wxIOnDNJYYoJH8ac15DStwX/j3VqIAjWwszUkiLqGBs9qK63htH2maE8QhWVX+4ampjrXMzqjN2GUDVJSD3HJ+dcVOditi3hd0J+lQhiUowbxd66jQ0UQoM/IEFQw=",
                             Username = "user1"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 3, 20, 39, 23, 754, DateTimeKind.Utc).AddTicks(1913),
+                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3445),
                             Email = "nikola.jovic@rentify.dev",
                             FirstName = "Nikola",
                             IsActive = true,
                             IsVlasnik = true,
                             LastName = "Jovic",
-                            PasswordHash = "pLQytI47cHdFiyhPPZI8HpD49melhW3dUSa1mK+u4q/i6zW+klV0cNjaoPPpjw+HNSZee8wEnoJr+4emyIT9hw==",
-                            PasswordSalt = "kT4OxqHDuP1qkLw2D7EmQHLnOBCVlvrtvNk1zKe1Yck57obYgo/w6RFQIjoAdqVGwI2Vvs1rHvNohfs2pToH0BqjXfICFToTD4LlskX+2lKUxk9E21MDFmvS8zb7qyASc6tpkUFAGbXNYEmD1/sl0dttJ0aYbxY5CE1ivj0FDuA=",
+                            PasswordHash = "XNkQRGp+2dqdbwNz05fHEajjeI8RvxHME19epSCpfehGjEck9MXDi1jn0j6XeZHYQr991VQDulmnJpX24kucHg==",
+                            PasswordSalt = "5oMAqqQli4s1BkdzX9onmBq/9R6q0jya7qFv8xhTccyH10wxIOnDNJYYoJH8ac15DStwX/j3VqIAjWwszUkiLqGBs9qK63htH2maE8QhWVX+4ampjrXMzqjN2GUDVJSD3HJ+dcVOditi3hd0J+lQhiUowbxd66jQ0UQoM/IEFQw=",
                             Username = "owner2"
                         });
                 });
@@ -855,21 +888,21 @@ namespace Rentify.Services.Migrations
                         {
                             UserId = 1,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 2, 3, 20, 39, 23, 754, DateTimeKind.Utc).AddTicks(1938),
+                            DateAssigned = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3467),
                             Id = 0
                         },
                         new
                         {
                             UserId = 2,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 2, 3, 20, 39, 23, 754, DateTimeKind.Utc).AddTicks(1940),
+                            DateAssigned = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3468),
                             Id = 0
                         },
                         new
                         {
                             UserId = 3,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 2, 3, 20, 39, 23, 754, DateTimeKind.Utc).AddTicks(1941),
+                            DateAssigned = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3469),
                             Id = 0
                         });
                 });

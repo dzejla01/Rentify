@@ -44,7 +44,6 @@ namespace Rentify.Services.Database
         [MaxLength(20)]
         public string? PhoneNumber { get; set; }
 
-        // Navigation property for the many-to-many relationship with Role
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 }

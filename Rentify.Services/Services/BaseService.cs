@@ -58,6 +58,11 @@ namespace Rentify.Services.Services
             return query;
         }
 
+        protected virtual IQueryable<TEntity> AddInclude(IQueryable<TEntity> query, TSearch search)
+        {
+            return query;
+        }
+
         public virtual async Task<T?> GetByIdAsync(int id)
         {
             var entity = await _context.Set<TEntity>().FindAsync(id);

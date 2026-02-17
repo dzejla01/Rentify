@@ -9,6 +9,9 @@ part of 'property.dart';
 Property _$PropertyFromJson(Map<String, dynamic> json) => Property(
   id: (json['id'] as num).toInt(),
   userId: (json['userId'] as num).toInt(),
+  user: json['user'] == null
+      ? null
+      : User.fromJson(json['user'] as Map<String, dynamic>),
   name: json['name'] as String,
   location: json['location'] as String,
   city: json['city'] as String,
@@ -25,6 +28,7 @@ Property _$PropertyFromJson(Map<String, dynamic> json) => Property(
 Map<String, dynamic> _$PropertyToJson(Property instance) => <String, dynamic>{
   'id': instance.id,
   'userId': instance.userId,
+  'user': instance.user,
   'name': instance.name,
   'location': instance.location,
   'city': instance.city,

@@ -6,6 +6,7 @@ namespace Rentify.Model.ResponseObjects
     {
         public int Id { get; set; }
         public int UserId { get; set; }
+        public UserResponse? User {get; set;}
         public string Name { get; set; } = null!;
         public string Location { get; set; } = null!;
         public string City { get; set; } = null!;

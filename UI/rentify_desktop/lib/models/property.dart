@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:rentify_desktop/models/user.dart';
 
 part 'property.g.dart';
 
@@ -6,6 +7,7 @@ part 'property.g.dart';
 class Property {
   final int id;
   final int userId;
+  User? user;
   final String name;
   final String location;
   final String city;
@@ -21,6 +23,7 @@ class Property {
   Property({
     required this.id,
     required this.userId,
+    this.user,
     required this.name,
     required this.location,
     required this.city,

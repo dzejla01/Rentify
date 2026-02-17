@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Rentify.Model.RequestObjects
 {
@@ -13,5 +14,8 @@ namespace Rentify.Model.RequestObjects
         public bool IsMonthly { get; set; }
 
         public bool? IsApproved { get; set; }
+        public DateTime? CreatedAt { get; set;}
+        public DateTime? StartDateOfRenting {get; set;}
+        public DateTime? EndDateOfRenting {get; set;}
     }
 }

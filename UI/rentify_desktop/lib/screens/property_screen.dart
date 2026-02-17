@@ -40,7 +40,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
               "page": page,
               "pageSize": pageSize,
               "includeTotalCount": includeTotalCount,
-              if (filter != null && filter.isNotEmpty) "FTS": filter,
+              if (filter != null && filter.isNotEmpty) "name": filter,
             };
 
             final result = await _propertyProvider.get(filter: backendFilter);
@@ -57,12 +57,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
   }
 
   Future<void> _onSearchChanged(String value) async {
-    await _propertyPaging.goToPage(0);
-
-    await _propertyPaging.loadPage(
-      pageNumber: 0,
-      filter: value, 
-    );
+    await _propertyPaging.goToPage(0, value);
   }
 
   @override

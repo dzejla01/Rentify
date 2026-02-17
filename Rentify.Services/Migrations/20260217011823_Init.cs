@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Rentify.Services.Migrations
 {
     /// <inheritdoc />
-    public partial class fixingDatabase : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -148,8 +148,12 @@ namespace Rentify.Services.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     PropertyId = table.Column<int>(type: "integer", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Comment = table.Column<string>(type: "text", nullable: false),
                     Price = table.Column<double>(type: "double precision", nullable: false),
                     IsPayed = table.Column<bool>(type: "boolean", nullable: false),
+                    MonthNumber = table.Column<int>(type: "integer", nullable: false),
+                    YearNumber = table.Column<int>(type: "integer", nullable: false),
                     DateToPay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     WarningDateToPay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
@@ -200,7 +204,10 @@ namespace Rentify.Services.Migrations
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     PropertyId = table.Column<int>(type: "integer", nullable: false),
                     IsMonthly = table.Column<bool>(type: "boolean", nullable: false),
-                    IsAproved = table.Column<bool>(type: "boolean", nullable: true)
+                    IsApproved = table.Column<bool>(type: "boolean", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    StartDateOfRenting = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    EndDateOfRenting = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -252,8 +259,8 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "Description", "IsActive", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 2, 12, 17, 43, 26, 216, DateTimeKind.Utc).AddTicks(163), "Standardni korisnik aplikacije", true, "Korisnik" },
-                    { 2, new DateTime(2026, 2, 12, 17, 43, 26, 216, DateTimeKind.Utc).AddTicks(166), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
+                    { 1, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(6935), "Standardni korisnik aplikacije", true, "Korisnik" },
+                    { 2, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(6937), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
                 });
 
             migrationBuilder.InsertData(
@@ -261,9 +268,10 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "DateOfBirth", "Email", "FirstName", "IsActive", "IsVlasnik", "LastLoginAt", "LastName", "PasswordHash", "PasswordSalt", "PhoneNumber", "UserImage", "Username" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 2, 12, 17, 43, 26, 216, DateTimeKind.Utc).AddTicks(346), null, "marko.petrov@rentify.dev", "Marko", true, true, null, "Petrov", "Z4wbTY1vtyCVj8ZHkrGzHZgV71fPjStP5JaQhazVHIcLdBclaEu3l2boMA4sbFWvPhnhjV6jUr852XM07SNnhQ==", "9x+2HucsLx7FOQxfAqWJmxM+rRd7K0yqLucwHGAekMxMRt0i4zj5rTocSmlSJBGQ/IqpOyAUyXb8LyPnbL65CjwBV742F/ODn2XoznYp6E+RyxsVUi1rNLfHyXOO33SNF7f7cuLRx9dlzIolBs/dHIdmhlc2B44n1Zk5Ss/53K0=", null, null, "owner1" },
-                    { 2, new DateTime(2026, 2, 12, 17, 43, 26, 216, DateTimeKind.Utc).AddTicks(354), null, "ivana.kovac@rentify.dev", "Ivana", true, false, null, "Kovac", "Z4wbTY1vtyCVj8ZHkrGzHZgV71fPjStP5JaQhazVHIcLdBclaEu3l2boMA4sbFWvPhnhjV6jUr852XM07SNnhQ==", "9x+2HucsLx7FOQxfAqWJmxM+rRd7K0yqLucwHGAekMxMRt0i4zj5rTocSmlSJBGQ/IqpOyAUyXb8LyPnbL65CjwBV742F/ODn2XoznYp6E+RyxsVUi1rNLfHyXOO33SNF7f7cuLRx9dlzIolBs/dHIdmhlc2B44n1Zk5Ss/53K0=", null, null, "user1" },
-                    { 3, new DateTime(2026, 2, 12, 17, 43, 26, 216, DateTimeKind.Utc).AddTicks(357), null, "nikola.jovic@rentify.dev", "Nikola", true, true, null, "Jovic", "Z4wbTY1vtyCVj8ZHkrGzHZgV71fPjStP5JaQhazVHIcLdBclaEu3l2boMA4sbFWvPhnhjV6jUr852XM07SNnhQ==", "9x+2HucsLx7FOQxfAqWJmxM+rRd7K0yqLucwHGAekMxMRt0i4zj5rTocSmlSJBGQ/IqpOyAUyXb8LyPnbL65CjwBV742F/ODn2XoznYp6E+RyxsVUi1rNLfHyXOO33SNF7f7cuLRx9dlzIolBs/dHIdmhlc2B44n1Zk5Ss/53K0=", null, null, "owner2" }
+                    { 1, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7086), null, "marko.petrov@rentify.dev", "Marko", true, true, null, "Petrov", "KnSt830bAW20TATzJ8kL912BjQ8mzAEel3vxjIcuGeEnJQHswI0uBrLFmvLSXgh1Tw3Ag45+iaf0Gv/9+TVrRw==", "WdyorRpL2HD6naOHP5khOGhHYS7YUatco+e3OLQyMm9eVY8XKkt41yOuFGxDv/FE70jytKZbW6KXwh24z++nDgtMEOxfG5Wbd0xyX1zvICVBA9zwcuDV/6qux4/AnyxSCwKtqQp/re2u2NA4w5JuiH3gB6QTU059B3krwUE0pDs=", null, null, "owner1" },
+                    { 2, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7093), null, "ivana.kovac@rentify.dev", "Ivana", true, false, null, "Kovac", "KnSt830bAW20TATzJ8kL912BjQ8mzAEel3vxjIcuGeEnJQHswI0uBrLFmvLSXgh1Tw3Ag45+iaf0Gv/9+TVrRw==", "WdyorRpL2HD6naOHP5khOGhHYS7YUatco+e3OLQyMm9eVY8XKkt41yOuFGxDv/FE70jytKZbW6KXwh24z++nDgtMEOxfG5Wbd0xyX1zvICVBA9zwcuDV/6qux4/AnyxSCwKtqQp/re2u2NA4w5JuiH3gB6QTU059B3krwUE0pDs=", null, null, "user1" },
+                    { 3, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7095), null, "nikola.jovic@rentify.dev", "Nikola", true, true, null, "Jovic", "KnSt830bAW20TATzJ8kL912BjQ8mzAEel3vxjIcuGeEnJQHswI0uBrLFmvLSXgh1Tw3Ag45+iaf0Gv/9+TVrRw==", "WdyorRpL2HD6naOHP5khOGhHYS7YUatco+e3OLQyMm9eVY8XKkt41yOuFGxDv/FE70jytKZbW6KXwh24z++nDgtMEOxfG5Wbd0xyX1zvICVBA9zwcuDV/6qux4/AnyxSCwKtqQp/re2u2NA4w5JuiH3gB6QTU059B3krwUE0pDs=", null, null, "owner2" },
+                    { 4, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7097), null, "amar.hodzic@rentify.dev", "Amar", true, false, null, "Hodzic", "KnSt830bAW20TATzJ8kL912BjQ8mzAEel3vxjIcuGeEnJQHswI0uBrLFmvLSXgh1Tw3Ag45+iaf0Gv/9+TVrRw==", "WdyorRpL2HD6naOHP5khOGhHYS7YUatco+e3OLQyMm9eVY8XKkt41yOuFGxDv/FE70jytKZbW6KXwh24z++nDgtMEOxfG5Wbd0xyX1zvICVBA9zwcuDV/6qux4/AnyxSCwKtqQp/re2u2NA4w5JuiH3gB6QTU059B3krwUE0pDs=", null, null, "user2" }
                 });
 
             migrationBuilder.InsertData(
@@ -271,36 +279,36 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "City", "Details", "IsActiveOnApp", "IsAvailable", "IsRentingPerDay", "Location", "Name", "NumberOfsquares", "PricePerDay", "PricePerMonth", "Tags", "UserId" },
                 values: new object[,]
                 {
-                    { 1, "Sarajevo", "Bright apartment in central Sarajevo.", true, true, false, "Zmaja od Bosne 12", "Central City Apartment", "55", 65.0, 1550.0, new List<string> { "urban", "bright", "central", "modern" }, 1 },
-                    { 2, "Sarajevo", "Flat near the old town.", true, true, false, "Bistrik 7", "Old Town Flat", "48", 60.0, 1450.0, new List<string> { "historic", "authentic", "warm" }, 1 },
-                    { 3, "Sarajevo", "Apartment with city views.", true, true, false, "Alipašina 42", "Hillside View Apartment", "60", 70.0, 1650.0, new List<string> { "view", "calm", "elevated" }, 3 },
-                    { 4, "Sarajevo", "Modern loft style apartment.", true, true, false, "Kolodvorska 18", "Modern Loft", "62", 75.0, 1800.0, new List<string> { "loft", "stylish", "open" }, 1 },
-                    { 5, "Sarajevo", "Calm residential apartment.", true, false, false, "Grbavička 91", "Quiet Residential Flat", "50", 55.0, 1350.0, new List<string> { "quiet", "balanced", "comfortable" }, 3 },
-                    { 6, "Sarajevo", "Sunny apartment with open layout.", true, true, false, "Hamze Hume 5", "Sunny Apartment", "57", 68.0, 1600.0, new List<string> { "sunny", "warm", "airy" }, 1 },
-                    { 7, "Sarajevo", "Compact studio apartment.", true, true, false, "Logavina 23", "Compact Studio", "32", 45.0, 1100.0, new List<string> { "compact", "simple", "efficient" }, 3 },
-                    { 8, "Sarajevo", "Residence with panoramic city view.", true, true, false, "Skenderija 10", "Panorama Residence", "70", 80.0, 1900.0, new List<string> { "panorama", "exclusive", "bright" }, 1 },
-                    { 9, "Mostar", "Apartment near the river.", true, true, false, "Maršala Tita 14", "River Side Apartment", "58", 70.0, 1650.0, new List<string> { "river", "relaxing", "open" }, 3 },
-                    { 10, "Mostar", "Flat with a view of the Old Bridge.", true, true, false, "Rade Bitange 3", "Old Bridge View Flat", "65", 85.0, 2000.0, new List<string> { "iconic", "view", "historic" }, 1 },
-                    { 11, "Mostar", "Traditional stone apartment.", true, false, false, "Braće Fejića 27", "Stone House Apartment", "50", 60.0, 1450.0, new List<string> { "stone", "traditional", "cool" }, 3 },
-                    { 12, "Mostar", "Apartment with sunny terrace.", true, true, false, "Adema Buća 9", "Sunny Terrace Flat", "60", 75.0, 1750.0, new List<string> { "sunny", "terrace", "open" }, 1 },
-                    { 13, "Mostar", "Quiet apartment in city center.", true, true, false, "Kralja Tvrtka 6", "Quiet Center Apartment", "54", 65.0, 1550.0, new List<string> { "quiet", "central", "comfortable" }, 3 },
-                    { 14, "Mostar", "Minimalist apartment.", true, true, false, "Splitska 22", "Minimal Flat", "45", 55.0, 1300.0, new List<string> { "minimal", "clean", "simple" }, 1 },
-                    { 15, "Mostar", "Warm and relaxed living space.", true, true, false, "Put Mladih Muslimana 4", "Evening Light Apartment", "56", 68.0, 1600.0, new List<string> { "warm", "evening", "relaxed" }, 3 },
-                    { 16, "Tuzla", "Apartment in city center.", true, true, false, "Slatina 15", "City Center Apartment", "48", 50.0, 1200.0, new List<string> { "central", "balanced", "urban" }, 1 },
-                    { 17, "Tuzla", "Flat near salt lakes.", true, true, false, "Turalibegova 8", "Salt Lake View Flat", "55", 65.0, 1500.0, new List<string> { "lake", "fresh", "open" }, 3 },
-                    { 18, "Tuzla", "Studio in a quiet area.", true, true, false, "Batva 21", "Quiet Residential Studio", "30", 40.0, 950.0, new List<string> { "quiet", "compact", "simple" }, 1 },
-                    { 19, "Tuzla", "Modern city flat.", true, true, false, "Krečka 33", "Modern Flat", "50", 55.0, 1300.0, new List<string> { "modern", "clean", "bright" }, 3 },
-                    { 20, "Tuzla", "Spacious apartment for families.", true, false, false, "Brčanska Malta 12", "Family Apartment", "62", 60.0, 1400.0, new List<string> { "family", "comfortable", "spacious" }, 1 },
-                    { 21, "Tuzla", "Flat with great sunlight.", true, true, false, "Stupine A2", "Sunlit Flat", "53", 58.0, 1350.0, new List<string> { "sunny", "open", "warm" }, 3 },
-                    { 22, "Tuzla", "Calm and balanced apartment.", true, true, false, "Irac 6", "Calm Living Space", "49", 52.0, 1250.0, new List<string> { "calm", "balanced", "quiet" }, 1 },
-                    { 23, "Banja Luka", "Urban loft in city center.", true, true, false, "Kralja Petra I Karađorđevića 19", "City Loft", "60", 70.0, 1650.0, new List<string> { "loft", "urban", "creative" }, 3 },
-                    { 24, "Banja Luka", "Apartment near river walk.", true, true, false, "Obala Stepe Stepanovića 7", "River Walk Apartment", "58", 75.0, 1750.0, new List<string> { "river", "walkable", "fresh" }, 1 },
-                    { 25, "Banja Luka", "Minimalist residence.", true, true, false, "Cara Dušana 41", "Minimal Residence", "47", 55.0, 1300.0, new List<string> { "minimal", "clean", "simple" }, 3 },
-                    { 26, "Banja Luka", "Family-friendly city home.", true, false, false, "Bulevar Vojvode Stepe 88", "Family City Home", "64", 65.0, 1550.0, new List<string> { "family", "balanced", "comfortable" }, 1 },
-                    { 27, "Banja Luka", "Bright compact studio.", true, true, false, "Gundulićeva 10", "Bright Studio", "33", 45.0, 1050.0, new List<string> { "bright", "compact", "efficient" }, 3 },
-                    { 28, "Banja Luka", "Flat with panoramic view.", true, true, false, "Kninska 25", "Panorama Flat", "68", 78.0, 1850.0, new List<string> { "panorama", "open", "elevated" }, 1 },
-                    { 29, "Banja Luka", "Quiet corner apartment.", true, true, false, "Solunska 3", "Quiet Corner Apartment", "46", 50.0, 1200.0, new List<string> { "quiet", "corner", "calm" }, 3 },
-                    { 30, "Banja Luka", "Elegant flat in urban area.", true, true, false, "Vase Pelagića 17", "Elegant City Flat", "61", 72.0, 1700.0, new List<string> { "elegant", "stylish", "urban" }, 1 }
+                    { 1, "Sarajevo", "Bright apartment in central Sarajevo.", true, true, true, "Zmaja od Bosne 12", "Central City Apartment", "55", 65.0, 1550.0, new List<string> { "urban", "bright", "central", "modern" }, 1 },
+                    { 2, "Sarajevo", "Flat near the old town.", true, true, true, "Bistrik 7", "Old Town Flat", "48", 60.0, 1450.0, new List<string> { "historic", "authentic", "warm" }, 1 },
+                    { 3, "Sarajevo", "Apartment with city views.", true, true, true, "Alipašina 42", "Hillside View Apartment", "60", 70.0, 1650.0, new List<string> { "view", "calm", "elevated" }, 3 },
+                    { 4, "Sarajevo", "Modern loft style apartment.", true, true, true, "Kolodvorska 18", "Modern Loft", "62", 75.0, 1800.0, new List<string> { "loft", "stylish", "open" }, 1 },
+                    { 5, "Sarajevo", "Calm residential apartment.", true, false, true, "Grbavička 91", "Quiet Residential Flat", "50", 55.0, 1350.0, new List<string> { "quiet", "balanced", "comfortable" }, 3 },
+                    { 6, "Sarajevo", "Sunny apartment with open layout.", true, true, true, "Hamze Hume 5", "Sunny Apartment", "57", 68.0, 1600.0, new List<string> { "sunny", "warm", "airy" }, 1 },
+                    { 7, "Sarajevo", "Compact studio apartment.", true, true, true, "Logavina 23", "Compact Studio", "32", 45.0, 1100.0, new List<string> { "compact", "simple", "efficient" }, 3 },
+                    { 8, "Sarajevo", "Residence with panoramic city view.", true, true, true, "Skenderija 10", "Panorama Residence", "70", 80.0, 1900.0, new List<string> { "panorama", "exclusive", "bright" }, 1 },
+                    { 9, "Mostar", "Apartment near the river.", true, true, true, "Maršala Tita 14", "River Side Apartment", "58", 70.0, 1650.0, new List<string> { "river", "relaxing", "open" }, 3 },
+                    { 10, "Mostar", "Flat with a view of the Old Bridge.", true, true, true, "Rade Bitange 3", "Old Bridge View Flat", "65", 85.0, 2000.0, new List<string> { "iconic", "view", "historic" }, 1 },
+                    { 11, "Mostar", "Traditional stone apartment.", true, false, true, "Braće Fejića 27", "Stone House Apartment", "50", 60.0, 1450.0, new List<string> { "stone", "traditional", "cool" }, 3 },
+                    { 12, "Mostar", "Apartment with sunny terrace.", true, true, true, "Adema Buća 9", "Sunny Terrace Flat", "60", 75.0, 1750.0, new List<string> { "sunny", "terrace", "open" }, 1 },
+                    { 13, "Mostar", "Quiet apartment in city center.", true, true, true, "Kralja Tvrtka 6", "Quiet Center Apartment", "54", 65.0, 1550.0, new List<string> { "quiet", "central", "comfortable" }, 3 },
+                    { 14, "Mostar", "Minimalist apartment.", true, true, true, "Splitska 22", "Minimal Flat", "45", 55.0, 1300.0, new List<string> { "minimal", "clean", "simple" }, 1 },
+                    { 15, "Mostar", "Warm and relaxed living space.", true, true, true, "Put Mladih Muslimana 4", "Evening Light Apartment", "56", 68.0, 1600.0, new List<string> { "warm", "evening", "relaxed" }, 3 },
+                    { 16, "Tuzla", "Apartment in city center.", true, true, true, "Slatina 15", "City Center Apartment", "48", 50.0, 1200.0, new List<string> { "central", "balanced", "urban" }, 1 },
+                    { 17, "Tuzla", "Flat near salt lakes.", true, true, true, "Turalibegova 8", "Salt Lake View Flat", "55", 65.0, 1500.0, new List<string> { "lake", "fresh", "open" }, 3 },
+                    { 18, "Tuzla", "Studio in a quiet area.", true, true, true, "Batva 21", "Quiet Residential Studio", "30", 40.0, 950.0, new List<string> { "quiet", "compact", "simple" }, 1 },
+                    { 19, "Tuzla", "Modern city flat.", true, true, true, "Krečka 33", "Modern Flat", "50", 55.0, 1300.0, new List<string> { "modern", "clean", "bright" }, 3 },
+                    { 20, "Tuzla", "Spacious apartment for families.", true, false, true, "Brčanska Malta 12", "Family Apartment", "62", 60.0, 1400.0, new List<string> { "family", "comfortable", "spacious" }, 1 },
+                    { 21, "Tuzla", "Flat with great sunlight.", true, true, true, "Stupine A2", "Sunlit Flat", "53", 58.0, 1350.0, new List<string> { "sunny", "open", "warm" }, 3 },
+                    { 22, "Tuzla", "Calm and balanced apartment.", true, true, true, "Irac 6", "Calm Living Space", "49", 52.0, 1250.0, new List<string> { "calm", "balanced", "quiet" }, 1 },
+                    { 23, "Banja Luka", "Urban loft in city center.", true, true, true, "Kralja Petra I Karađorđevića 19", "City Loft", "60", 70.0, 1650.0, new List<string> { "loft", "urban", "creative" }, 3 },
+                    { 24, "Banja Luka", "Apartment near river walk.", true, true, true, "Obala Stepe Stepanovića 7", "River Walk Apartment", "58", 75.0, 1750.0, new List<string> { "river", "walkable", "fresh" }, 1 },
+                    { 25, "Banja Luka", "Minimalist residence.", true, true, true, "Cara Dušana 41", "Minimal Residence", "47", 55.0, 1300.0, new List<string> { "minimal", "clean", "simple" }, 3 },
+                    { 26, "Banja Luka", "Family-friendly city home.", true, false, true, "Bulevar Vojvode Stepe 88", "Family City Home", "64", 65.0, 1550.0, new List<string> { "family", "balanced", "comfortable" }, 1 },
+                    { 27, "Banja Luka", "Bright compact studio.", true, true, true, "Gundulićeva 10", "Bright Studio", "33", 45.0, 1050.0, new List<string> { "bright", "compact", "efficient" }, 3 },
+                    { 28, "Banja Luka", "Flat with panoramic view.", true, true, true, "Kninska 25", "Panorama Flat", "68", 78.0, 1850.0, new List<string> { "panorama", "open", "elevated" }, 1 },
+                    { 29, "Banja Luka", "Quiet corner apartment.", true, true, true, "Solunska 3", "Quiet Corner Apartment", "46", 50.0, 1200.0, new List<string> { "quiet", "corner", "calm" }, 3 },
+                    { 30, "Banja Luka", "Elegant flat in urban area.", true, true, true, "Vase Pelagića 17", "Elegant City Flat", "61", 72.0, 1700.0, new List<string> { "elegant", "stylish", "urban" }, 1 }
                 });
 
             migrationBuilder.InsertData(
@@ -308,9 +316,42 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "RoleId", "UserId", "DateAssigned", "Id" },
                 values: new object[,]
                 {
-                    { 2, 1, new DateTime(2026, 2, 12, 17, 43, 26, 216, DateTimeKind.Utc).AddTicks(380), 0 },
-                    { 1, 2, new DateTime(2026, 2, 12, 17, 43, 26, 216, DateTimeKind.Utc).AddTicks(381), 0 },
-                    { 2, 3, new DateTime(2026, 2, 12, 17, 43, 26, 216, DateTimeKind.Utc).AddTicks(382), 0 }
+                    { 2, 1, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7121), 0 },
+                    { 1, 2, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7122), 0 },
+                    { 2, 3, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7123), 0 },
+                    { 1, 4, new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7132), 0 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Payments",
+                columns: new[] { "Id", "Comment", "DateToPay", "IsPayed", "MonthNumber", "Name", "Price", "PropertyId", "UserId", "WarningDateToPay", "YearNumber" },
+                values: new object[,]
+                {
+                    { 1, "Bez komentara", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Plaćanje mjesečne rate za 12.2025", 1550.0, 1, 2, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 2, "Bez komentara", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Plaćanje mjesečne rate za 1.2026", 1550.0, 1, 2, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 3, "Bez komentara", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Plaćanje mjesečne rate za 2.2026", 1550.0, 1, 2, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 5, "Bez komentara", new DateTime(2026, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc), false, 0, "Plaćanje kratkog boravka", 400.0, 8, 2, new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc), 0 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Reservations",
+                columns: new[] { "Id", "CreatedAt", "EndDateOfRenting", "IsApproved", "IsMonthly", "PropertyId", "StartDateOfRenting", "UserId" },
+                values: new object[,]
+                {
+                    { 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), null, true, true, 1, null, 2 },
+                    { 2, new DateTime(2026, 1, 2, 0, 0, 0, 0, DateTimeKind.Utc), null, true, true, 2, null, 4 },
+                    { 3, new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), null, true, true, 4, null, 2 },
+                    { 4, new DateTime(2026, 1, 4, 0, 0, 0, 0, DateTimeKind.Utc), null, true, true, 6, null, 4 },
+                    { 5, new DateTime(2026, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, false, 8, new DateTime(2026, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2 },
+                    { 6, new DateTime(2026, 2, 2, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Utc), true, false, 10, new DateTime(2026, 3, 10, 0, 0, 0, 0, DateTimeKind.Utc), 4 },
+                    { 7, new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 4, 7, 0, 0, 0, 0, DateTimeKind.Utc), true, false, 12, new DateTime(2026, 4, 1, 0, 0, 0, 0, DateTimeKind.Utc), 2 },
+                    { 8, new DateTime(2026, 2, 4, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 4, 14, 0, 0, 0, 0, DateTimeKind.Utc), true, false, 14, new DateTime(2026, 4, 10, 0, 0, 0, 0, DateTimeKind.Utc), 4 },
+                    { 9, new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), null, null, true, 16, null, 2 },
+                    { 10, new DateTime(2026, 2, 6, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc), null, false, 18, new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Utc), 4 },
+                    { 11, new DateTime(2026, 2, 7, 0, 0, 0, 0, DateTimeKind.Utc), null, null, true, 20, null, 2 },
+                    { 12, new DateTime(2026, 2, 8, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 5, 14, 0, 0, 0, 0, DateTimeKind.Utc), null, false, 22, new DateTime(2026, 5, 10, 0, 0, 0, 0, DateTimeKind.Utc), 4 },
+                    { 13, new DateTime(2026, 2, 9, 0, 0, 0, 0, DateTimeKind.Utc), null, false, true, 24, null, 2 },
+                    { 14, new DateTime(2026, 2, 10, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc), false, false, 26, new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc), 4 }
                 });
 
             migrationBuilder.CreateIndex(

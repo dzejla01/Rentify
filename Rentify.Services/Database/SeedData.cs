@@ -69,13 +69,27 @@ public static class SeedData
                 PasswordSalt = saltBase64,
                 IsVlasnik = true,
                 IsActive = true,
+            },
+            new User
+            {
+                Id = 4,
+                FirstName = "Amar",
+                LastName = "Hodzic",
+                Email = "amar.hodzic@rentify.dev",
+                Username = "user2",
+                PasswordHash = hashBase64,
+                PasswordSalt = saltBase64,
+                IsVlasnik = false,
+                IsActive = true
             }
+
         );
 
         modelBuilder.Entity<UserRole>().HasData(
             new UserRole { UserId = 1, RoleId = 2 }, // owner1 -> Vlasnik
             new UserRole { UserId = 2, RoleId = 1 }, // user1 -> Korisnik
-            new UserRole { UserId = 3, RoleId = 2 }  // owner2 -> Vlasnik
+            new UserRole { UserId = 3, RoleId = 2 },
+            new UserRole { UserId = 4, RoleId = 1 }// owner2 -> Vlasnik
         );
 
         modelBuilder.Entity<Property>().HasData(
@@ -576,6 +590,183 @@ public static class SeedData
         IsActiveOnApp = true
     }
 );
+
+        modelBuilder.Entity<Reservation>().HasData(
+
+            // =============================
+            // MJESEČNE (automatski odobrene)
+            // =============================
+            new Reservation { Id = 1, UserId = 2, PropertyId = 1, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Reservation { Id = 2, UserId = 4, PropertyId = 2, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc) },
+            new Reservation { Id = 3, UserId = 2, PropertyId = 4, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc) },
+            new Reservation { Id = 4, UserId = 4, PropertyId = 6, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 4, 0, 0, 0, DateTimeKind.Utc) },
+
+            // =============================
+            // DNEVNE (odobrene)
+            // =============================
+            new Reservation
+            {
+                Id = 5,
+                UserId = 2,
+                PropertyId = 8,
+                IsMonthly = false,
+                StartDateOfRenting = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+                EndDateOfRenting = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
+                IsApproved = true,
+                CreatedAt = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Reservation
+            {
+                Id = 6,
+                UserId = 4,
+                PropertyId = 10,
+                IsMonthly = false,
+                StartDateOfRenting = new DateTime(2026, 3, 10, 0, 0, 0, DateTimeKind.Utc),
+                EndDateOfRenting = new DateTime(2026, 3, 15, 0, 0, 0, DateTimeKind.Utc),
+                IsApproved = true,
+                CreatedAt = new DateTime(2026, 2, 2, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Reservation
+            {
+                Id = 7,
+                UserId = 2,
+                PropertyId = 12,
+                IsMonthly = false,
+                StartDateOfRenting = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc),
+                EndDateOfRenting = new DateTime(2026, 4, 7, 0, 0, 0, DateTimeKind.Utc),
+                IsApproved = true,
+                CreatedAt = new DateTime(2026, 2, 3, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Reservation
+            {
+                Id = 8,
+                UserId = 4,
+                PropertyId = 14,
+                IsMonthly = false,
+                StartDateOfRenting = new DateTime(2026, 4, 10, 0, 0, 0, DateTimeKind.Utc),
+                EndDateOfRenting = new DateTime(2026, 4, 14, 0, 0, 0, DateTimeKind.Utc),
+                IsApproved = true,
+                CreatedAt = new DateTime(2026, 2, 4, 0, 0, 0, DateTimeKind.Utc)
+            },
+
+            // =============================
+            // ZAHTJEVI NA ČEKANJU
+            // =============================
+            new Reservation { Id = 9, UserId = 2, PropertyId = 16, IsMonthly = true, IsApproved = null, CreatedAt = new DateTime(2026, 2, 5, 0, 0, 0, DateTimeKind.Utc) },
+            new Reservation
+            {
+                Id = 10,
+                UserId = 4,
+                PropertyId = 18,
+                IsMonthly = false,
+                StartDateOfRenting = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc),
+                EndDateOfRenting = new DateTime(2026, 5, 5, 0, 0, 0, DateTimeKind.Utc),
+                IsApproved = null,
+                CreatedAt = new DateTime(2026, 2, 6, 0, 0, 0, DateTimeKind.Utc)
+            },
+            new Reservation { Id = 11, UserId = 2, PropertyId = 20, IsMonthly = true, IsApproved = null, CreatedAt = new DateTime(2026, 2, 7, 0, 0, 0, DateTimeKind.Utc) },
+            new Reservation
+            {
+                Id = 12,
+                UserId = 4,
+                PropertyId = 22,
+                IsMonthly = false,
+                StartDateOfRenting = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+                EndDateOfRenting = new DateTime(2026, 5, 14, 0, 0, 0, DateTimeKind.Utc),
+                IsApproved = null,
+                CreatedAt = new DateTime(2026, 2, 8, 0, 0, 0, DateTimeKind.Utc)
+            },
+
+            // =============================
+            // ODBIJENE
+            // =============================
+            new Reservation { Id = 13, UserId = 2, PropertyId = 24, IsMonthly = true, IsApproved = false, CreatedAt = new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc) },
+            new Reservation
+            {
+                Id = 14,
+                UserId = 4,
+                PropertyId = 26,
+                IsMonthly = false,
+                StartDateOfRenting = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+                EndDateOfRenting = new DateTime(2026, 6, 5, 0, 0, 0, DateTimeKind.Utc),
+                IsApproved = false,
+                CreatedAt = new DateTime(2026, 2, 10, 0, 0, 0, DateTimeKind.Utc)
+            }
+        );
+
+        modelBuilder.Entity<Payment>().HasData(
+
+    // =======================================================
+    // IVANA KOVAC (UserId=2) - MJESEČNA (PropertyId=1)
+    // Plaćeno: 12/2025, 01/2026, 02/2026
+    // Neplaćeno: 03/2026 -> treba poslati zahtjev za mart
+    // =======================================================
+
+    new Payment
+    {
+        Id = 1,
+        UserId = 2,
+        PropertyId = 1,
+        Name = "Plaćanje mjesečne rate za 12.2025",
+        Price = 1550,
+        Comment = "Bez komentara",
+        IsPayed = true,
+        MonthNumber = 12,
+        YearNumber = 2025,
+        DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, DateTimeKind.Utc),
+        WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, DateTimeKind.Utc),
+    },
+    new Payment
+    {
+        Id = 2,
+        UserId = 2,
+        PropertyId = 1,
+        Name = "Plaćanje mjesečne rate za 1.2026",
+        Price = 1550,
+        Comment = "Bez komentara",
+        IsPayed = true,
+        MonthNumber = 1,
+        YearNumber = 2026,
+        DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc),
+        WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+    },
+    new Payment
+    {
+        Id = 3,
+        UserId = 2,
+        PropertyId = 1,
+        Name = "Plaćanje mjesečne rate za 2.2026",
+        Price = 1550,
+        Comment = "Bez komentara",
+        IsPayed = true,
+        MonthNumber = 2,
+        YearNumber = 2026,
+        DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, DateTimeKind.Utc),
+        WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, DateTimeKind.Utc),
+    },
+
+    // =======================================================
+    // IVANA KOVAC (UserId=2) - NIJE MJESEČNO (PropertyId=8)
+    // Za non-monthly: jedan payment zapis (jednokratno)
+    // =======================================================
+
+    new Payment
+    {
+        Id = 5,
+        UserId = 2,
+        PropertyId = 8,
+        Name = "Plaćanje kratkog boravka",
+        Price = 400, 
+        Comment = "Bez komentara",
+        IsPayed = false,
+        MonthNumber = 0,  
+        YearNumber = 0,   
+        DateToPay = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+        WarningDateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
+    }
+);
+
+
 
     }
 }

@@ -68,10 +68,10 @@ class UniversalPagingProvider<T> with ChangeNotifier {
     await loadPage();
   }
 
-  Future<void> goToPage(int pageNumber) async {
+  Future<void> goToPage(int pageNumber, String value) async {
     if (pageNumber >= 0 && pageNumber * pageSize < totalCount) {
       _page = pageNumber;
-      await loadPage();
+      await loadPage(filter: value);
     }
   }
 

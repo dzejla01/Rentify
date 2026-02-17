@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/providers/auth_provider.dart';
 import 'package:rentify_desktop/providers/image_provider.dart';
+import 'package:rentify_desktop/providers/payment_provider.dart';
 import 'package:rentify_desktop/providers/property_image_provider.dart';
 import 'package:rentify_desktop/providers/property_provider.dart';
+import 'package:rentify_desktop/providers/reservation_provider.dart';
 import 'package:rentify_desktop/providers/user_provider.dart';
 import 'package:rentify_desktop/routes/app_routes.dart';
 import 'screens/login_screen.dart';
@@ -18,6 +20,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => PropertyProvider()),
         ChangeNotifierProvider(create: (_) => PropertyImageProvider()),
+        ChangeNotifierProvider(create: (_) => ReservationProvider()),
+        ChangeNotifierProvider(create: (_) => PaymentProvider()),
       ],
       child: const RentifyApp(),
     ),

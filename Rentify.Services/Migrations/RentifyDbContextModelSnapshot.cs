@@ -59,11 +59,22 @@ namespace Rentify.Services.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime?>("DateToPay")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsPayed")
                         .HasColumnType("boolean");
+
+                    b.Property<int>("MonthNumber")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<double>("Price")
                         .HasColumnType("double precision");
@@ -77,6 +88,9 @@ namespace Rentify.Services.Migrations
                     b.Property<DateTime?>("WarningDateToPay")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("YearNumber")
+                        .HasColumnType("integer");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PropertyId");
@@ -84,6 +98,64 @@ namespace Rentify.Services.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Payments");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Comment = "Bez komentara",
+                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsPayed = true,
+                            MonthNumber = 12,
+                            Name = "Plaćanje mjesečne rate za 12.2025",
+                            Price = 1550.0,
+                            PropertyId = 1,
+                            UserId = 2,
+                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            YearNumber = 2025
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Comment = "Bez komentara",
+                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsPayed = true,
+                            MonthNumber = 1,
+                            Name = "Plaćanje mjesečne rate za 1.2026",
+                            Price = 1550.0,
+                            PropertyId = 1,
+                            UserId = 2,
+                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            YearNumber = 2026
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Comment = "Bez komentara",
+                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsPayed = true,
+                            MonthNumber = 2,
+                            Name = "Plaćanje mjesečne rate za 2.2026",
+                            Price = 1550.0,
+                            PropertyId = 1,
+                            UserId = 2,
+                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            YearNumber = 2026
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Comment = "Bez komentara",
+                            DateToPay = new DateTime(2026, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsPayed = false,
+                            MonthNumber = 0,
+                            Name = "Plaćanje kratkog boravka",
+                            Price = 400.0,
+                            PropertyId = 8,
+                            UserId = 2,
+                            WarningDateToPay = new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            YearNumber = 0
+                        });
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Property", b =>
@@ -658,7 +730,13 @@ namespace Rentify.Services.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<bool?>("IsAproved")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("EndDateOfRenting")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool?>("IsApproved")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsMonthly")
@@ -666,6 +744,9 @@ namespace Rentify.Services.Migrations
 
                     b.Property<int>("PropertyId")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("StartDateOfRenting")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -677,6 +758,144 @@ namespace Rentify.Services.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Reservations");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsMonthly = true,
+                            PropertyId = 1,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2026, 1, 2, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsMonthly = true,
+                            PropertyId = 2,
+                            UserId = 4
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsMonthly = true,
+                            PropertyId = 4,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2026, 1, 4, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsMonthly = true,
+                            PropertyId = 6,
+                            UserId = 4
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2026, 2, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndDateOfRenting = new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsMonthly = false,
+                            PropertyId = 8,
+                            StartDateOfRenting = new DateTime(2026, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2026, 2, 2, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndDateOfRenting = new DateTime(2026, 3, 15, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsMonthly = false,
+                            PropertyId = 10,
+                            StartDateOfRenting = new DateTime(2026, 3, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UserId = 4
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndDateOfRenting = new DateTime(2026, 4, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsMonthly = false,
+                            PropertyId = 12,
+                            StartDateOfRenting = new DateTime(2026, 4, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 8,
+                            CreatedAt = new DateTime(2026, 2, 4, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndDateOfRenting = new DateTime(2026, 4, 14, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = true,
+                            IsMonthly = false,
+                            PropertyId = 14,
+                            StartDateOfRenting = new DateTime(2026, 4, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UserId = 4
+                        },
+                        new
+                        {
+                            Id = 9,
+                            CreatedAt = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsMonthly = true,
+                            PropertyId = 16,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 10,
+                            CreatedAt = new DateTime(2026, 2, 6, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndDateOfRenting = new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsMonthly = false,
+                            PropertyId = 18,
+                            StartDateOfRenting = new DateTime(2026, 5, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UserId = 4
+                        },
+                        new
+                        {
+                            Id = 11,
+                            CreatedAt = new DateTime(2026, 2, 7, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsMonthly = true,
+                            PropertyId = 20,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 12,
+                            CreatedAt = new DateTime(2026, 2, 8, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndDateOfRenting = new DateTime(2026, 5, 14, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsMonthly = false,
+                            PropertyId = 22,
+                            StartDateOfRenting = new DateTime(2026, 5, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UserId = 4
+                        },
+                        new
+                        {
+                            Id = 13,
+                            CreatedAt = new DateTime(2026, 2, 9, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = false,
+                            IsMonthly = true,
+                            PropertyId = 24,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 14,
+                            CreatedAt = new DateTime(2026, 2, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            EndDateOfRenting = new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsApproved = false,
+                            IsMonthly = false,
+                            PropertyId = 26,
+                            StartDateOfRenting = new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UserId = 4
+                        });
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Review", b =>
@@ -741,7 +960,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3297),
+                            CreatedAt = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(6935),
                             Description = "Standardni korisnik aplikacije",
                             IsActive = true,
                             Name = "Korisnik"
@@ -749,7 +968,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3300),
+                            CreatedAt = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(6937),
                             Description = "Vlasnik nekretnina koji može upravljati objektima",
                             IsActive = true,
                             Name = "Vlasnik"
@@ -822,41 +1041,54 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3435),
+                            CreatedAt = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7086),
                             Email = "marko.petrov@rentify.dev",
                             FirstName = "Marko",
                             IsActive = true,
                             IsVlasnik = true,
                             LastName = "Petrov",
-                            PasswordHash = "XNkQRGp+2dqdbwNz05fHEajjeI8RvxHME19epSCpfehGjEck9MXDi1jn0j6XeZHYQr991VQDulmnJpX24kucHg==",
-                            PasswordSalt = "5oMAqqQli4s1BkdzX9onmBq/9R6q0jya7qFv8xhTccyH10wxIOnDNJYYoJH8ac15DStwX/j3VqIAjWwszUkiLqGBs9qK63htH2maE8QhWVX+4ampjrXMzqjN2GUDVJSD3HJ+dcVOditi3hd0J+lQhiUowbxd66jQ0UQoM/IEFQw=",
+                            PasswordHash = "KnSt830bAW20TATzJ8kL912BjQ8mzAEel3vxjIcuGeEnJQHswI0uBrLFmvLSXgh1Tw3Ag45+iaf0Gv/9+TVrRw==",
+                            PasswordSalt = "WdyorRpL2HD6naOHP5khOGhHYS7YUatco+e3OLQyMm9eVY8XKkt41yOuFGxDv/FE70jytKZbW6KXwh24z++nDgtMEOxfG5Wbd0xyX1zvICVBA9zwcuDV/6qux4/AnyxSCwKtqQp/re2u2NA4w5JuiH3gB6QTU059B3krwUE0pDs=",
                             Username = "owner1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3443),
+                            CreatedAt = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7093),
                             Email = "ivana.kovac@rentify.dev",
                             FirstName = "Ivana",
                             IsActive = true,
                             IsVlasnik = false,
                             LastName = "Kovac",
-                            PasswordHash = "XNkQRGp+2dqdbwNz05fHEajjeI8RvxHME19epSCpfehGjEck9MXDi1jn0j6XeZHYQr991VQDulmnJpX24kucHg==",
-                            PasswordSalt = "5oMAqqQli4s1BkdzX9onmBq/9R6q0jya7qFv8xhTccyH10wxIOnDNJYYoJH8ac15DStwX/j3VqIAjWwszUkiLqGBs9qK63htH2maE8QhWVX+4ampjrXMzqjN2GUDVJSD3HJ+dcVOditi3hd0J+lQhiUowbxd66jQ0UQoM/IEFQw=",
+                            PasswordHash = "KnSt830bAW20TATzJ8kL912BjQ8mzAEel3vxjIcuGeEnJQHswI0uBrLFmvLSXgh1Tw3Ag45+iaf0Gv/9+TVrRw==",
+                            PasswordSalt = "WdyorRpL2HD6naOHP5khOGhHYS7YUatco+e3OLQyMm9eVY8XKkt41yOuFGxDv/FE70jytKZbW6KXwh24z++nDgtMEOxfG5Wbd0xyX1zvICVBA9zwcuDV/6qux4/AnyxSCwKtqQp/re2u2NA4w5JuiH3gB6QTU059B3krwUE0pDs=",
                             Username = "user1"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3445),
+                            CreatedAt = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7095),
                             Email = "nikola.jovic@rentify.dev",
                             FirstName = "Nikola",
                             IsActive = true,
                             IsVlasnik = true,
                             LastName = "Jovic",
-                            PasswordHash = "XNkQRGp+2dqdbwNz05fHEajjeI8RvxHME19epSCpfehGjEck9MXDi1jn0j6XeZHYQr991VQDulmnJpX24kucHg==",
-                            PasswordSalt = "5oMAqqQli4s1BkdzX9onmBq/9R6q0jya7qFv8xhTccyH10wxIOnDNJYYoJH8ac15DStwX/j3VqIAjWwszUkiLqGBs9qK63htH2maE8QhWVX+4ampjrXMzqjN2GUDVJSD3HJ+dcVOditi3hd0J+lQhiUowbxd66jQ0UQoM/IEFQw=",
+                            PasswordHash = "KnSt830bAW20TATzJ8kL912BjQ8mzAEel3vxjIcuGeEnJQHswI0uBrLFmvLSXgh1Tw3Ag45+iaf0Gv/9+TVrRw==",
+                            PasswordSalt = "WdyorRpL2HD6naOHP5khOGhHYS7YUatco+e3OLQyMm9eVY8XKkt41yOuFGxDv/FE70jytKZbW6KXwh24z++nDgtMEOxfG5Wbd0xyX1zvICVBA9zwcuDV/6qux4/AnyxSCwKtqQp/re2u2NA4w5JuiH3gB6QTU059B3krwUE0pDs=",
                             Username = "owner2"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7097),
+                            Email = "amar.hodzic@rentify.dev",
+                            FirstName = "Amar",
+                            IsActive = true,
+                            IsVlasnik = false,
+                            LastName = "Hodzic",
+                            PasswordHash = "KnSt830bAW20TATzJ8kL912BjQ8mzAEel3vxjIcuGeEnJQHswI0uBrLFmvLSXgh1Tw3Ag45+iaf0Gv/9+TVrRw==",
+                            PasswordSalt = "WdyorRpL2HD6naOHP5khOGhHYS7YUatco+e3OLQyMm9eVY8XKkt41yOuFGxDv/FE70jytKZbW6KXwh24z++nDgtMEOxfG5Wbd0xyX1zvICVBA9zwcuDV/6qux4/AnyxSCwKtqQp/re2u2NA4w5JuiH3gB6QTU059B3krwUE0pDs=",
+                            Username = "user2"
                         });
                 });
 
@@ -885,21 +1117,28 @@ namespace Rentify.Services.Migrations
                         {
                             UserId = 1,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3467),
+                            DateAssigned = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7121),
                             Id = 0
                         },
                         new
                         {
                             UserId = 2,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3468),
+                            DateAssigned = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7122),
                             Id = 0
                         },
                         new
                         {
                             UserId = 3,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 2, 12, 18, 44, 55, 787, DateTimeKind.Utc).AddTicks(3469),
+                            DateAssigned = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7123),
+                            Id = 0
+                        },
+                        new
+                        {
+                            UserId = 4,
+                            RoleId = 1,
+                            DateAssigned = new DateTime(2026, 2, 17, 1, 18, 22, 567, DateTimeKind.Utc).AddTicks(7132),
                             Id = 0
                         });
                 });

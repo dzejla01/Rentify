@@ -158,12 +158,77 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
       ),
       FieldRule(
         "dateToPay",
-        () => _dateToPay == null ? "Datum roka je obavezan." : null,
+        () => _dateToPay == null ? "Rok plaćanja je obavezan." : null,
       ),
       FieldRule(
         "warningDateToPay",
         () => _warningDateToPay == null ? "Warning datum je obavezan." : null,
       ),
+
+      FieldRule(
+        "dateToPay",
+        () => _dateToPay == null
+            ? "Rok plaćanja je obavezan."
+            : null,
+      ),
+      FieldRule(
+        "warningDateToPay",
+        () => _warningDateToPay == null ? "Warning datum je obavezan." : null,
+      ),
+      FieldRule("dateToPay", () {
+        if (_dateToPay == null || _warningDateToPay == null) return null;
+
+        if (_dateToPay!.isAfter(_warningDateToPay!)) {
+          return "Rok plaćanja ne može biti poslije warning datuma.";
+        }
+        return null;
+      }),
+      FieldRule("warningDateToPay", () {
+        if (_dateToPay == null || _warningDateToPay == null) {
+          return null;
+        }
+
+        final due = DateTime(
+          _dateToPay!.year,
+          _dateToPay!.month,
+          _dateToPay!.day,
+        );
+
+        final warning = DateTime(
+          _warningDateToPay!.year,
+          _warningDateToPay!.month,
+          _warningDateToPay!.day,
+        );
+
+        if (warning.isAtSameMomentAs(due)) {
+          return "Warning datum ne smije biti isti kao rok plaćanja.";
+        }
+
+        return null;
+      }),
+      FieldRule("dateToPay", () {
+        if (_dateToPay == null || _warningDateToPay == null) {
+          return null;
+        }
+
+        final due = DateTime(
+          _dateToPay!.year,
+          _dateToPay!.month,
+          _dateToPay!.day,
+        );
+
+        final warning = DateTime(
+          _warningDateToPay!.year,
+          _warningDateToPay!.month,
+          _warningDateToPay!.day,
+        );
+
+        if (warning.isAtSameMomentAs(due)) {
+          return "Rok plaćana ne smije biti isti kao warning datum.";
+        }
+
+        return null;
+      }),
       
       if (!widget.isMonthly)
         Rules.positiveNumber(

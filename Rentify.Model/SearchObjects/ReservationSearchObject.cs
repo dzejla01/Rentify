@@ -10,7 +10,7 @@ namespace Rentify.Model.SearchObjects
         public bool? IsApproved { get; set; }
 
         // Include
-        public bool? IsUser {get; set;}
-        public bool? IsProperty {get; set;}
+        public bool? IncludeUser {get; set;}
+        public bool? IncludeProperty {get; set;}
     }
 }

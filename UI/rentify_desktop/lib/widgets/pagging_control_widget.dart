@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/search_result.dart';
 import '../helper/univerzal_pagging_helper.dart';
 
 typedef TableRowBuilder<T> = List<Widget> Function(T item);

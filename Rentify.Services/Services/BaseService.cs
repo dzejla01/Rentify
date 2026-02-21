@@ -26,8 +26,10 @@ namespace Rentify.Services.Services
         public virtual async Task<PagedResult<T>> GetAsync(TSearch search)
         {
             var query = _context.Set<TEntity>().AsQueryable();
-            query = ApplyFilter(query, search);
 
+            query = AddInclude(query, search);
+            query = ApplyFilter(query, search);
+            
             int? totalCount = null;
             if (search.IncludeTotalCount){
                 totalCount = await query.CountAsync();

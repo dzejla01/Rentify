@@ -21,6 +21,23 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Payment> ApplyFilter(IQueryable<Payment> query, PaymentSearchObject search)
         {
+            if (!string.IsNullOrEmpty(search.FTS))
+            {
+                var fts = search.FTS.ToLower();
+
+                query = query.Where(x =>
+                    x.Name.ToLower().Contains(fts)
+                    ||
+                    (x.MonthNumber.ToString().PadLeft(2, '0') + "." + x.YearNumber.ToString())
+                        .Contains(fts)
+                    ||
+                    ("uplaćeno".Contains(search.FTS.ToLower()) && x.IsPayed == true)
+                    ||
+                    ("na čekanju".Contains(search.FTS.ToLower()) && x.IsPayed == false)
+                );
+            }
+
+
             if (search.UserId.HasValue)
                 query = query.Where(x => x.UserId == search.UserId.Value);
 
@@ -37,6 +54,20 @@ namespace Rentify.Services.Services
                 query = query.Where(x => x.YearNumber == search.YearNumber.Value);
 
             return base.ApplyFilter(query, search);
+        }
+
+        protected override IQueryable<Payment> AddInclude(IQueryable<Payment> query, PaymentSearchObject search)
+        {
+            if (search.IncludeUser.HasValue)
+            {
+                query = query.Include(p => p.User);
+            }
+
+            if (search.IncludeProperty.HasValue)
+            {
+                query = query.Include(p => p.Property);
+            }
+            return base.AddInclude(query, search);
         }
 
     }

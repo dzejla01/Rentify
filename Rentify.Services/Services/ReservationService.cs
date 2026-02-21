@@ -21,6 +21,17 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
         {
+            if (!string.IsNullOrWhiteSpace(search.FTS))
+            {
+                var fts = search.FTS.Trim().ToLower();
+
+                query = query.Where(r =>
+                    r.Property.Name.ToLower().Contains(fts)
+                    || ("najamnina".ToLower().Contains(fts) && r.IsMonthly == true)
+                    || ("kratki boravak".ToLower().Contains(fts) && r.IsMonthly == false)
+                );
+            }
+
 
             if (search.UserId.HasValue)
             {
@@ -47,12 +58,12 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Reservation> AddInclude(IQueryable<Reservation> query, ReservationSearchObject search)
         {
-            if (search.IsUser.HasValue)
+            if (search.IncludeUser.HasValue)
             {
                 query = query.Include(p => p.User);
             }
 
-            if (search.IsProperty.HasValue)
+            if (search.IncludeProperty.HasValue)
             {
                 query = query.Include(p => p.Property);
             }

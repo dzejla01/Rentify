@@ -661,7 +661,7 @@ class _HomeScreenState extends State<HomeScreen> {
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      onChanged: onChanged, // ✅ samo refresh
+      onChanged: onChanged, 
       decoration: InputDecoration(
         labelText: label,
         filled: true,

@@ -6,6 +6,7 @@ import 'package:rentify_desktop/providers/payment_provider.dart';
 import 'package:rentify_desktop/providers/property_image_provider.dart';
 import 'package:rentify_desktop/providers/property_provider.dart';
 import 'package:rentify_desktop/providers/reservation_provider.dart';
+import 'package:rentify_desktop/providers/review_provider.dart';
 import 'package:rentify_desktop/providers/user_provider.dart';
 import 'package:rentify_desktop/routes/app_routes.dart';
 import 'screens/login_screen.dart';
@@ -22,6 +23,8 @@ void main() {
         ChangeNotifierProvider(create: (_) => PropertyImageProvider()),
         ChangeNotifierProvider(create: (_) => ReservationProvider()),
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
+        ChangeNotifierProvider(create: (_) => ReviewProvider()),
+
       ],
       child: const RentifyApp(),
     ),

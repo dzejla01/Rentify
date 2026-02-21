@@ -447,7 +447,7 @@ class _PaymentAddingScreenState extends State<PaymentAddingScreen> {
                 child: ElevatedButton(
                   onPressed: _submit,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                    backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
                   ),
                   child: const Text("Pošalji zahtjev"),

@@ -378,26 +378,42 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                     ),
                     SizedBox(
                       width: 120,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          final refreshed = await Navigator.push<bool>(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => PaymentEditingScreen(
-                                user: widget.user,
-                                property: widget.property,
-                                payment: p,
-                                isMonthly: true,
-                              ),
-                            ),
-                          );
+                      child: ElevatedButton.icon(
+  onPressed: () async {
+    final refreshed = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaymentEditingScreen(
+          user: widget.user,
+          property: widget.property,
+          payment: p,
+          isMonthly: true,
+        ),
+      ),
+    );
 
-                          if (refreshed == true && mounted) {
-                            await _refreshAll();
-                          }
-                        },
-                        child: const Text("Pregled"),
-                      ),
+    if (refreshed == true && mounted) {
+      await _refreshAll();
+    }
+  },
+  style: ElevatedButton.styleFrom(
+    backgroundColor: const Color(0xFF5F9F3B),
+    foregroundColor: Colors.white,
+    elevation: 0,
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(12),
+    ),
+  ),
+  icon: const Icon(Icons.visibility_rounded, size: 18),
+  label: const Text(
+    "Pregled",
+    style: TextStyle(
+      fontWeight: FontWeight.w700,
+      fontSize: 13.5,
+    ),
+  ),
+),
                     ),
                   ];
                 },

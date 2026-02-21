@@ -200,38 +200,106 @@ class _PaymentScreenState extends State<PaymentScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1️⃣ Izbor korisnika
-              const Text("Izaberi korisnika:*"),
+              RichText(
+                text: const TextSpan(
+                  text: "Izaberi korisnika",
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF374151),
+                  ),
+                  children: [
+                    TextSpan(
+                      text: " *",
+                      style: TextStyle(
+                        color: Color(0xFF5F9F3B), // Rentify green
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 5),
-              // Zamijeni trenutni DropdownButtonFormField<User> ovim
               _isLoadingUsers
                   ? const CircularProgressIndicator()
                   : Column(
                       children: _users.map((user) {
-                        return Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20), // elipsa
+                        return Container(
+                          margin: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: Colors.black.withOpacity(0.05),
+                            ),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color(0x12000000),
+                                blurRadius: 18,
+                                offset: Offset(0, 10),
+                              ),
+                            ],
                           ),
-                          color: Colors.grey[200],
-                          margin: const EdgeInsets.symmetric(vertical: 8),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 12,
+                              horizontal: 18,
+                              vertical: 16,
                             ),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "${user.firstName} ${user.lastName}",
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
+                                // 👤 Avatar circle
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFF5F9F3B),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: Text(
+                                    "${user.firstName[0]}${user.lastName[0]}",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
                                   ),
                                 ),
-                                ElevatedButton(
+
+                                const SizedBox(width: 16),
+
+                                // 📄 User info
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "${user.firstName} ${user.lastName}",
+                                        style: const TextStyle(
+                                          fontSize: 15.5,
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF2F2F2F),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      const Text(
+                                        "Pregled nekretnina korisnika",
+                                        style: TextStyle(
+                                          fontSize: 12.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: Color(0xFF6B7280),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                const SizedBox(width: 12),
+
+                                // 🔘 Action button
+                                ElevatedButton.icon(
                                   onPressed: () {
-                                    if (user == null) return;
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
@@ -240,7 +308,29 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                       ),
                                     );
                                   },
-                                  child: const Text("Pogledaj nekretnine"),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF5F9F3B),
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 18,
+                                      vertical: 14,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.home_rounded,
+                                    size: 18,
+                                  ),
+                                  label: const Text(
+                                    "Nekretnine",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 13.5,
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),

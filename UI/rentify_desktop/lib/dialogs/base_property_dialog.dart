@@ -899,9 +899,20 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       children: [
         // Dugme za dodavanje nove slike
         ElevatedButton(
-          onPressed: _addNewImage,
-          child: const Text("Dodaj sliku"),
+        onPressed: _addNewImage,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: rentifyGreenDark,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
+        child: const Text(
+          "Dodaj sliku",
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+      ),
 
         const SizedBox(height: 8),
 

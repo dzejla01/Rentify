@@ -259,8 +259,8 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "Description", "IsActive", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7584), "Standardni korisnik aplikacije", true, "Korisnik" },
-                    { 2, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7587), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
+                    { 1, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8341), "Standardni korisnik aplikacije", true, "Korisnik" },
+                    { 2, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8343), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
                 });
 
             migrationBuilder.InsertData(
@@ -268,10 +268,10 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "DateOfBirth", "Email", "FirstName", "IsActive", "IsVlasnik", "LastLoginAt", "LastName", "PasswordHash", "PasswordSalt", "PhoneNumber", "UserImage", "Username" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7690), null, "marko.petrov@rentify.dev", "Marko", true, true, null, "Petrov", "6jktbKxrYoarzgGaXFGVBsKoAW0caLzwNsuaN7gm/K+151LhEYeOsRPQbCtcnizCBm/b3vLzebL2kqP/S0PETA==", "t4UCb0VDJhTRc1ZblppCgvRT4lSiqX4g/OTFSjhkW3968M/C3EVHGCwdaU/0cH9qvvnDyZePPU+rfmQkNbm1dpq5MNnDjE0ZZVM0/mtdIfxPeuX4KtOqORcyJCImLK9DUnA4jkE39JtJGphusNEol6nWDMzMVgiVbN2/lL09qyo=", null, null, "owner1" },
-                    { 2, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7705), null, "ivana.kovac@rentify.dev", "Ivana", true, false, null, "Kovac", "6jktbKxrYoarzgGaXFGVBsKoAW0caLzwNsuaN7gm/K+151LhEYeOsRPQbCtcnizCBm/b3vLzebL2kqP/S0PETA==", "t4UCb0VDJhTRc1ZblppCgvRT4lSiqX4g/OTFSjhkW3968M/C3EVHGCwdaU/0cH9qvvnDyZePPU+rfmQkNbm1dpq5MNnDjE0ZZVM0/mtdIfxPeuX4KtOqORcyJCImLK9DUnA4jkE39JtJGphusNEol6nWDMzMVgiVbN2/lL09qyo=", null, null, "user1" },
-                    { 3, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7707), null, "nikola.jovic@rentify.dev", "Nikola", true, true, null, "Jovic", "6jktbKxrYoarzgGaXFGVBsKoAW0caLzwNsuaN7gm/K+151LhEYeOsRPQbCtcnizCBm/b3vLzebL2kqP/S0PETA==", "t4UCb0VDJhTRc1ZblppCgvRT4lSiqX4g/OTFSjhkW3968M/C3EVHGCwdaU/0cH9qvvnDyZePPU+rfmQkNbm1dpq5MNnDjE0ZZVM0/mtdIfxPeuX4KtOqORcyJCImLK9DUnA4jkE39JtJGphusNEol6nWDMzMVgiVbN2/lL09qyo=", null, null, "owner2" },
-                    { 4, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7708), null, "amar.hodzic@rentify.dev", "Amar", true, false, null, "Hodzic", "6jktbKxrYoarzgGaXFGVBsKoAW0caLzwNsuaN7gm/K+151LhEYeOsRPQbCtcnizCBm/b3vLzebL2kqP/S0PETA==", "t4UCb0VDJhTRc1ZblppCgvRT4lSiqX4g/OTFSjhkW3968M/C3EVHGCwdaU/0cH9qvvnDyZePPU+rfmQkNbm1dpq5MNnDjE0ZZVM0/mtdIfxPeuX4KtOqORcyJCImLK9DUnA4jkE39JtJGphusNEol6nWDMzMVgiVbN2/lL09qyo=", null, null, "user2" }
+                    { 1, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8458), null, "marko.petrov@rentify.dev", "Marko", true, true, null, "Petrov", "OX6HABaO1T+KPmx1f++5MIWjGmPElP2WQNnBJYYZ2xeGsFDDcJ+wYPpLEld9w91yc++PEEAGfc9+uYRNRx3jIw==", "4aGbYGCwPk11QbA9x1tp0CbJZTumA39jx3g8qdHFRp67i9TznxupgJHuG9XE4ewZ4grsMeYXkGX23RL8KGg11v99CzxkKj9dhueEPqvw7KDcMMU7cIY9L4D7MWUWe2/s+kSYsiZJ8ORDBPrIHdddFKHrSw2KPh17rW7FSGx8DgA=", null, null, "owner1" },
+                    { 2, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8466), null, "ivana.kovac@rentify.dev", "Ivana", true, false, null, "Kovac", "OX6HABaO1T+KPmx1f++5MIWjGmPElP2WQNnBJYYZ2xeGsFDDcJ+wYPpLEld9w91yc++PEEAGfc9+uYRNRx3jIw==", "4aGbYGCwPk11QbA9x1tp0CbJZTumA39jx3g8qdHFRp67i9TznxupgJHuG9XE4ewZ4grsMeYXkGX23RL8KGg11v99CzxkKj9dhueEPqvw7KDcMMU7cIY9L4D7MWUWe2/s+kSYsiZJ8ORDBPrIHdddFKHrSw2KPh17rW7FSGx8DgA=", null, null, "user1" },
+                    { 3, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8468), null, "nikola.jovic@rentify.dev", "Nikola", true, true, null, "Jovic", "OX6HABaO1T+KPmx1f++5MIWjGmPElP2WQNnBJYYZ2xeGsFDDcJ+wYPpLEld9w91yc++PEEAGfc9+uYRNRx3jIw==", "4aGbYGCwPk11QbA9x1tp0CbJZTumA39jx3g8qdHFRp67i9TznxupgJHuG9XE4ewZ4grsMeYXkGX23RL8KGg11v99CzxkKj9dhueEPqvw7KDcMMU7cIY9L4D7MWUWe2/s+kSYsiZJ8ORDBPrIHdddFKHrSw2KPh17rW7FSGx8DgA=", null, null, "owner2" },
+                    { 4, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8470), null, "amar.hodzic@rentify.dev", "Amar", true, false, null, "Hodzic", "OX6HABaO1T+KPmx1f++5MIWjGmPElP2WQNnBJYYZ2xeGsFDDcJ+wYPpLEld9w91yc++PEEAGfc9+uYRNRx3jIw==", "4aGbYGCwPk11QbA9x1tp0CbJZTumA39jx3g8qdHFRp67i9TznxupgJHuG9XE4ewZ4grsMeYXkGX23RL8KGg11v99CzxkKj9dhueEPqvw7KDcMMU7cIY9L4D7MWUWe2/s+kSYsiZJ8ORDBPrIHdddFKHrSw2KPh17rW7FSGx8DgA=", null, null, "user2" }
                 });
 
             migrationBuilder.InsertData(
@@ -316,10 +316,10 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "RoleId", "UserId", "DateAssigned", "Id" },
                 values: new object[,]
                 {
-                    { 2, 1, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7729), 0 },
-                    { 1, 2, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7729), 0 },
-                    { 2, 3, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7730), 0 },
-                    { 1, 4, new DateTime(2026, 2, 18, 12, 29, 38, 268, DateTimeKind.Utc).AddTicks(7731), 0 }
+                    { 2, 1, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8494), 0 },
+                    { 1, 2, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8495), 0 },
+                    { 2, 3, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8496), 0 },
+                    { 1, 4, new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8497), 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -352,6 +352,25 @@ namespace Rentify.Services.Migrations
                     { 12, new DateTime(2026, 2, 8, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 5, 14, 0, 0, 0, 0, DateTimeKind.Utc), null, false, 22, new DateTime(2026, 5, 10, 0, 0, 0, 0, DateTimeKind.Utc), 4 },
                     { 13, new DateTime(2026, 2, 9, 0, 0, 0, 0, DateTimeKind.Utc), null, false, true, 24, null, 2 },
                     { 14, new DateTime(2026, 2, 10, 0, 0, 0, 0, DateTimeKind.Utc), new DateTime(2026, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc), false, false, 26, new DateTime(2026, 6, 1, 0, 0, 0, 0, DateTimeKind.Utc), 4 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Reviews",
+                columns: new[] { "Id", "Comment", "PropertyId", "StarRate", "UserId" },
+                values: new object[,]
+                {
+                    { 1, "Odličan stan, čisto i uredno. Lokacija savršena.", 1, 5, 2 },
+                    { 2, "Predivan pogled i jako ljubazan vlasnik.", 8, 5, 2 },
+                    { 3, "Stan je moderan i komforan, preporuka.", 4, 4, 2 },
+                    { 4, "Solidno iskustvo, sve je bilo korektno.", 12, 4, 2 },
+                    { 5, "Lijep ambijent i mirna lokacija.", 2, 4, 4 },
+                    { 6, "Stan je bio uredan, ali može bolje održavanje.", 6, 3, 4 },
+                    { 7, "Top lokacija u Mostaru, pogled fantastičan!", 10, 5, 4 },
+                    { 8, "Minimalistički stan, vrlo prijatan boravak.", 14, 4, 4 },
+                    { 9, "Praktičan stan u centru Tuzle.", 16, 4, 2 },
+                    { 10, "Loft je unikatan i jako udoban.", 23, 5, 4 },
+                    { 11, "Stan uz rijeku, veoma ugodno iskustvo.", 24, 4, 2 },
+                    { 12, "Panoramski pogled vrijedi svake marke.", 28, 5, 4 }
                 });
 
             migrationBuilder.CreateIndex(

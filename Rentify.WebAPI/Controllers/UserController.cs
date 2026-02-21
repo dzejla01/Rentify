@@ -1,7 +1,7 @@
-﻿using MapsterMapper;
+﻿using Rentify.Model.RequestObjects;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObject;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
@@ -30,6 +30,16 @@ namespace Rentify.WebAPI.Controllers
         public async Task<LoginResponse> Login([FromBody] LoginRequest request)
         {
             return await _userService.LoginAsync(request);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword(
+        [FromBody] ForgotPasswordRequest request)
+        {
+            await _userService.ForgotPasswordAsync(request.Email);
+
+            return Ok("Ako email postoji, poslan je link za reset lozinke.");
         }
     }
 }

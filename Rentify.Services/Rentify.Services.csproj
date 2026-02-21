@@ -26,6 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Rentify.EmailConsumer\Rentify.EmailConsumer.csproj" />
     <ProjectReference Include="..\Rentify.Model\Rentify.Model.csproj" />
   </ItemGroup>
 

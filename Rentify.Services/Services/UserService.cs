@@ -2,6 +2,8 @@
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using RabbitMQ.Client;
+using Rentify.EmailConsumer.Messages;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObject;
 using Rentify.Model.ResponseObjects;
@@ -15,6 +17,7 @@ using System.Data;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Rentify.Services
@@ -24,9 +27,11 @@ namespace Rentify.Services
           IUserService
     {
         private readonly IConfiguration _configuration;
-        public UserService(RentifyDbContext context, IConfiguration configuration,IMapper mapper) : base(context, mapper)
+        private readonly IConnection _rabbitConnection;
+        public UserService(RentifyDbContext context, IConfiguration configuration,IMapper mapper, IConnection rabbitConnection) : base(context, mapper)
         {
             _configuration = configuration;
+            _rabbitConnection = rabbitConnection;
         }
 
 
@@ -136,6 +141,64 @@ namespace Rentify.Services
             await _context.SaveChangesAsync();
 
             return response;
+        }
+
+        public async Task ForgotPasswordAsync(string email)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Email == email);
+
+            if (user == null)
+                throw new Exception("Email nije povezan ni sa jednim nalogom.");
+
+            var newPassword = GenerateRandomPassword();
+
+            UserHelper.CreatePasswordHash(newPassword, out string hash, out string salt);
+
+            user.PasswordHash = hash;
+            user.PasswordSalt = salt;
+
+            await _context.SaveChangesAsync();
+
+            var channel = await _rabbitConnection.CreateChannelAsync();
+
+            await channel.QueueDeclareAsync(
+                queue: "email.reset-password",
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null
+            );
+
+            var message = new ResetPasswordEmailMessage
+            {
+                To = user.Email!,
+                UserName = user.Username ?? user.FirstName ?? "Korisnik",
+                NewPassword = newPassword
+            };
+
+            var body = Encoding.UTF8.GetBytes(
+                JsonSerializer.Serialize(message)
+            );
+
+            await channel.BasicPublishAsync(
+                exchange: "",
+                routingKey: "email.reset-password",
+                body: body
+            );
+        }
+
+        private string GenerateRandomPassword(int length = 10)
+        {
+            const string chars =
+                "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@$?";
+
+            var random = new Random();
+            return new string(
+                Enumerable.Repeat(chars, length)
+                    .Select(s => s[random.Next(s.Length)])
+                    .ToArray()
+            );
         }
 
 

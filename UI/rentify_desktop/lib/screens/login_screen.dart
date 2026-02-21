@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_desktop/dialogs/forgot_password_dialog.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/models/login_request.dart';
 import 'package:rentify_desktop/providers/auth_provider.dart';
@@ -25,9 +26,12 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool? _hoverForForgotPassword;
 
-  Future<void> _forgotPasswordOrUsername() async{
-
-
+  Future<void> _forgotPasswordOrUsername() async {
+  await showDialog(
+    context: context,
+    barrierDismissible: false, 
+    builder: (_) => const ForgotPasswordDialog(),
+  );
   }
 
 

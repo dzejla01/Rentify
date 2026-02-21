@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.14.36518.9 d17.14
+VisualStudioVersion = 17.14.36518.9
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rentify.WebAPI", "Rentify.WebAPI\Rentify.WebAPI.csproj", "{4E01F479-C840-4859-AF5B-A388D17F9BBE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rentify.Services", "Rentify.Services\Rentify.Services.csproj", "{785867FD-52E5-4D29-92C2-1042B82E3B90}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rentify.Model", "Rentify.Model\Rentify.Model.csproj", "{5F578CF2-ABBF-4E17-AFD4-86882FB05424}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Rentify.EmailConsumer", "Rentify.EmailConsumer\Rentify.EmailConsumer.csproj", "{1EC9031A-CCEB-44D7-94CE-FFB13A9A6850}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{5F578CF2-ABBF-4E17-AFD4-86882FB05424}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F578CF2-ABBF-4E17-AFD4-86882FB05424}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F578CF2-ABBF-4E17-AFD4-86882FB05424}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1EC9031A-CCEB-44D7-94CE-FFB13A9A6850}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1EC9031A-CCEB-44D7-94CE-FFB13A9A6850}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1EC9031A-CCEB-44D7-94CE-FFB13A9A6850}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1EC9031A-CCEB-44D7-94CE-FFB13A9A6850}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

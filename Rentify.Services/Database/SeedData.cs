@@ -39,7 +39,7 @@ public static class SeedData
                 Id = 1,
                 FirstName = "Marko",
                 LastName = "Petrov",
-                Email = "marko.petrov@rentify.dev",
+                Email = "owner.testni@gmail.com",
                 Username = "owner1",
                 PasswordHash = hashBase64,
                 PasswordSalt = saltBase64,

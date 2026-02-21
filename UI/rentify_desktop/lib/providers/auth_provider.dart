@@ -7,7 +7,7 @@ import '../models/login_response.dart';
 import '../utils/session.dart';
 
 class AuthProvider with ChangeNotifier {
-  static const String apiUrl = "http://localhost:5103/api/User/login";
+  static const String apiUrl = "http://localhost:5002/api/User/login";
 
   Future<String> prijava(LoginRequest request) async {
     final url = Uri.parse(apiUrl);

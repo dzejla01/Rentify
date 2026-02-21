@@ -9,5 +9,6 @@ namespace Rentify.Services.Interfaces
     public interface IUserService : ICRUDService<UserResponse, UserSearchObject, UserInsertRequest, UserUpdateRequest>
     {
         Task<LoginResponse> LoginAsync(LoginRequest request);
+        Task ForgotPasswordAsync(string email);
     }
 }

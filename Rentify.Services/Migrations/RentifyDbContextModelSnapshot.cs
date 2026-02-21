@@ -1058,7 +1058,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8341),
+                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3134),
                             Description = "Standardni korisnik aplikacije",
                             IsActive = true,
                             Name = "Korisnik"
@@ -1066,7 +1066,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8343),
+                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3139),
                             Description = "Vlasnik nekretnina koji može upravljati objektima",
                             IsActive = true,
                             Name = "Vlasnik"
@@ -1139,53 +1139,53 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8458),
-                            Email = "marko.petrov@rentify.dev",
+                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3304),
+                            Email = "owner.testni@gmail.com",
                             FirstName = "Marko",
                             IsActive = true,
                             IsVlasnik = true,
                             LastName = "Petrov",
-                            PasswordHash = "OX6HABaO1T+KPmx1f++5MIWjGmPElP2WQNnBJYYZ2xeGsFDDcJ+wYPpLEld9w91yc++PEEAGfc9+uYRNRx3jIw==",
-                            PasswordSalt = "4aGbYGCwPk11QbA9x1tp0CbJZTumA39jx3g8qdHFRp67i9TznxupgJHuG9XE4ewZ4grsMeYXkGX23RL8KGg11v99CzxkKj9dhueEPqvw7KDcMMU7cIY9L4D7MWUWe2/s+kSYsiZJ8ORDBPrIHdddFKHrSw2KPh17rW7FSGx8DgA=",
+                            PasswordHash = "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==",
+                            PasswordSalt = "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=",
                             Username = "owner1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8466),
+                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3313),
                             Email = "ivana.kovac@rentify.dev",
                             FirstName = "Ivana",
                             IsActive = true,
                             IsVlasnik = false,
                             LastName = "Kovac",
-                            PasswordHash = "OX6HABaO1T+KPmx1f++5MIWjGmPElP2WQNnBJYYZ2xeGsFDDcJ+wYPpLEld9w91yc++PEEAGfc9+uYRNRx3jIw==",
-                            PasswordSalt = "4aGbYGCwPk11QbA9x1tp0CbJZTumA39jx3g8qdHFRp67i9TznxupgJHuG9XE4ewZ4grsMeYXkGX23RL8KGg11v99CzxkKj9dhueEPqvw7KDcMMU7cIY9L4D7MWUWe2/s+kSYsiZJ8ORDBPrIHdddFKHrSw2KPh17rW7FSGx8DgA=",
+                            PasswordHash = "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==",
+                            PasswordSalt = "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=",
                             Username = "user1"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8468),
+                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3316),
                             Email = "nikola.jovic@rentify.dev",
                             FirstName = "Nikola",
                             IsActive = true,
                             IsVlasnik = true,
                             LastName = "Jovic",
-                            PasswordHash = "OX6HABaO1T+KPmx1f++5MIWjGmPElP2WQNnBJYYZ2xeGsFDDcJ+wYPpLEld9w91yc++PEEAGfc9+uYRNRx3jIw==",
-                            PasswordSalt = "4aGbYGCwPk11QbA9x1tp0CbJZTumA39jx3g8qdHFRp67i9TznxupgJHuG9XE4ewZ4grsMeYXkGX23RL8KGg11v99CzxkKj9dhueEPqvw7KDcMMU7cIY9L4D7MWUWe2/s+kSYsiZJ8ORDBPrIHdddFKHrSw2KPh17rW7FSGx8DgA=",
+                            PasswordHash = "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==",
+                            PasswordSalt = "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=",
                             Username = "owner2"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8470),
+                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3318),
                             Email = "amar.hodzic@rentify.dev",
                             FirstName = "Amar",
                             IsActive = true,
                             IsVlasnik = false,
                             LastName = "Hodzic",
-                            PasswordHash = "OX6HABaO1T+KPmx1f++5MIWjGmPElP2WQNnBJYYZ2xeGsFDDcJ+wYPpLEld9w91yc++PEEAGfc9+uYRNRx3jIw==",
-                            PasswordSalt = "4aGbYGCwPk11QbA9x1tp0CbJZTumA39jx3g8qdHFRp67i9TznxupgJHuG9XE4ewZ4grsMeYXkGX23RL8KGg11v99CzxkKj9dhueEPqvw7KDcMMU7cIY9L4D7MWUWe2/s+kSYsiZJ8ORDBPrIHdddFKHrSw2KPh17rW7FSGx8DgA=",
+                            PasswordHash = "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==",
+                            PasswordSalt = "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=",
                             Username = "user2"
                         });
                 });
@@ -1215,28 +1215,28 @@ namespace Rentify.Services.Migrations
                         {
                             UserId = 1,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8494),
+                            DateAssigned = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3345),
                             Id = 0
                         },
                         new
                         {
                             UserId = 2,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8495),
+                            DateAssigned = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3346),
                             Id = 0
                         },
                         new
                         {
                             UserId = 3,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8496),
+                            DateAssigned = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3347),
                             Id = 0
                         },
                         new
                         {
                             UserId = 4,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 2, 21, 2, 29, 39, 794, DateTimeKind.Utc).AddTicks(8497),
+                            DateAssigned = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3348),
                             Id = 0
                         });
                 });

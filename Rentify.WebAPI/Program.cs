@@ -2,6 +2,7 @@ using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
+using RabbitMQ.Client;
 using Rentify.Services;
 using Rentify.Services.Interfaces;
 using Rentify.Services.Services;
@@ -15,7 +16,6 @@ builder.Services.AddDbContext<RentifyDbContext>(options =>
 
 builder.Services.AddControllers();
 
-// Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -60,6 +60,26 @@ builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IPropertyImageService, PropertyImageService>();
 
+builder.Services.AddSingleton<IConnection>(_ =>
+{
+    var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
+    var port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672");
+    var user = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? "guest";
+    var pass = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest";
+    var vhost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST") ?? "/";
+
+    var factory = new ConnectionFactory
+    {
+        HostName = host,
+        Port = port,
+        UserName = user,
+        Password = pass,
+        VirtualHost = vhost
+    };
+
+    return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+});
+
 
 
 builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -73,7 +93,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<RentifyDbContext>();
+    db.Database.Migrate();
+}
 
 app.UseStaticFiles();
 

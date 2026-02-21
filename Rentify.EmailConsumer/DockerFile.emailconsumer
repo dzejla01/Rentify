@@ -1,0 +1,24 @@
+# --------------------
+# BUILD STAGE
+# --------------------
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Kopiraj csproj (bolji caching)
+COPY Rentify.EmailConsumer/Rentify.EmailConsumer.csproj Rentify.EmailConsumer/
+RUN dotnet restore Rentify.EmailConsumer/Rentify.EmailConsumer.csproj
+
+# Kopiraj sve i publish
+COPY . .
+WORKDIR /src/Rentify.EmailConsumer
+RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
+
+# --------------------
+# RUNTIME STAGE
+# --------------------
+FROM mcr.microsoft.com/dotnet/runtime:8.0
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+ENTRYPOINT ["dotnet", "Rentify.EmailConsumer.dll"]

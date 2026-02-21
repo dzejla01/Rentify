@@ -1,0 +1,100 @@
+networks:
+  rentifynet:
+    driver: bridge
+
+services:
+  rentify-postgres:
+    image: postgres:16-alpine
+    container_name: rentify-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${PG_DB}
+      POSTGRES_USER: ${PG_USER}
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    ports:
+      - "5432:5432"
+    networks:
+      - rentifynet
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${PG_USER} -d $${PG_DB} -h localhost"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 25s
+
+  rentify-rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rentify-rabbitmq
+    hostname: rentify-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "8080:15672"
+      - "15692:15692"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    networks:
+      - rentifynet
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  rentify-api:
+    container_name: rentify-api
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Rentify.WebAPI/DockerFile.api
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: "Host=rentify-postgres;Port=5432;Database=${PG_DB};Username=${PG_USER};Password=${PG_PASSWORD};Pooling=true;Include Error Detail=true"
+      RABBITMQ_HOST: rentify-rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_VIRTUALHOST: /
+      RABBITMQ_PORT: 5672
+    ports:
+      - "${API_PORT}:8080"
+    depends_on:
+      rentify-postgres:
+        condition: service_healthy
+      rentify-rabbitmq:
+        condition: service_healthy
+    networks:
+      - rentifynet
+    volumes:
+      - ./Rentify.WebAPI/data/wwwroot:/app/wwwroot
+
+  rentify-emailconsumer:
+    container_name: rentify-emailconsumer
+    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: Rentify.EmailConsumer/DockerFile.emailconsumer
+    environment:
+      RABBITMQ_HOST: rentify-rabbitmq
+      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_VIRTUALHOST: /
+      RABBITMQ_PORT: 5672
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_SSL: ${SMTP_SSL}
+      FROM_EMAIL: ${FROM_EMAIL}
+      FROM_NAME: ${FROM_NAME}
+    depends_on:
+      rentify-rabbitmq:
+        condition: service_healthy
+    networks:
+      - rentifynet
+
+volumes:
+  postgres_data:

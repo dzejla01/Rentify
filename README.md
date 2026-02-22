@@ -1,4 +1,4 @@
-# Rentify – Gym Management & Membership Application
+# Rentify – Property rental app
 
 ## 📌 Introduction
 

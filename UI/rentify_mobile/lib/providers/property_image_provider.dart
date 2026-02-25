@@ -1,8 +1,4 @@
-import 'dart:convert';
 import 'package:rentify_mobile/models/property_images.dart';
-
-import '../utils/session.dart';
-import 'package:http/http.dart' as http;
 
 import 'base_provider.dart';
 

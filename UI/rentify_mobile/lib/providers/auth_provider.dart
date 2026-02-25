@@ -7,7 +7,7 @@ import '../models/login_response.dart';
 import '../utils/session.dart';
 
 class AuthProvider with ChangeNotifier {
-  static const String apiUrl = "http://localhost:5002/api/User/login";
+  static const String apiUrl = "http://192.168.2.23:5103/api/User/login";
 
   Future<String> prijava(LoginRequest request) async {
     final url = Uri.parse(apiUrl);
@@ -28,7 +28,7 @@ class AuthProvider with ChangeNotifier {
       final data = jsonDecode(response.body);
       final loginResp = LoginResponse.fromJson(data);
 
-      final imaPristup = loginResp.roles.contains("Vlasnik");
+      final imaPristup = loginResp.roles.contains("Korisnik");
       if (!imaPristup) return "ZABRANJENO";
 
       Session.token = loginResp.token;

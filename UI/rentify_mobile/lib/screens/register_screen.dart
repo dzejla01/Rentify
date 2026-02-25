@@ -94,16 +94,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           const SizedBox(height: 10),
 
                           _dateTile(
-                            label: "Datum rođenja (DateOfBirth)",
+                            label: "Datum rođenja",
                             valueText: _dob == null
                                 ? "Odaberi datum"
                                 : "${_dob!.day.toString().padLeft(2, '0')}.${_dob!.month.toString().padLeft(2, '0')}.${_dob!.year}",
                             onTap: _pickDate,
-                          ),
-
-                          const SizedBox(height: 16),
-                          _infoNote(
-                            "Registracijom preko aplikacije: IsActive = true i IsVlasnik = true.",
                           ),
 
                           const SizedBox(height: 10),
@@ -315,7 +310,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 label,
                 style: const TextStyle(
                   color: Color(0xFF8A8A8A),
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),

@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Rentify.Services.Services
 {
-    public class PropertyService : BaseCRUDService<PropertyResponse, PropertySearchObject, Database.Property,PropertyInsertRequest, PropertyUpdateRequest>, IPropertyService
+    public class PropertyService : BaseCRUDService<PropertyResponse, PropertySearchObject, Database.Property, PropertyInsertRequest, PropertyUpdateRequest>, IPropertyService
     {
         public PropertyService(RentifyDbContext context, IMapper mapper) : base(context, mapper)
         {
@@ -22,14 +22,42 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Property> ApplyFilter(IQueryable<Property> query, PropertySearchObject search)
         {
-            if (!string.IsNullOrEmpty(search.Name))
+            if (!string.IsNullOrWhiteSpace(search.Name))
             {
-                query = query.Where(x => x.Name.ToLower().Contains(search.Name.ToLower()));
+                var name = search.Name.Trim().ToLower();
+                query = query.Where(x => x.Name.ToLower().Contains(name));
+            }
+
+            if (!string.IsNullOrWhiteSpace(search.City))
+            {
+                var city = search.City.Trim().ToLower();
+                query = query.Where(x => x.City.ToLower().Contains(city));
             }
 
             if (search.UserId.HasValue)
             {
-                query = query.Where(x => x.UserId == search.UserId);
+                query = query.Where(x => x.UserId == search.UserId.Value);
+            }
+
+
+            if (search.MinPriceMonth.HasValue)
+            {
+                query = query.Where(x => x.PricePerMonth >= search.MinPriceMonth.Value);
+            }
+
+            if (search.MaxPriceMonth.HasValue)
+            {
+                query = query.Where(x => x.PricePerMonth <= search.MaxPriceMonth.Value);
+            }
+
+            if (search.MinPriceDays.HasValue)
+            {
+                query = query.Where(x => x.PricePerDay >= search.MinPriceDays.Value);
+            }
+
+            if (search.MaxPriceDays.HasValue)
+            {
+                query = query.Where(x => x.PricePerDay <= search.MaxPriceDays.Value);
             }
 
             return base.ApplyFilter(query, search);

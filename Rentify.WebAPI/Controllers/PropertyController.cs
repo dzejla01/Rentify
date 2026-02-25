@@ -7,7 +7,7 @@ using Rentify.Services.Interfaces;
 
 namespace Rentify.WebAPI.Controllers
 {
-    [Authorize(Roles = "Vlasnik")]
+    [Authorize(Roles = "Vlasnik, Korisnik")]
     public class PropertyController
         : BaseCRUDController<PropertyResponse, PropertySearchObject, PropertyInsertRequest, PropertyUpdateRequest>
     {

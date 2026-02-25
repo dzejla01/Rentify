@@ -50,7 +50,6 @@ TypeAdapterConfig.GlobalSettings.Default
 
 builder.Services.AddSingleton(TypeAdapterConfig.GlobalSettings);
 builder.Services.AddScoped<IMapper, ServiceMapper>();
-
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPropertyService,PropertyService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();

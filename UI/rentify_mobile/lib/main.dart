@@ -9,9 +9,12 @@ import 'package:rentify_mobile/providers/review_provider.dart';
 import 'package:rentify_mobile/providers/user_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'screens/login_screen.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async{
   WidgetsFlutterBinding.ensureInitialized();
+
+  await initializeDateFormatting('bs');
 
   runApp(
     MultiProvider(

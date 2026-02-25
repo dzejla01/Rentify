@@ -107,45 +107,6 @@ class ConfirmDialogs {
     );
   }
 
-  // ✅ 3 opcije: Cancel / Bad / Good
-  static Future<TriConfirmResult> badGoodCancel(
-    BuildContext context, {
-    required String question,
-    String title = 'Potvrda',
-    required String goodText,
-    required String badText,
-    String cancelText = 'Zatvori',
-    bool barrierDismissible = true,
-  }) async {
-    final res = await _baseDialog<TriConfirmResult>(
-      context,
-      title: title,
-      message: question,
-      barrierDismissible: barrierDismissible,
-      actions: [
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pop(TriConfirmResult.cancel),
-          style: _outlineBtn(color: _muted),
-          child: Text(cancelText, style: const TextStyle(fontWeight: FontWeight.w700)),
-        ),
-        const SizedBox(width: 12),
-        OutlinedButton(
-          onPressed: () => Navigator.of(context).pop(TriConfirmResult.bad),
-          style: _outlineBtn(color: _dangerRed),
-          child: Text(badText, style: const TextStyle(fontWeight: FontWeight.w700)),
-        ),
-        const SizedBox(width: 12),
-        ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(TriConfirmResult.good),
-          style: _filledBtn(bg: _primaryGreen),
-          child: Text(goodText, style: const TextStyle(fontWeight: FontWeight.w700)),
-        ),
-      ],
-    );
-
-    return res ?? TriConfirmResult.cancel;
-  }
-
   // ✅ YES / NO
   static Future<bool> yesNoConfirmation(
     BuildContext context, {
@@ -201,7 +162,6 @@ class ConfirmDialogs {
     );
   }
 
-  // ✅ BAD / GOOD (brisanje, opasne radnje)
   static Future<bool> badGoodConfirmation(
     BuildContext context, {
     required String question,
@@ -209,7 +169,7 @@ class ConfirmDialogs {
     required String goodText,
     required String badText,
     bool barrierDismissible = false,
-    bool goodIsGreen = true, // ostavljeno radi kompatibilnosti
+    bool goodIsGreen = true, 
   }) async {
     final res = await _baseDialog<bool>(
       context,

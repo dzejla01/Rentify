@@ -20,7 +20,6 @@ namespace Rentify.Model.RequestObjects
         public string Username { get; set; } = string.Empty;
         public DateTime? DateOfBirth { get; set; }
 
-        // Kod update-a može biti null/empty ako ne mijenjaš šifru
         [MinLength(6)]
         public string? Password { get; set; }
 

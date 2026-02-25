@@ -7,6 +7,7 @@ import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/property_images.dart';
 import 'package:rentify_mobile/models/search_result.dart';
 import 'package:rentify_mobile/providers/property_image_provider.dart';
+import 'package:rentify_mobile/screens/property_details_screen.dart';
 import 'package:rentify_mobile/widgets/swipe_widget.dart';
 
 class BaseBody extends StatelessWidget {
@@ -47,180 +48,178 @@ class BaseBody extends StatelessWidget {
   final VoidCallback? onOpenFilter;
 
   @override
-Widget build(BuildContext context) {
-  const rentifyGreenDark = Color(0xFF5F9F3B);
+  Widget build(BuildContext context) {
+    const rentifyGreenDark = Color(0xFF5F9F3B);
 
-  return AnimatedBuilder(
-    animation: paging, // <- Sluša promjene (notifyListeners)
-    builder: (context, _) {
-      return RefreshIndicator(
-        onRefresh: paging.refresh,
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
-          children: [
-            if (showWelcome) ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      blurRadius: 14,
-                      offset: Offset(0, 6),
-                      color: Color(0x14000000),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      "Dobrodošao/la,",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF7A7A7A),
+    return AnimatedBuilder(
+      animation: paging, // <- Sluša promjene (notifyListeners)
+      builder: (context, _) {
+        return RefreshIndicator(
+          onRefresh: paging.refresh,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 18),
+            children: [
+              if (showWelcome) ...[
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        blurRadius: 14,
+                        offset: Offset(0, 6),
+                        color: Color(0x14000000),
                       ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      (fullName ?? "").trim().isEmpty
-                          ? "Korisnik"
-                          : fullName!.trim(),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w900,
-                        color: Color(0xFF2F2F2F),
-                      ),
-                    ),
-                    if ((username ?? "").trim().isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        username!.trim(),
-                        style: const TextStyle(
-                          fontSize: 12,
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Dobrodošao/la,",
+                        style: TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: Color(0xFF7A7A7A),
                         ),
                       ),
+                      const SizedBox(height: 4),
+                      Text(
+                        (fullName ?? "").trim().isEmpty
+                            ? "Korisnik"
+                            : fullName!.trim(),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: Color(0xFF2F2F2F),
+                        ),
+                      ),
+                      if ((username ?? "").trim().isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          username!.trim(),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: Color(0xFF7A7A7A),
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+              ],
+
+              // Title + subtitle
+              Text(
+                sectionTitle,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF2F2F2F),
                 ),
               ),
-              const SizedBox(height: 14),
-            ],
-
-            // Title + subtitle
-            Text(
-              sectionTitle,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF2F2F2F),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              sectionSubtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF7A7A7A),
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Search + Filter (opciono)
-            if (showSearch || showFilter) ...[
-              Row(
-                children: [
-                  if (showSearch)
-                    Expanded(
-                      child: TextField(
-                        controller: searchController,
-                        onChanged: onSearchChanged,
-                        textInputAction: TextInputAction.search,
-                        decoration: InputDecoration(
-                          hintText: "Pretraži nekretnine...",
-                          prefixIcon: const Icon(Icons.search_rounded),
-                          suffixIcon: (searchController?.text.isEmpty ?? true)
-                              ? null
-                              : IconButton(
-                                  tooltip: "Očisti",
-                                  onPressed: onClearSearch,
-                                  icon: const Icon(Icons.close_rounded),
-                                ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 12,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                    ),
-
-                  if (showSearch && showFilter) const SizedBox(width: 10),
-
-                  if (showFilter)
-                    SizedBox(
-                      height: 48,
-                      child: ElevatedButton.icon(
-                        onPressed: onOpenFilter,
-                        icon: const Icon(Icons.tune_rounded),
-                        label: const Text("Filter"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: rentifyGreenDark,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          elevation: 0,
-                        ),
-                      ),
-                    ),
-                ],
+              const SizedBox(height: 6),
+              Text(
+                sectionSubtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF7A7A7A),
+                ),
               ),
               const SizedBox(height: 12),
-            ],
 
-            // List / states
-            if (paging.isLoading && paging.items.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 18),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else if (paging.error != null)
-              _ErrorBox(text: paging.error!, onRetry: paging.refresh)
-            else if (paging.items.isEmpty)
-              const _EmptyBox()
-            else
-              SwipePagedList<Property>(
-                provider: paging,
-                itemBuilder: (context, item) => _PropertyCard(
-                  property: item,
-                  accent: rentifyGreenDark,
+              // Search + Filter (opciono)
+              if (showSearch || showFilter) ...[
+                Row(
+                  children: [
+                    if (showSearch)
+                      Expanded(
+                        child: TextField(
+                          controller: searchController,
+                          onChanged: onSearchChanged,
+                          textInputAction: TextInputAction.search,
+                          decoration: InputDecoration(
+                            hintText: "Pretraži nekretnine...",
+                            prefixIcon: const Icon(Icons.search_rounded),
+                            suffixIcon: (searchController?.text.isEmpty ?? true)
+                                ? null
+                                : IconButton(
+                                    tooltip: "Očisti",
+                                    onPressed: onClearSearch,
+                                    icon: const Icon(Icons.close_rounded),
+                                  ),
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    if (showSearch && showFilter) const SizedBox(width: 10),
+
+                    if (showFilter)
+                      SizedBox(
+                        height: 48,
+                        child: ElevatedButton.icon(
+                          onPressed: onOpenFilter,
+                          icon: const Icon(Icons.tune_rounded),
+                          label: const Text("Filter"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: rentifyGreenDark,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            elevation: 0,
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
-              ),
+                const SizedBox(height: 12),
+              ],
 
-            if (paging.isLoading && paging.items.isNotEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 10),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-          ],
-        ),
-      );
-    },
-  );
-}
+              // List / states
+              if (paging.isLoading && paging.items.isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 18),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (paging.error != null)
+                _ErrorBox(text: paging.error!, onRetry: paging.refresh)
+              else if (paging.items.isEmpty)
+                const _EmptyBox()
+              else
+                SwipePagedList<Property>(
+                  provider: paging,
+                  itemBuilder: (context, item) =>
+                      _PropertyCard(property: item, accent: rentifyGreenDark),
+                ),
+
+              if (paging.isLoading && paging.items.isNotEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _PropertyCard extends StatelessWidget {
@@ -252,7 +251,12 @@ class _PropertyCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () {
-          // TODO: open details
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PropertyDetailsScreen(property: property),
+            ),
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(12),

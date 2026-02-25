@@ -1,4 +1,20 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_mobile/helper/date_helper.dart';
+import 'package:rentify_mobile/routes/app_routes.dart';
+import 'package:rentify_mobile/providers/user_provider.dart';
+import 'package:rentify_mobile/helper/text_editing_controller_helper.dart'; 
+import 'package:rentify_mobile/validation/validation_model/validation_field_rule.dart'; 
+import 'package:rentify_mobile/validation/validation_model/validation_rules.dart'; 
+import 'package:rentify_mobile/validation/validation_use/universal_error_removal.dart'; 
+import 'package:rentify_mobile/validation/validation_use/universal_validator.dart'; 
+
+// upload slike (ako ti je drugačije, preimenuj)
+import 'package:rentify_mobile/providers/image_provider.dart' as img_app;
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,9 +28,87 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  // UI state (po želji)
+  late UserProvider _userProvider;
+
+  late Fields fields;
+
+  // errors po polju
+  final Map<String, String?> fieldErrors = {};
+
+  // UI state
   DateTime? _dob;
-  bool _hasImage = false;
+  File? _pickedImage;
+
+  bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    fields = Fields.fromNames([
+      'firstName',
+      'lastName',
+      'username',
+      'email',
+      'phoneNumber',
+      'password',
+      'confirmPassword',
+    ]);
+
+    // auto-remove error na unos
+    ErrorAutoRemoval.removeErrorOnTextField(
+      field: 'firstName',
+      fieldErrors: fieldErrors,
+      controller: fields.controller('firstName'),
+      setState: () => setState(() {}),
+    );
+    ErrorAutoRemoval.removeErrorOnTextField(
+      field: 'lastName',
+      fieldErrors: fieldErrors,
+      controller: fields.controller('lastName'),
+      setState: () => setState(() {}),
+    );
+    ErrorAutoRemoval.removeErrorOnTextField(
+      field: 'username',
+      fieldErrors: fieldErrors,
+      controller: fields.controller('username'),
+      setState: () => setState(() {}),
+    );
+    ErrorAutoRemoval.removeErrorOnTextField(
+      field: 'email',
+      fieldErrors: fieldErrors,
+      controller: fields.controller('email'),
+      setState: () => setState(() {}),
+    );
+    ErrorAutoRemoval.removeErrorOnTextField(
+      field: 'phoneNumber',
+      fieldErrors: fieldErrors,
+      controller: fields.controller('phoneNumber'),
+      setState: () => setState(() {}),
+    );
+    ErrorAutoRemoval.removeErrorOnTextField(
+      field: 'password',
+      fieldErrors: fieldErrors,
+      controller: fields.controller('password'),
+      setState: () => setState(() {}),
+    );
+    ErrorAutoRemoval.removeErrorOnTextField(
+      field: 'confirmPassword',
+      fieldErrors: fieldErrors,
+      controller: fields.controller('confirmPassword'),
+      setState: () => setState(() {}),
+    );
+  }
+
+  @override
+  void dispose() {
+    fields.dispose();
+    super.dispose();
+  }
+
+  bool get _hasImage => _pickedImage != null;
 
   @override
   Widget build(BuildContext context) {
@@ -66,28 +160,70 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           _sectionTitle("Osnovni podaci"),
                           const SizedBox(height: 10),
 
-                          // ====== UBACI SVOJE BASE_FIELD WIDGETE OVDJE ======
-                          _placeholderField("Ime (FirstName)"),
+                          _field(
+                            label: "Ime",
+                            controller: fields.controller('firstName'),
+                            errorText: fieldErrors['firstName'],
+                            textInputAction: TextInputAction.next,
+                          ),
                           const SizedBox(height: 12),
-                          _placeholderField("Prezime (LastName)"),
+
+                          _field(
+                            label: "Prezime",
+                            controller: fields.controller('lastName'),
+                            errorText: fieldErrors['lastName'],
+                            textInputAction: TextInputAction.next,
+                          ),
                           const SizedBox(height: 12),
-                          _placeholderField("Korisničko ime (Username)"),
+
+                          _field(
+                            label: "Korisničko ime",
+                            controller: fields.controller('username'),
+                            errorText: fieldErrors['username'],
+                            textInputAction: TextInputAction.next,
+                          ),
                           const SizedBox(height: 12),
-                          _placeholderField("Email (Email)"),
+
+                          _field(
+                            label: "Email",
+                            controller: fields.controller('email'),
+                            errorText: fieldErrors['email'],
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                          ),
 
                           const SizedBox(height: 18),
                           _sectionTitle("Kontakt"),
                           const SizedBox(height: 10),
 
-                          _placeholderField("Broj telefona (PhoneNumber)"),
+                          _field(
+                            label: "Broj telefona",
+                            controller: fields.controller('phoneNumber'),
+                            errorText: fieldErrors['phoneNumber'],
+                            keyboardType: TextInputType.phone,
+                            textInputAction: TextInputAction.next,
+                          ),
 
                           const SizedBox(height: 18),
                           _sectionTitle("Sigurnost"),
                           const SizedBox(height: 10),
 
-                          _placeholderField("Lozinka (Password)"),
+                          _field(
+                            label: "Lozinka",
+                            controller: fields.controller('password'),
+                            errorText: fieldErrors['password'],
+                            obscure: true,
+                            textInputAction: TextInputAction.next,
+                          ),
                           const SizedBox(height: 12),
-                          _placeholderField("Potvrdi lozinku"),
+
+                          _field(
+                            label: "Potvrdi lozinku",
+                            controller: fields.controller('confirmPassword'),
+                            errorText: fieldErrors['confirmPassword'],
+                            obscure: true,
+                            textInputAction: TextInputAction.done,
+                          ),
 
                           const SizedBox(height: 18),
                           _sectionTitle("Dodatno"),
@@ -99,7 +235,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ? "Odaberi datum"
                                 : "${_dob!.day.toString().padLeft(2, '0')}.${_dob!.month.toString().padLeft(2, '0')}.${_dob!.year}",
                             onTap: _pickDate,
+                            errorText: fieldErrors['birthDate'],
                           ),
+
+                          const SizedBox(height: 12),
+                          _infoNote(),
 
                           const SizedBox(height: 10),
                           _backToLogin(),
@@ -129,10 +269,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         height: 54,
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: () {
-                            // TODO: submit (pozovi svoj provider)
-                            // payload obavezno: IsActive=true, IsVlasnik=true
-                          },
+                          onPressed: _submitting ? null : _submit,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: RegisterScreen.rentifyGreenDark,
                             foregroundColor: Colors.white,
@@ -141,13 +278,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          child: const Text(
-                            "Registruj se",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
+                          child: _submitting
+                              ? const SizedBox(
+                                  width: 22,
+                                  height: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.6,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  "Registruj se",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -162,7 +308,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   // --------------------
-  // UI HELPERS (Widget functions)
+  // UI HELPERS
   // --------------------
 
   Widget _header() {
@@ -233,27 +379,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
               color: Colors.white,
               border: Border.all(color: const Color(0xFFE2E2E2)),
             ),
-            child: Icon(
-              _hasImage ? Icons.check_circle : Icons.person,
-              color: RegisterScreen.rentifyGreenDark,
-            ),
+            child: _pickedImage != null
+                ? ClipOval(child: Image.file(_pickedImage!, fit: BoxFit.cover))
+                : Icon(
+                    _hasImage ? Icons.check_circle : Icons.person,
+                    color: RegisterScreen.rentifyGreenDark,
+                  ),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   "Profilna slika",
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     color: RegisterScreen.textDark,
                   ),
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Text(
-                  "Odaberi sliku (opcionalno)",
-                  style: TextStyle(
+                  _hasImage ? "Slika odabrana" : "Odaberi sliku (opcionalno)",
+                  style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     color: Color(0xFF6E6E6E),
                   ),
@@ -263,19 +411,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           const SizedBox(width: 10),
           IconButton(
-            onPressed: () {
-              // TODO: open image picker
-              setState(() => _hasImage = true);
-            },
+            onPressed: _pickImage,
             icon: const Icon(Icons.photo_library_outlined),
             color: RegisterScreen.rentifyGreenDark,
             tooltip: "Odaberi",
           ),
           IconButton(
-            onPressed: () {
-              // TODO: remove image
-              setState(() => _hasImage = false);
-            },
+            onPressed: _pickedImage == null ? null : _removeImage,
             icon: const Icon(Icons.delete_outline),
             color: const Color(0xFF8A8A8A),
             tooltip: "Ukloni",
@@ -289,47 +431,72 @@ class _RegisterScreenState extends State<RegisterScreen> {
     required String label,
     required String valueText,
     required VoidCallback onTap,
+    String? errorText,
   }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(16),
-      onTap: onTap,
-      child: Container(
-        height: 54,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF7F7F7),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE9E9E9)),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.calendar_month_outlined, color: RegisterScreen.rentifyGreen),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: Color(0xFF8A8A8A),
-                  fontWeight: FontWeight.w500,
+          onTap: onTap,
+          child: Container(
+            height: 54,
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7F7F7),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: (errorText != null) ? const Color(0xFFE53935) : const Color(0xFFE9E9E9),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.calendar_month_outlined,
+                  color: RegisterScreen.rentifyGreen,
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    label,
+                    style: const TextStyle(
+                      color: Color(0xFF8A8A8A),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Text(
+                  valueText,
+                  style: const TextStyle(
+                    color: Color(0xFF6E6E6E),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(Icons.chevron_right, color: Color(0xFF8A8A8A)),
+              ],
             ),
-            Text(
-              valueText,
-              style: const TextStyle(
-                color: Color(0xFF6E6E6E),
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.chevron_right, color: Color(0xFF8A8A8A)),
-          ],
+          ),
         ),
-      ),
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 10),
+            child: Text(
+              errorText,
+              style: const TextStyle(
+                color: Color(0xFFE53935),
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
-  Widget _infoNote(String text) {
+  Widget _infoNote() {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -337,9 +504,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE9E9E9)),
       ),
-      child: Row(
+      child: const Row(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
+        children: [
           Icon(Icons.info_outline, size: 18, color: Color(0xFF7A7A7A)),
           SizedBox(width: 10),
           Expanded(
@@ -382,21 +549,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _placeholderField(String label) {
-    return Container(
-      height: 54,
-      alignment: Alignment.centerLeft,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F7F7),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE9E9E9)),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Color(0xFF8A8A8A),
-          fontWeight: FontWeight.w700,
+  Widget _field({
+    required String label,
+    required TextEditingController controller,
+    String? errorText,
+    bool obscure = false,
+    TextInputType? keyboardType,
+    TextInputAction? textInputAction,
+  }) {
+    return TextField(
+      controller: controller,
+      obscureText: obscure,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      decoration: InputDecoration(
+        labelText: label,
+        errorText: errorText,
+        filled: true,
+        fillColor: const Color(0xFFF7F7F7),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(
+            color: (errorText != null) ? const Color(0xFFE53935) : const Color(0xFFE9E9E9),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: RegisterScreen.rentifyGreenDark),
         ),
       ),
     );
@@ -429,6 +609,137 @@ class _RegisterScreenState extends State<RegisterScreen> {
       },
     );
 
-    if (picked != null) setState(() => _dob = picked);
+    if (picked == null) return;
+
+    setState(() {
+      _dob = picked;
+      // ukloni error za birthDate ako postoji
+      if (fieldErrors['birthDate'] != null) {
+        fieldErrors.remove('birthDate');
+      }
+    });
+  }
+
+  Future<void> _pickImage() async {
+    try {
+      final picker = ImagePicker();
+      final XFile? file = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 85,
+      );
+      if (file == null) return;
+
+      setState(() => _pickedImage = File(file.path));
+    } catch (e) {
+      if (!mounted) return;
+      await ConfirmDialogs.okConfirmation(
+        context,
+        title: "Greška",
+        message: "Ne mogu otvoriti galeriju.\n$e",
+      );
+    }
+  }
+
+  void _removeImage() => setState(() => _pickedImage = null);
+
+  Future<void> _submit() async {
+    // očisti stare greške
+    setState(() => fieldErrors.clear());
+
+    // složi pravila (koristimo tvoja Rules + par custom FieldRule)
+    final rules = <FieldRule>[
+      Rules.requiredText('firstName', fields.text('firstName'), 'Ime je obavezno.'),
+      Rules.requiredText('lastName', fields.text('lastName'), 'Prezime je obavezno.'),
+      Rules.requiredText('username', fields.text('username'), 'Username je obavezan.'),
+      Rules.minLength('username', fields.text('username'), 3, 'Username mora imati bar 3 karaktera.'),
+
+      Rules.requiredText('email', fields.text('email'), 'Email je obavezan.'),
+      FieldRule('email', () {
+        final s = fields.text('email').trim();
+        final ok = RegExp(r"^[^\s@]+@[^\s@]+\.[^\s@]+$").hasMatch(s);
+        return ok ? null : 'Email nije ispravan.';
+      }),
+
+      Rules.requiredText('phoneNumber', fields.text('phoneNumber'), 'Telefon je obavezan.'),
+      FieldRule('phoneNumber', () {
+        final s = fields.text('phoneNumber').trim();
+        return s.length >= 6 ? null : 'Telefon nije ispravan.';
+      }),
+
+      Rules.requiredText('password', fields.text('password'), 'Lozinka je obavezna.'),
+      Rules.minLength('password', fields.text('password'), 6, 'Lozinka mora imati bar 6 karaktera.'),
+
+      Rules.requiredText('confirmPassword', fields.text('confirmPassword'), 'Potvrda lozinke je obavezna.'),
+      FieldRule('confirmPassword', () {
+        return fields.text('confirmPassword') == fields.text('password')
+            ? null
+            : 'Lozinke se ne podudaraju.';
+      }),
+
+      Rules.requiredDate('birthDate', _dob, 'Datum rođenja je obavezan.'),
+    ];
+
+    final isValid = ValidationEngine.validate(
+      rules,
+      (field, message) {
+        fieldErrors[field] = message;
+      },
+    );
+
+    if (!isValid) {
+      setState(() {});
+      return;
+    }
+
+    setState(() => _submitting = true);
+
+    try {
+      String? uploadedImageName;
+
+      if (_pickedImage != null) {
+        uploadedImageName = await img_app.ImageAppProvider.upload(
+          file: _pickedImage!,
+          folder: "users",
+        );
+      }
+
+      final payload = <String, dynamic>{
+        'firstName': fields.text('firstName').trim(),
+        'lastName': fields.text('lastName').trim(),
+        'username': fields.text('username').trim(),
+        'email': fields.text('email').trim(),
+        'phoneNumber': fields.text('phoneNumber').trim(),
+        'password': fields.text('password'),
+        'dateOfBirth': DateHelper.toUtcIsoNullable(_dob),
+        'isActive': true,
+        'isVlasnik': false,
+
+        if (uploadedImageName != null) 'userImage': uploadedImageName,
+      };
+
+      await _userProvider.insert(payload);
+
+      if (!mounted) return;
+
+      await ConfirmDialogs.okConfirmation(
+        context,
+        title: "Uspješno",
+        message: "Račun je kreiran. Sada se možeš prijaviti.",
+      );
+
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRoutes.login,
+        (route) => false,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      await ConfirmDialogs.okConfirmation(
+        context,
+        title: "Greška",
+        message: e.toString(),
+      );
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 }

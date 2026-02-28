@@ -47,6 +47,7 @@ namespace Rentify.Services.Migrations
                     DateOfBirth = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false),
                     IsVlasnik = table.Column<bool>(type: "boolean", nullable: false),
+                    IsLoggingFirstTime = table.Column<bool>(type: "boolean", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     LastLoginAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     PhoneNumber = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: true)
@@ -80,6 +81,30 @@ namespace Rentify.Services.Migrations
                     table.PrimaryKey("PK_Properties", x => x.Id);
                     table.ForeignKey(
                         name: "FK_Properties_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserDeviceTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Token = table.Column<string>(type: "text", nullable: false),
+                    Platform = table.Column<string>(type: "text", nullable: false),
+                    DeviceId = table.Column<string>(type: "text", nullable: true),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserDeviceTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserDeviceTokens_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
@@ -259,19 +284,19 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "Description", "IsActive", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3134), "Standardni korisnik aplikacije", true, "Korisnik" },
-                    { 2, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3139), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
+                    { 1, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(1772), "Standardni korisnik aplikacije", true, "Korisnik" },
+                    { 2, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(1778), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
                 });
 
             migrationBuilder.InsertData(
                 table: "Users",
-                columns: new[] { "Id", "CreatedAt", "DateOfBirth", "Email", "FirstName", "IsActive", "IsVlasnik", "LastLoginAt", "LastName", "PasswordHash", "PasswordSalt", "PhoneNumber", "UserImage", "Username" },
+                columns: new[] { "Id", "CreatedAt", "DateOfBirth", "Email", "FirstName", "IsActive", "IsLoggingFirstTime", "IsVlasnik", "LastLoginAt", "LastName", "PasswordHash", "PasswordSalt", "PhoneNumber", "UserImage", "Username" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3304), null, "owner.testni@gmail.com", "Marko", true, true, null, "Petrov", "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==", "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=", null, null, "owner1" },
-                    { 2, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3313), null, "ivana.kovac@rentify.dev", "Ivana", true, false, null, "Kovac", "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==", "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=", null, null, "user1" },
-                    { 3, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3316), null, "nikola.jovic@rentify.dev", "Nikola", true, true, null, "Jovic", "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==", "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=", null, null, "owner2" },
-                    { 4, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3318), null, "amar.hodzic@rentify.dev", "Amar", true, false, null, "Hodzic", "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==", "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=", null, null, "user2" }
+                    { 1, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2269), null, "owner.testni@gmail.com", "Marko", true, false, true, null, "Petrov", "1AbiONXmb7rTwDNySqGyQJE94Xm/iporM0ry7OmlmPqhPCCOR92qRCDtsdFIxNoKwc0vtJKz1VpCWuEC71EH6Q==", "6dcTlVtjkwFK/0e1esfsd4NbKFEwobOJGkySgZ88StDjH/KL9aNTukJj8v57lP/aGCMsmcEVBF9iV0B3OtU4BW7O9LZsOVMC/jGnp4m/ugMqTzMOLNvoGeZ6RRSBI/FZBfv7tiUbedVS9LfFdmy+qT8BpHC6oERvM2pkzrlNDws=", null, null, "owner1" },
+                    { 2, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2287), null, "ivana.kovac@rentify.dev", "Ivana", true, false, false, null, "Kovac", "1AbiONXmb7rTwDNySqGyQJE94Xm/iporM0ry7OmlmPqhPCCOR92qRCDtsdFIxNoKwc0vtJKz1VpCWuEC71EH6Q==", "6dcTlVtjkwFK/0e1esfsd4NbKFEwobOJGkySgZ88StDjH/KL9aNTukJj8v57lP/aGCMsmcEVBF9iV0B3OtU4BW7O9LZsOVMC/jGnp4m/ugMqTzMOLNvoGeZ6RRSBI/FZBfv7tiUbedVS9LfFdmy+qT8BpHC6oERvM2pkzrlNDws=", null, null, "user1" },
+                    { 3, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2294), null, "nikola.jovic@rentify.dev", "Nikola", true, false, true, null, "Jovic", "1AbiONXmb7rTwDNySqGyQJE94Xm/iporM0ry7OmlmPqhPCCOR92qRCDtsdFIxNoKwc0vtJKz1VpCWuEC71EH6Q==", "6dcTlVtjkwFK/0e1esfsd4NbKFEwobOJGkySgZ88StDjH/KL9aNTukJj8v57lP/aGCMsmcEVBF9iV0B3OtU4BW7O9LZsOVMC/jGnp4m/ugMqTzMOLNvoGeZ6RRSBI/FZBfv7tiUbedVS9LfFdmy+qT8BpHC6oERvM2pkzrlNDws=", null, null, "owner2" },
+                    { 4, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2299), null, "amar.hodzic@rentify.dev", "Amar", true, false, false, null, "Hodzic", "1AbiONXmb7rTwDNySqGyQJE94Xm/iporM0ry7OmlmPqhPCCOR92qRCDtsdFIxNoKwc0vtJKz1VpCWuEC71EH6Q==", "6dcTlVtjkwFK/0e1esfsd4NbKFEwobOJGkySgZ88StDjH/KL9aNTukJj8v57lP/aGCMsmcEVBF9iV0B3OtU4BW7O9LZsOVMC/jGnp4m/ugMqTzMOLNvoGeZ6RRSBI/FZBfv7tiUbedVS9LfFdmy+qT8BpHC6oERvM2pkzrlNDws=", null, null, "user2" }
                 });
 
             migrationBuilder.InsertData(
@@ -316,10 +341,10 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "RoleId", "UserId", "DateAssigned", "Id" },
                 values: new object[,]
                 {
-                    { 2, 1, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3345), 0 },
-                    { 1, 2, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3346), 0 },
-                    { 2, 3, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3347), 0 },
-                    { 1, 4, new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3348), 0 }
+                    { 2, 1, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2354), 0 },
+                    { 1, 2, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2358), 0 },
+                    { 2, 3, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2360), 0 },
+                    { 1, 4, new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2361), 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -424,6 +449,17 @@ namespace Rentify.Services.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_UserDeviceTokens_Token",
+                table: "UserDeviceTokens",
+                column: "Token",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserDeviceTokens_UserId_IsActive",
+                table: "UserDeviceTokens",
+                columns: new[] { "UserId", "IsActive" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UserRoles_RoleId",
                 table: "UserRoles",
                 column: "RoleId");
@@ -446,6 +482,9 @@ namespace Rentify.Services.Migrations
 
             migrationBuilder.DropTable(
                 name: "Reviews");
+
+            migrationBuilder.DropTable(
+                name: "UserDeviceTokens");
 
             migrationBuilder.DropTable(
                 name: "UserRoles");

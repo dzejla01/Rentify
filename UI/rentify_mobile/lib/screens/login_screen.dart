@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,7 +6,9 @@ import 'package:rentify_mobile/dialogs/forgot_password_dialog.dart';
 import 'package:rentify_mobile/helper/snackBar_helper.dart';
 import 'package:rentify_mobile/models/login_request.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
+import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
+import 'package:rentify_mobile/utils/session.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,6 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    Token();
     _authProvider = Provider.of<AuthProvider>(context, listen: false);
   }
 
@@ -39,6 +43,11 @@ class _LoginScreenState extends State<LoginScreen> {
     _username.dispose();
     _password.dispose();
     super.dispose();
+  }
+
+  Future<void> Token() async {
+    final token = await FirebaseMessaging.instance.getToken();
+    print("FCM TOKEN: $token");
   }
 
   Future<void> _forgotPasswordOrUsername() async {
@@ -51,16 +60,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
-
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
+
     try {
       final result = await _authProvider.prijava(
-        LoginRequest(
-          username: _username.text.trim(),
-          password: _password.text,
-        ),
+        LoginRequest(username: _username.text.trim(), password: _password.text),
       );
 
       if (!mounted) return;
@@ -73,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
-      if (result != "OK") {
+      if (result == "NEISPRAVNO") {
         SnackbarHelper.showError(
           context,
           'Pogrešno korisničko ime ili lozinka',
@@ -81,10 +87,42 @@ class _LoginScreenState extends State<LoginScreen> {
         return;
       }
 
+      if (result == "GRESKA") {
+        SnackbarHelper.showError(
+          context,
+          'Greška pri prijavi. Pokušaj ponovo.',
+        );
+        return;
+      }
+
+      final jwt = result;
+      if (jwt.isEmpty) {
+        SnackbarHelper.showError(
+          context,
+          'Pogrešno korisničko ime ili lozinka',
+        );
+        return;
+      }
+
+      await context.read<AuthProvider>().setToken(jwt);
+      final fcm = await FirebaseMessaging.instance.getToken();
+      debugPrint("FCM TOKEN (after login): $fcm");
+
+      if (fcm != null && fcm.isNotEmpty) {
+        Session.fcmToken = fcm;
+
+        try {
+          await context.read<DeviceTokenProvider>().registerFcmToken();
+          context.read<DeviceTokenProvider>().listenForTokenRefresh();
+        } catch (_) {
+          // ne ruši login ako push register faila
+        }
+      }
+
       Navigator.pushReplacementNamed(context, AppRoutes.home);
     } catch (e) {
       if (!mounted) return;
-      SnackbarHelper.showError(context, 'Greška pri prijavi. Pokušaj ponovo ${e}');
+      SnackbarHelper.showError(context, 'Greška pri prijavi. Pokušaj ponovo.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -101,10 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFBFE06A),
-              LoginScreen.rentifyGreen,
-            ],
+            colors: [Color(0xFFBFE06A), LoginScreen.rentifyGreen],
           ),
         ),
         child: SafeArea(
@@ -201,14 +236,18 @@ class _LoginScreenState extends State<LoginScreen> {
                             keyboardType: TextInputType.visiblePassword,
                             autofillHints: const [AutofillHints.password],
                             suffix: IconButton(
-                              onPressed: () => setState(() => _obscure = !_obscure),
+                              onPressed: () =>
+                                  setState(() => _obscure = !_obscure),
                               icon: Icon(
-                                _obscure ? Icons.visibility_off : Icons.visibility,
+                                _obscure
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
                                 color: const Color(0xFF8A8A8A),
                               ),
                             ),
                             validator: (v) {
-                              if (v == null || v.isEmpty) return 'Unesi lozinku';
+                              if (v == null || v.isEmpty)
+                                return 'Unesi lozinku';
                               if (v.length < 4) return 'Lozinka je prekratka';
                               return null;
                             },
@@ -248,7 +287,9 @@ class _LoginScreenState extends State<LoginScreen> {
                                   ? const SizedBox(
                                       width: 22,
                                       height: 22,
-                                      child: CircularProgressIndicator(strokeWidth: 2),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
                                     )
                                   : const Text(
                                       'Uloguj se',
@@ -274,7 +315,10 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               TextButton(
                                 onPressed: () {
-                                  Navigator.pushNamed(context, AppRoutes.register);
+                                  Navigator.pushNamed(
+                                    context,
+                                    AppRoutes.register,
+                                  );
                                 },
                                 child: const Text(
                                   'Registruj se',
@@ -322,7 +366,10 @@ class _LoginScreenState extends State<LoginScreen> {
         fillColor: const Color(0xFFF7F7F7),
         prefixIcon: Icon(icon, color: LoginScreen.rentifyGreen),
         suffixIcon: suffix,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,

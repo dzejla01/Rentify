@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/providers/auth_provider.dart';
+import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
@@ -38,8 +40,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUser();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-    _propertiesPaging.refresh();
-  });
+      _propertiesPaging.refresh();
+    });
   }
 
   void _initPaging() {
@@ -117,9 +119,29 @@ class _HomeScreenState extends State<HomeScreen> {
       NameAndSurname: "${_user?.firstName ?? ""} ${_user?.lastName ?? ""}"
           .trim(),
       userUsername: Session.username ?? "Nepoznato",
-      onLogout: () {
+      onLogout: () async {
+        final deviceTokenProvider = context.read<DeviceTokenProvider>();
+        final authProvider = context.read<AuthProvider>();
+
+        try {
+          if (Session.fcmToken != null && Session.fcmToken!.isNotEmpty) {
+            await deviceTokenProvider.unregisterFcmToken();
+          }
+        } catch (_) {}
+
+        try {
+          await authProvider.logout();
+        } catch (_) {}
+
         Session.odjava();
-        Navigator.pushReplacementNamed(context, AppRoutes.login);
+
+        if (!context.mounted) return;
+
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.login,
+          (route) => false,
+        );
       },
       child: _loadingUser
           ? const Center(child: CircularProgressIndicator())

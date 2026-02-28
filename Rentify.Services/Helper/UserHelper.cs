@@ -39,7 +39,6 @@ namespace Rentify.Services.Helpers
             return CryptographicOperations.FixedTimeEquals(computedHash, storedHash);
         }
 
-        // 🔑 JWT creation
         public static string CreateJwt(User user, IConfiguration configuration)
         {
             var jwtKey = configuration["Jwt:Key"]!;

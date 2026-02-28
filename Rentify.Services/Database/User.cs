@@ -35,6 +35,7 @@ namespace Rentify.Services.Database
 
         public bool IsActive { get; set; } = true;
         public bool IsVlasnik { get; set; } = false;
+        public bool IsLoggingFirstTime {get; set;} = true;
 
         public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
 

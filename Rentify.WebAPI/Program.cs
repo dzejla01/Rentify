@@ -1,3 +1,5 @@
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 using Mapster;
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
@@ -58,6 +60,9 @@ builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IPropertyImageService, PropertyImageService>();
+builder.Services.AddScoped<IDeviceTokenService, DeviceTokenService>();
+builder.Services.AddScoped<PushNotificationService>();
+
 
 builder.Services.AddSingleton<IConnection>(_ =>
 {
@@ -79,7 +84,11 @@ builder.Services.AddSingleton<IConnection>(_ =>
     return factory.CreateConnectionAsync().GetAwaiter().GetResult();
 });
 
-
+var firebasePath = builder.Configuration["Firebase:ServiceAccountPath"];
+FirebaseApp.Create(new AppOptions
+{
+    Credential = GoogleCredential.FromFile(firebasePath)
+});
 
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();

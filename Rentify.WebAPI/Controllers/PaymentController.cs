@@ -6,7 +6,7 @@ using Rentify.Services.Interfaces;
 
 namespace Rentify.WebAPI.Controllers
 {
-    
+
     public class PaymentController
         : BaseCRUDController<PaymentResponse, PaymentSearchObject, PaymentUpsertRequest, PaymentUpsertRequest>
     {

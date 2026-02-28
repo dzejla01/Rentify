@@ -14,9 +14,18 @@ namespace Rentify.Services.Services
         : BaseCRUDService<PaymentResponse, PaymentSearchObject, Payment, PaymentUpsertRequest, PaymentUpsertRequest>,
           IPaymentService
     {
-        public PaymentService(RentifyDbContext context, IMapper mapper)
-            : base(context, mapper)
+        private readonly IDeviceTokenService _deviceTokenService;
+        private readonly PushNotificationService _pushService;
+
+        public PaymentService(
+            RentifyDbContext context,
+            IMapper mapper,
+            IDeviceTokenService deviceTokenService,
+            PushNotificationService pushService
+        ) : base(context, mapper)
         {
+            _deviceTokenService = deviceTokenService;
+            _pushService = pushService;
         }
 
         protected override IQueryable<Payment> ApplyFilter(IQueryable<Payment> query, PaymentSearchObject search)
@@ -68,6 +77,33 @@ namespace Rentify.Services.Services
                 query = query.Include(p => p.Property);
             }
             return base.AddInclude(query, search);
+        }
+
+        protected override async Task AfterInsert(Payment entity, PaymentUpsertRequest request)
+        {
+            if (entity.IsPayed == false)
+            {
+                try
+                {
+                    var tokens = await _deviceTokenService
+                        .GetActiveTokensAsync(entity.UserId);
+
+                    await _pushService.SendToTokensAsync(
+                        tokens,
+                        "Rentify",
+                        "Imate novi zahtjev za plaćanje.",
+                        new Dictionary<string, string>
+                        {
+                            ["type"] = "payment_request",
+                            ["paymentId"] = entity.Id.ToString()
+                        }
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Push failed: {ex.Message}");
+                }
+            }
         }
 
     }

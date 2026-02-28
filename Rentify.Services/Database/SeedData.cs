@@ -45,6 +45,7 @@ public static class SeedData
                 PasswordSalt = saltBase64,
                 IsVlasnik = true,
                 IsActive = true,
+                IsLoggingFirstTime = false
             },
             new User
             {
@@ -57,6 +58,7 @@ public static class SeedData
                 PasswordSalt = saltBase64,
                 IsVlasnik = false,
                 IsActive = true,
+                IsLoggingFirstTime = false
             },
             new User
             {
@@ -69,6 +71,7 @@ public static class SeedData
                 PasswordSalt = saltBase64,
                 IsVlasnik = true,
                 IsActive = true,
+                IsLoggingFirstTime = false
             },
             new User
             {
@@ -80,7 +83,8 @@ public static class SeedData
                 PasswordHash = hashBase64,
                 PasswordSalt = saltBase64,
                 IsVlasnik = false,
-                IsActive = true
+                IsActive = true,
+                IsLoggingFirstTime = false
             }
 
         );

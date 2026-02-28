@@ -1058,7 +1058,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3134),
+                            CreatedAt = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(1772),
                             Description = "Standardni korisnik aplikacije",
                             IsActive = true,
                             Name = "Korisnik"
@@ -1066,7 +1066,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3139),
+                            CreatedAt = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(1778),
                             Description = "Vlasnik nekretnina koji može upravljati objektima",
                             IsActive = true,
                             Name = "Vlasnik"
@@ -1098,6 +1098,9 @@ namespace Rentify.Services.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsLoggingFirstTime")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsVlasnik")
@@ -1139,55 +1142,97 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3304),
+                            CreatedAt = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2269),
                             Email = "owner.testni@gmail.com",
                             FirstName = "Marko",
                             IsActive = true,
+                            IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Petrov",
-                            PasswordHash = "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==",
-                            PasswordSalt = "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=",
+                            PasswordHash = "1AbiONXmb7rTwDNySqGyQJE94Xm/iporM0ry7OmlmPqhPCCOR92qRCDtsdFIxNoKwc0vtJKz1VpCWuEC71EH6Q==",
+                            PasswordSalt = "6dcTlVtjkwFK/0e1esfsd4NbKFEwobOJGkySgZ88StDjH/KL9aNTukJj8v57lP/aGCMsmcEVBF9iV0B3OtU4BW7O9LZsOVMC/jGnp4m/ugMqTzMOLNvoGeZ6RRSBI/FZBfv7tiUbedVS9LfFdmy+qT8BpHC6oERvM2pkzrlNDws=",
                             Username = "owner1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3313),
+                            CreatedAt = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2287),
                             Email = "ivana.kovac@rentify.dev",
                             FirstName = "Ivana",
                             IsActive = true,
+                            IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kovac",
-                            PasswordHash = "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==",
-                            PasswordSalt = "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=",
+                            PasswordHash = "1AbiONXmb7rTwDNySqGyQJE94Xm/iporM0ry7OmlmPqhPCCOR92qRCDtsdFIxNoKwc0vtJKz1VpCWuEC71EH6Q==",
+                            PasswordSalt = "6dcTlVtjkwFK/0e1esfsd4NbKFEwobOJGkySgZ88StDjH/KL9aNTukJj8v57lP/aGCMsmcEVBF9iV0B3OtU4BW7O9LZsOVMC/jGnp4m/ugMqTzMOLNvoGeZ6RRSBI/FZBfv7tiUbedVS9LfFdmy+qT8BpHC6oERvM2pkzrlNDws=",
                             Username = "user1"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3316),
+                            CreatedAt = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2294),
                             Email = "nikola.jovic@rentify.dev",
                             FirstName = "Nikola",
                             IsActive = true,
+                            IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Jovic",
-                            PasswordHash = "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==",
-                            PasswordSalt = "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=",
+                            PasswordHash = "1AbiONXmb7rTwDNySqGyQJE94Xm/iporM0ry7OmlmPqhPCCOR92qRCDtsdFIxNoKwc0vtJKz1VpCWuEC71EH6Q==",
+                            PasswordSalt = "6dcTlVtjkwFK/0e1esfsd4NbKFEwobOJGkySgZ88StDjH/KL9aNTukJj8v57lP/aGCMsmcEVBF9iV0B3OtU4BW7O9LZsOVMC/jGnp4m/ugMqTzMOLNvoGeZ6RRSBI/FZBfv7tiUbedVS9LfFdmy+qT8BpHC6oERvM2pkzrlNDws=",
                             Username = "owner2"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3318),
+                            CreatedAt = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2299),
                             Email = "amar.hodzic@rentify.dev",
                             FirstName = "Amar",
                             IsActive = true,
+                            IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hodzic",
-                            PasswordHash = "dewc6MruB1HlTBoE6OX7m5SIzpB6lqeTqEHheLIKaM5tpT5Gw+swkcBnIG1uMofYse7g/XuQhtcUOrAGWi6P6g==",
-                            PasswordSalt = "EpZHfoDu4Sml0Cr3UD6z5owrPmWlbNvkrb4Yuev1UB+wA6mEjREvo0TtRUEFwSeEdPyyaF+aAPQb4gNN1t+6ZNyMZCkAWyCyl4yoZFS7MNf6YTE2T9dCmkaJBOnMrdN8mFwJadN0WBvNl76d2vty4LDVKYBzD/8d4T8TX/qyM/c=",
+                            PasswordHash = "1AbiONXmb7rTwDNySqGyQJE94Xm/iporM0ry7OmlmPqhPCCOR92qRCDtsdFIxNoKwc0vtJKz1VpCWuEC71EH6Q==",
+                            PasswordSalt = "6dcTlVtjkwFK/0e1esfsd4NbKFEwobOJGkySgZ88StDjH/KL9aNTukJj8v57lP/aGCMsmcEVBF9iV0B3OtU4BW7O9LZsOVMC/jGnp4m/ugMqTzMOLNvoGeZ6RRSBI/FZBfv7tiUbedVS9LfFdmy+qT8BpHC6oERvM2pkzrlNDws=",
                             Username = "user2"
                         });
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.UserDeviceToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DeviceId")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Platform")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "IsActive");
+
+                    b.ToTable("UserDeviceTokens");
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.UserRole", b =>
@@ -1215,28 +1260,28 @@ namespace Rentify.Services.Migrations
                         {
                             UserId = 1,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3345),
+                            DateAssigned = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2354),
                             Id = 0
                         },
                         new
                         {
                             UserId = 2,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3346),
+                            DateAssigned = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2358),
                             Id = 0
                         },
                         new
                         {
                             UserId = 3,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3347),
+                            DateAssigned = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2360),
                             Id = 0
                         },
                         new
                         {
                             UserId = 4,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 2, 21, 13, 14, 12, 789, DateTimeKind.Utc).AddTicks(3348),
+                            DateAssigned = new DateTime(2026, 2, 28, 23, 47, 28, 107, DateTimeKind.Utc).AddTicks(2361),
                             Id = 0
                         });
                 });
@@ -1335,6 +1380,17 @@ namespace Rentify.Services.Migrations
                         .IsRequired();
 
                     b.Navigation("Property");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.UserDeviceToken", b =>
+                {
+                    b.HasOne("Rentify.Services.Database.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

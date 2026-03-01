@@ -10,5 +10,7 @@
         public double? MaxPriceMonth { get; set; }
         public double? MinPriceDays { get; set; }
         public double? MaxPriceDays { get; set; }
+
+        public bool? IncludeUser {get; set;}
     }
 }

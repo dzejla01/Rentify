@@ -21,14 +21,29 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
         {
+            if (search.OwnerId.HasValue)
+            {
+                query = query.Where(x => x.Property.UserId == search.OwnerId);
+            }
+
             if (!string.IsNullOrWhiteSpace(search.FTS))
             {
                 var fts = search.FTS.Trim().ToLower();
 
                 query = query.Where(r =>
-                    r.Property.Name.ToLower().Contains(fts)
-                    || ("najamnina".ToLower().Contains(fts) && r.IsMonthly == true)
-                    || ("kratki boravak".ToLower().Contains(fts) && r.IsMonthly == false)
+
+                    (r.Property != null && r.Property.Name.ToLower().Contains(fts))
+
+                    || (r.User != null && r.User.FirstName.ToLower().Contains(fts))
+
+                    || (r.User != null && r.User.LastName.ToLower().Contains(fts))
+
+                    || ("najamnina".Contains(fts) && r.IsMonthly == true)
+                    || ("kratki boravak".Contains(fts) && r.IsMonthly == false)
+
+                    || ("odobreno".Contains(fts) && r.IsApproved == true)
+                    || ("odbijeno".Contains(fts) && r.IsApproved == false)
+                    || ("na čekanju".Contains(fts) && r.IsApproved == null)
                 );
             }
 
@@ -70,5 +85,43 @@ namespace Rentify.Services.Services
             return base.AddInclude(query, search);
         }
 
+        private static DateTime ToUtcDate(DateTime d)
+        {
+            // uzmi samo datum i označi kao UTC
+            return DateTime.SpecifyKind(d.Date, DateTimeKind.Utc);
+        }
+
+        public async Task<UnavailableAppointmentsResponse> GetUnavailableAppointmentDatesAsync(
+            int propertyId,
+            DateTime? from = null,
+            DateTime? to = null)
+        {
+            // ✅ UTC date-only prozor
+            var fromUtc = DateTime.SpecifyKind(
+                (from ?? DateTime.UtcNow).ToUniversalTime().Date,
+                DateTimeKind.Utc);
+
+            var toUtc = DateTime.SpecifyKind(
+                (to ?? DateTime.UtcNow.AddMonths(12)).ToUniversalTime().Date,
+                DateTimeKind.Utc);
+
+            var dateTimes = await _context.Appointments
+                .AsNoTracking()
+                .Where(a => a.PropertyId == propertyId)
+                .Where(a => a.IsApproved != false) // approved ili pending
+                .Where(a => a.DateAppointment != null)
+                .Where(a => a.DateAppointment!.Value >= fromUtc &&
+                            a.DateAppointment!.Value < toUtc)
+                .Select(a => a.DateAppointment!.Value) // ✅ BITNO — ne .Date
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            return new UnavailableAppointmentsResponse
+            {
+                PropertyId = propertyId,
+                DateTimes = dateTimes
+            };
+        }
     }
 }

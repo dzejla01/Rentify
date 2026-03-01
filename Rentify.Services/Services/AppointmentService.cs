@@ -39,5 +39,32 @@ namespace Rentify.Services.Services
 
             return query;
         }
+
+         public async Task<UnavailableAppointmentsResponse> GetUnavailableAppointmentDatesAsync(
+    int propertyId,
+    DateTime? from = null,
+    DateTime? to = null)
+{
+    
+    var fromUtc = DateTime.SpecifyKind((from ?? DateTime.UtcNow).ToUniversalTime().Date, DateTimeKind.Utc);
+    var toUtc   = DateTime.SpecifyKind((to   ?? DateTime.UtcNow.AddMonths(12)).ToUniversalTime().Date, DateTimeKind.Utc);
+
+    var dates = await _context.Appointments
+        .AsNoTracking()
+        .Where(a => a.PropertyId == propertyId)
+        .Where(a => a.IsApproved != false)          
+        .Where(a => a.DateAppointment != null)
+        .Where(a => a.DateAppointment!.Value >= fromUtc && a.DateAppointment!.Value < toUtc)
+        .Select(a => a.DateAppointment!.Value.Date)
+        .Distinct()
+        .OrderBy(d => d)
+        .ToListAsync();
+
+    return new UnavailableAppointmentsResponse
+    {
+        PropertyId = propertyId,
+        DateTimes = dates
+    };
+}
     }
 }

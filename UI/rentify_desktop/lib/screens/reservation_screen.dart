@@ -5,6 +5,7 @@ import 'package:rentify_desktop/models/reservation.dart';
 import 'package:rentify_desktop/screens/base_screen.dart';
 import 'package:rentify_desktop/providers/reservation_provider.dart';
 import 'package:rentify_desktop/screens/base_search_list_screen.dart';
+import 'package:rentify_desktop/utils/session.dart';
 
 String fmtDate(DateTime? d) {
   if (d == null) return "-";
@@ -54,7 +55,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
         "includeTotalCount": true,
         "includeUser": true,
         "includeProperty": true,
-        "isApproved": false
+        "ownerId": Session.userId
       }..removeWhere((k, v) => v == null));
 
       setState(() {
@@ -215,7 +216,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
               BaseColumn<Reservation>(
                 title: "Tip",
                 flex: 1,
-                cell: (x) => Text(x.isMonthly ? "Mjesečno" : "Dnevno"),
+                cell: (x) => Text(x.isMonthly ? "Najamnina" : "Kratki boravak"),
               ),
               BaseColumn<Reservation>(
                 title: "Status",

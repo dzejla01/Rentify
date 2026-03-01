@@ -64,6 +64,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
           "Page": page,
           "PageSize": pageSize,
           "IncludeTotalCount": includeTotalCount,
+          "IncludeUser": true,
 
           if (filter != null && filter.trim().isNotEmpty) "Name": filter.trim(),
 

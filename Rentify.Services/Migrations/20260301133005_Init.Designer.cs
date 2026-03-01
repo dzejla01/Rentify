@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Rentify.Services.Migrations
 {
     [DbContext(typeof(RentifyDbContext))]
-    [Migration("20260301033135_Init")]
+    [Migration("20260301133005_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -737,6 +737,848 @@ namespace Rentify.Services.Migrations
                     b.HasIndex("PropertyId");
 
                     b.ToTable("PropertiesImage");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            IsMain = true,
+                            PropertyId = 1,
+                            PropertyImg = "https://picsum.photos/seed/property-1-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            IsMain = false,
+                            PropertyId = 1,
+                            PropertyImg = "https://picsum.photos/seed/property-1-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            IsMain = false,
+                            PropertyId = 1,
+                            PropertyImg = "https://picsum.photos/seed/property-1-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            IsMain = false,
+                            PropertyId = 1,
+                            PropertyImg = "https://picsum.photos/seed/property-1-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            IsMain = true,
+                            PropertyId = 2,
+                            PropertyImg = "https://picsum.photos/seed/property-2-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            IsMain = false,
+                            PropertyId = 2,
+                            PropertyImg = "https://picsum.photos/seed/property-2-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            IsMain = false,
+                            PropertyId = 2,
+                            PropertyImg = "https://picsum.photos/seed/property-2-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            IsMain = false,
+                            PropertyId = 2,
+                            PropertyImg = "https://picsum.photos/seed/property-2-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            IsMain = true,
+                            PropertyId = 3,
+                            PropertyImg = "https://picsum.photos/seed/property-3-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            IsMain = false,
+                            PropertyId = 3,
+                            PropertyImg = "https://picsum.photos/seed/property-3-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            IsMain = false,
+                            PropertyId = 3,
+                            PropertyImg = "https://picsum.photos/seed/property-3-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            IsMain = false,
+                            PropertyId = 3,
+                            PropertyImg = "https://picsum.photos/seed/property-3-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            IsMain = true,
+                            PropertyId = 4,
+                            PropertyImg = "https://picsum.photos/seed/property-4-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            IsMain = false,
+                            PropertyId = 4,
+                            PropertyImg = "https://picsum.photos/seed/property-4-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            IsMain = false,
+                            PropertyId = 4,
+                            PropertyImg = "https://picsum.photos/seed/property-4-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            IsMain = false,
+                            PropertyId = 4,
+                            PropertyImg = "https://picsum.photos/seed/property-4-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            IsMain = true,
+                            PropertyId = 5,
+                            PropertyImg = "https://picsum.photos/seed/property-5-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            IsMain = false,
+                            PropertyId = 5,
+                            PropertyImg = "https://picsum.photos/seed/property-5-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            IsMain = false,
+                            PropertyId = 5,
+                            PropertyImg = "https://picsum.photos/seed/property-5-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            IsMain = false,
+                            PropertyId = 5,
+                            PropertyImg = "https://picsum.photos/seed/property-5-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            IsMain = true,
+                            PropertyId = 6,
+                            PropertyImg = "https://picsum.photos/seed/property-6-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            IsMain = false,
+                            PropertyId = 6,
+                            PropertyImg = "https://picsum.photos/seed/property-6-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            IsMain = false,
+                            PropertyId = 6,
+                            PropertyImg = "https://picsum.photos/seed/property-6-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            IsMain = false,
+                            PropertyId = 6,
+                            PropertyImg = "https://picsum.photos/seed/property-6-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            IsMain = true,
+                            PropertyId = 7,
+                            PropertyImg = "https://picsum.photos/seed/property-7-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            IsMain = false,
+                            PropertyId = 7,
+                            PropertyImg = "https://picsum.photos/seed/property-7-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            IsMain = false,
+                            PropertyId = 7,
+                            PropertyImg = "https://picsum.photos/seed/property-7-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            IsMain = false,
+                            PropertyId = 7,
+                            PropertyImg = "https://picsum.photos/seed/property-7-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            IsMain = true,
+                            PropertyId = 8,
+                            PropertyImg = "https://picsum.photos/seed/property-8-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            IsMain = false,
+                            PropertyId = 8,
+                            PropertyImg = "https://picsum.photos/seed/property-8-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 31,
+                            IsMain = false,
+                            PropertyId = 8,
+                            PropertyImg = "https://picsum.photos/seed/property-8-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 32,
+                            IsMain = false,
+                            PropertyId = 8,
+                            PropertyImg = "https://picsum.photos/seed/property-8-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 33,
+                            IsMain = true,
+                            PropertyId = 9,
+                            PropertyImg = "https://picsum.photos/seed/property-9-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            IsMain = false,
+                            PropertyId = 9,
+                            PropertyImg = "https://picsum.photos/seed/property-9-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 35,
+                            IsMain = false,
+                            PropertyId = 9,
+                            PropertyImg = "https://picsum.photos/seed/property-9-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 36,
+                            IsMain = false,
+                            PropertyId = 9,
+                            PropertyImg = "https://picsum.photos/seed/property-9-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 37,
+                            IsMain = true,
+                            PropertyId = 10,
+                            PropertyImg = "https://picsum.photos/seed/property-10-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 38,
+                            IsMain = false,
+                            PropertyId = 10,
+                            PropertyImg = "https://picsum.photos/seed/property-10-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 39,
+                            IsMain = false,
+                            PropertyId = 10,
+                            PropertyImg = "https://picsum.photos/seed/property-10-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 40,
+                            IsMain = false,
+                            PropertyId = 10,
+                            PropertyImg = "https://picsum.photos/seed/property-10-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 41,
+                            IsMain = true,
+                            PropertyId = 11,
+                            PropertyImg = "https://picsum.photos/seed/property-11-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 42,
+                            IsMain = false,
+                            PropertyId = 11,
+                            PropertyImg = "https://picsum.photos/seed/property-11-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 43,
+                            IsMain = false,
+                            PropertyId = 11,
+                            PropertyImg = "https://picsum.photos/seed/property-11-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 44,
+                            IsMain = false,
+                            PropertyId = 11,
+                            PropertyImg = "https://picsum.photos/seed/property-11-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 45,
+                            IsMain = true,
+                            PropertyId = 12,
+                            PropertyImg = "https://picsum.photos/seed/property-12-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 46,
+                            IsMain = false,
+                            PropertyId = 12,
+                            PropertyImg = "https://picsum.photos/seed/property-12-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 47,
+                            IsMain = false,
+                            PropertyId = 12,
+                            PropertyImg = "https://picsum.photos/seed/property-12-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 48,
+                            IsMain = false,
+                            PropertyId = 12,
+                            PropertyImg = "https://picsum.photos/seed/property-12-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 49,
+                            IsMain = true,
+                            PropertyId = 13,
+                            PropertyImg = "https://picsum.photos/seed/property-13-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 50,
+                            IsMain = false,
+                            PropertyId = 13,
+                            PropertyImg = "https://picsum.photos/seed/property-13-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 51,
+                            IsMain = false,
+                            PropertyId = 13,
+                            PropertyImg = "https://picsum.photos/seed/property-13-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 52,
+                            IsMain = false,
+                            PropertyId = 13,
+                            PropertyImg = "https://picsum.photos/seed/property-13-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 53,
+                            IsMain = true,
+                            PropertyId = 14,
+                            PropertyImg = "https://picsum.photos/seed/property-14-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 54,
+                            IsMain = false,
+                            PropertyId = 14,
+                            PropertyImg = "https://picsum.photos/seed/property-14-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 55,
+                            IsMain = false,
+                            PropertyId = 14,
+                            PropertyImg = "https://picsum.photos/seed/property-14-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 56,
+                            IsMain = false,
+                            PropertyId = 14,
+                            PropertyImg = "https://picsum.photos/seed/property-14-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 57,
+                            IsMain = true,
+                            PropertyId = 15,
+                            PropertyImg = "https://picsum.photos/seed/property-15-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 58,
+                            IsMain = false,
+                            PropertyId = 15,
+                            PropertyImg = "https://picsum.photos/seed/property-15-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 59,
+                            IsMain = false,
+                            PropertyId = 15,
+                            PropertyImg = "https://picsum.photos/seed/property-15-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 60,
+                            IsMain = false,
+                            PropertyId = 15,
+                            PropertyImg = "https://picsum.photos/seed/property-15-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 61,
+                            IsMain = true,
+                            PropertyId = 16,
+                            PropertyImg = "https://picsum.photos/seed/property-16-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 62,
+                            IsMain = false,
+                            PropertyId = 16,
+                            PropertyImg = "https://picsum.photos/seed/property-16-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 63,
+                            IsMain = false,
+                            PropertyId = 16,
+                            PropertyImg = "https://picsum.photos/seed/property-16-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 64,
+                            IsMain = false,
+                            PropertyId = 16,
+                            PropertyImg = "https://picsum.photos/seed/property-16-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 65,
+                            IsMain = true,
+                            PropertyId = 17,
+                            PropertyImg = "https://picsum.photos/seed/property-17-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 66,
+                            IsMain = false,
+                            PropertyId = 17,
+                            PropertyImg = "https://picsum.photos/seed/property-17-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 67,
+                            IsMain = false,
+                            PropertyId = 17,
+                            PropertyImg = "https://picsum.photos/seed/property-17-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 68,
+                            IsMain = false,
+                            PropertyId = 17,
+                            PropertyImg = "https://picsum.photos/seed/property-17-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 69,
+                            IsMain = true,
+                            PropertyId = 18,
+                            PropertyImg = "https://picsum.photos/seed/property-18-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 70,
+                            IsMain = false,
+                            PropertyId = 18,
+                            PropertyImg = "https://picsum.photos/seed/property-18-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 71,
+                            IsMain = false,
+                            PropertyId = 18,
+                            PropertyImg = "https://picsum.photos/seed/property-18-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 72,
+                            IsMain = false,
+                            PropertyId = 18,
+                            PropertyImg = "https://picsum.photos/seed/property-18-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 73,
+                            IsMain = true,
+                            PropertyId = 19,
+                            PropertyImg = "https://picsum.photos/seed/property-19-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 74,
+                            IsMain = false,
+                            PropertyId = 19,
+                            PropertyImg = "https://picsum.photos/seed/property-19-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 75,
+                            IsMain = false,
+                            PropertyId = 19,
+                            PropertyImg = "https://picsum.photos/seed/property-19-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 76,
+                            IsMain = false,
+                            PropertyId = 19,
+                            PropertyImg = "https://picsum.photos/seed/property-19-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 77,
+                            IsMain = true,
+                            PropertyId = 20,
+                            PropertyImg = "https://picsum.photos/seed/property-20-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 78,
+                            IsMain = false,
+                            PropertyId = 20,
+                            PropertyImg = "https://picsum.photos/seed/property-20-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 79,
+                            IsMain = false,
+                            PropertyId = 20,
+                            PropertyImg = "https://picsum.photos/seed/property-20-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 80,
+                            IsMain = false,
+                            PropertyId = 20,
+                            PropertyImg = "https://picsum.photos/seed/property-20-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 81,
+                            IsMain = true,
+                            PropertyId = 21,
+                            PropertyImg = "https://picsum.photos/seed/property-21-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 82,
+                            IsMain = false,
+                            PropertyId = 21,
+                            PropertyImg = "https://picsum.photos/seed/property-21-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 83,
+                            IsMain = false,
+                            PropertyId = 21,
+                            PropertyImg = "https://picsum.photos/seed/property-21-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 84,
+                            IsMain = false,
+                            PropertyId = 21,
+                            PropertyImg = "https://picsum.photos/seed/property-21-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 85,
+                            IsMain = true,
+                            PropertyId = 22,
+                            PropertyImg = "https://picsum.photos/seed/property-22-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 86,
+                            IsMain = false,
+                            PropertyId = 22,
+                            PropertyImg = "https://picsum.photos/seed/property-22-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 87,
+                            IsMain = false,
+                            PropertyId = 22,
+                            PropertyImg = "https://picsum.photos/seed/property-22-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 88,
+                            IsMain = false,
+                            PropertyId = 22,
+                            PropertyImg = "https://picsum.photos/seed/property-22-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 89,
+                            IsMain = true,
+                            PropertyId = 23,
+                            PropertyImg = "https://picsum.photos/seed/property-23-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 90,
+                            IsMain = false,
+                            PropertyId = 23,
+                            PropertyImg = "https://picsum.photos/seed/property-23-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 91,
+                            IsMain = false,
+                            PropertyId = 23,
+                            PropertyImg = "https://picsum.photos/seed/property-23-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 92,
+                            IsMain = false,
+                            PropertyId = 23,
+                            PropertyImg = "https://picsum.photos/seed/property-23-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 93,
+                            IsMain = true,
+                            PropertyId = 24,
+                            PropertyImg = "https://picsum.photos/seed/property-24-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 94,
+                            IsMain = false,
+                            PropertyId = 24,
+                            PropertyImg = "https://picsum.photos/seed/property-24-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 95,
+                            IsMain = false,
+                            PropertyId = 24,
+                            PropertyImg = "https://picsum.photos/seed/property-24-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 96,
+                            IsMain = false,
+                            PropertyId = 24,
+                            PropertyImg = "https://picsum.photos/seed/property-24-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 97,
+                            IsMain = true,
+                            PropertyId = 25,
+                            PropertyImg = "https://picsum.photos/seed/property-25-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 98,
+                            IsMain = false,
+                            PropertyId = 25,
+                            PropertyImg = "https://picsum.photos/seed/property-25-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 99,
+                            IsMain = false,
+                            PropertyId = 25,
+                            PropertyImg = "https://picsum.photos/seed/property-25-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 100,
+                            IsMain = false,
+                            PropertyId = 25,
+                            PropertyImg = "https://picsum.photos/seed/property-25-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 101,
+                            IsMain = true,
+                            PropertyId = 26,
+                            PropertyImg = "https://picsum.photos/seed/property-26-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 102,
+                            IsMain = false,
+                            PropertyId = 26,
+                            PropertyImg = "https://picsum.photos/seed/property-26-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 103,
+                            IsMain = false,
+                            PropertyId = 26,
+                            PropertyImg = "https://picsum.photos/seed/property-26-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 104,
+                            IsMain = false,
+                            PropertyId = 26,
+                            PropertyImg = "https://picsum.photos/seed/property-26-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 105,
+                            IsMain = true,
+                            PropertyId = 27,
+                            PropertyImg = "https://picsum.photos/seed/property-27-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 106,
+                            IsMain = false,
+                            PropertyId = 27,
+                            PropertyImg = "https://picsum.photos/seed/property-27-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 107,
+                            IsMain = false,
+                            PropertyId = 27,
+                            PropertyImg = "https://picsum.photos/seed/property-27-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 108,
+                            IsMain = false,
+                            PropertyId = 27,
+                            PropertyImg = "https://picsum.photos/seed/property-27-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 109,
+                            IsMain = true,
+                            PropertyId = 28,
+                            PropertyImg = "https://picsum.photos/seed/property-28-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 110,
+                            IsMain = false,
+                            PropertyId = 28,
+                            PropertyImg = "https://picsum.photos/seed/property-28-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 111,
+                            IsMain = false,
+                            PropertyId = 28,
+                            PropertyImg = "https://picsum.photos/seed/property-28-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 112,
+                            IsMain = false,
+                            PropertyId = 28,
+                            PropertyImg = "https://picsum.photos/seed/property-28-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 113,
+                            IsMain = true,
+                            PropertyId = 29,
+                            PropertyImg = "https://picsum.photos/seed/property-29-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 114,
+                            IsMain = false,
+                            PropertyId = 29,
+                            PropertyImg = "https://picsum.photos/seed/property-29-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 115,
+                            IsMain = false,
+                            PropertyId = 29,
+                            PropertyImg = "https://picsum.photos/seed/property-29-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 116,
+                            IsMain = false,
+                            PropertyId = 29,
+                            PropertyImg = "https://picsum.photos/seed/property-29-4/900/600"
+                        },
+                        new
+                        {
+                            Id = 117,
+                            IsMain = true,
+                            PropertyId = 30,
+                            PropertyImg = "https://picsum.photos/seed/property-30-1/900/600"
+                        },
+                        new
+                        {
+                            Id = 118,
+                            IsMain = false,
+                            PropertyId = 30,
+                            PropertyImg = "https://picsum.photos/seed/property-30-2/900/600"
+                        },
+                        new
+                        {
+                            Id = 119,
+                            IsMain = false,
+                            PropertyId = 30,
+                            PropertyImg = "https://picsum.photos/seed/property-30-3/900/600"
+                        },
+                        new
+                        {
+                            Id = 120,
+                            IsMain = false,
+                            PropertyId = 30,
+                            PropertyImg = "https://picsum.photos/seed/property-30-4/900/600"
+                        });
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Reservation", b =>
@@ -1075,7 +1917,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6461),
+                            CreatedAt = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3466),
                             Description = "Standardni korisnik aplikacije",
                             IsActive = true,
                             Name = "Korisnik"
@@ -1083,7 +1925,7 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6464),
+                            CreatedAt = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3469),
                             Description = "Vlasnik nekretnina koji može upravljati objektima",
                             IsActive = true,
                             Name = "Vlasnik"
@@ -1162,57 +2004,57 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6668),
+                            CreatedAt = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3713),
                             Email = "owner.testni@gmail.com",
                             FirstName = "Marko",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Petrov",
-                            PasswordHash = "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==",
-                            PasswordSalt = "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=",
+                            PasswordHash = "riSFqAsw2v7BCXEwg7ykYH7VyKpRuzPJ9CBLIFSG+/sSYQPZZ021kNtsOdlcdSTm7AS8zP9lnr2TPy/ChrxJ5w==",
+                            PasswordSalt = "dtPtHblMAZ8l6+4BchcuDk1g64FWur5MLbufJaM8CEs6Kvs7IYKD1YN0GDCBpi1QY3XGOzcJ07oxeWOFT5QuoeQoheuKkcz6UJCnG13/pL45KL3M3HaL4VHAH/sYt6au3elk4bzUjOZE6d+yssGRz/HIiWhtv8gybb641x6EZRE=",
                             Username = "owner1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6677),
+                            CreatedAt = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3723),
                             Email = "ivana.kovac@rentify.dev",
                             FirstName = "Ivana",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kovac",
-                            PasswordHash = "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==",
-                            PasswordSalt = "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=",
+                            PasswordHash = "riSFqAsw2v7BCXEwg7ykYH7VyKpRuzPJ9CBLIFSG+/sSYQPZZ021kNtsOdlcdSTm7AS8zP9lnr2TPy/ChrxJ5w==",
+                            PasswordSalt = "dtPtHblMAZ8l6+4BchcuDk1g64FWur5MLbufJaM8CEs6Kvs7IYKD1YN0GDCBpi1QY3XGOzcJ07oxeWOFT5QuoeQoheuKkcz6UJCnG13/pL45KL3M3HaL4VHAH/sYt6au3elk4bzUjOZE6d+yssGRz/HIiWhtv8gybb641x6EZRE=",
                             Username = "user1"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6680),
+                            CreatedAt = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3725),
                             Email = "nikola.jovic@rentify.dev",
                             FirstName = "Nikola",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Jovic",
-                            PasswordHash = "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==",
-                            PasswordSalt = "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=",
+                            PasswordHash = "riSFqAsw2v7BCXEwg7ykYH7VyKpRuzPJ9CBLIFSG+/sSYQPZZ021kNtsOdlcdSTm7AS8zP9lnr2TPy/ChrxJ5w==",
+                            PasswordSalt = "dtPtHblMAZ8l6+4BchcuDk1g64FWur5MLbufJaM8CEs6Kvs7IYKD1YN0GDCBpi1QY3XGOzcJ07oxeWOFT5QuoeQoheuKkcz6UJCnG13/pL45KL3M3HaL4VHAH/sYt6au3elk4bzUjOZE6d+yssGRz/HIiWhtv8gybb641x6EZRE=",
                             Username = "owner2"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6681),
+                            CreatedAt = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3727),
                             Email = "amar.hodzic@rentify.dev",
                             FirstName = "Amar",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hodzic",
-                            PasswordHash = "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==",
-                            PasswordSalt = "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=",
+                            PasswordHash = "riSFqAsw2v7BCXEwg7ykYH7VyKpRuzPJ9CBLIFSG+/sSYQPZZ021kNtsOdlcdSTm7AS8zP9lnr2TPy/ChrxJ5w==",
+                            PasswordSalt = "dtPtHblMAZ8l6+4BchcuDk1g64FWur5MLbufJaM8CEs6Kvs7IYKD1YN0GDCBpi1QY3XGOzcJ07oxeWOFT5QuoeQoheuKkcz6UJCnG13/pL45KL3M3HaL4VHAH/sYt6au3elk4bzUjOZE6d+yssGRz/HIiWhtv8gybb641x6EZRE=",
                             Username = "user2"
                         });
                 });
@@ -1280,28 +2122,28 @@ namespace Rentify.Services.Migrations
                         {
                             UserId = 1,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6706),
+                            DateAssigned = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3755),
                             Id = 0
                         },
                         new
                         {
                             UserId = 2,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6709),
+                            DateAssigned = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3757),
                             Id = 0
                         },
                         new
                         {
                             UserId = 3,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6710),
+                            DateAssigned = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3758),
                             Id = 0
                         },
                         new
                         {
                             UserId = 4,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6711),
+                            DateAssigned = new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3759),
                             Id = 0
                         });
                 });

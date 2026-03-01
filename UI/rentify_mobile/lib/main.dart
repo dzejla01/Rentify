@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:rentify_mobile/providers/appoitment_provider.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/providers/payment_provider.dart';
@@ -69,6 +70,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => DeviceTokenProvider()),
+        ChangeNotifierProvider(create: (_) => AppoitmentProvider()),
       ],
       child: const RentifyApp(),
     ),

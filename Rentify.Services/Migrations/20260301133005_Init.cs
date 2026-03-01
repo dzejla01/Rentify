@@ -288,8 +288,8 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "Description", "IsActive", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6461), "Standardni korisnik aplikacije", true, "Korisnik" },
-                    { 2, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6464), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
+                    { 1, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3466), "Standardni korisnik aplikacije", true, "Korisnik" },
+                    { 2, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3469), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
                 });
 
             migrationBuilder.InsertData(
@@ -297,10 +297,10 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "DateOfBirth", "Email", "FirstName", "IsActive", "IsLoggingFirstTime", "IsVlasnik", "LastLoginAt", "LastName", "PasswordHash", "PasswordSalt", "PhoneNumber", "PreferedTagsIfNoReservations", "UserImage", "Username" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6668), null, "owner.testni@gmail.com", "Marko", true, false, true, null, "Petrov", "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==", "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=", null, null, null, "owner1" },
-                    { 2, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6677), null, "ivana.kovac@rentify.dev", "Ivana", true, false, false, null, "Kovac", "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==", "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=", null, null, null, "user1" },
-                    { 3, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6680), null, "nikola.jovic@rentify.dev", "Nikola", true, false, true, null, "Jovic", "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==", "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=", null, null, null, "owner2" },
-                    { 4, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6681), null, "amar.hodzic@rentify.dev", "Amar", true, false, false, null, "Hodzic", "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==", "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=", null, null, null, "user2" }
+                    { 1, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3713), null, "owner.testni@gmail.com", "Marko", true, false, true, null, "Petrov", "riSFqAsw2v7BCXEwg7ykYH7VyKpRuzPJ9CBLIFSG+/sSYQPZZ021kNtsOdlcdSTm7AS8zP9lnr2TPy/ChrxJ5w==", "dtPtHblMAZ8l6+4BchcuDk1g64FWur5MLbufJaM8CEs6Kvs7IYKD1YN0GDCBpi1QY3XGOzcJ07oxeWOFT5QuoeQoheuKkcz6UJCnG13/pL45KL3M3HaL4VHAH/sYt6au3elk4bzUjOZE6d+yssGRz/HIiWhtv8gybb641x6EZRE=", null, null, null, "owner1" },
+                    { 2, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3723), null, "ivana.kovac@rentify.dev", "Ivana", true, false, false, null, "Kovac", "riSFqAsw2v7BCXEwg7ykYH7VyKpRuzPJ9CBLIFSG+/sSYQPZZ021kNtsOdlcdSTm7AS8zP9lnr2TPy/ChrxJ5w==", "dtPtHblMAZ8l6+4BchcuDk1g64FWur5MLbufJaM8CEs6Kvs7IYKD1YN0GDCBpi1QY3XGOzcJ07oxeWOFT5QuoeQoheuKkcz6UJCnG13/pL45KL3M3HaL4VHAH/sYt6au3elk4bzUjOZE6d+yssGRz/HIiWhtv8gybb641x6EZRE=", null, null, null, "user1" },
+                    { 3, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3725), null, "nikola.jovic@rentify.dev", "Nikola", true, false, true, null, "Jovic", "riSFqAsw2v7BCXEwg7ykYH7VyKpRuzPJ9CBLIFSG+/sSYQPZZ021kNtsOdlcdSTm7AS8zP9lnr2TPy/ChrxJ5w==", "dtPtHblMAZ8l6+4BchcuDk1g64FWur5MLbufJaM8CEs6Kvs7IYKD1YN0GDCBpi1QY3XGOzcJ07oxeWOFT5QuoeQoheuKkcz6UJCnG13/pL45KL3M3HaL4VHAH/sYt6au3elk4bzUjOZE6d+yssGRz/HIiWhtv8gybb641x6EZRE=", null, null, null, "owner2" },
+                    { 4, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3727), null, "amar.hodzic@rentify.dev", "Amar", true, false, false, null, "Hodzic", "riSFqAsw2v7BCXEwg7ykYH7VyKpRuzPJ9CBLIFSG+/sSYQPZZ021kNtsOdlcdSTm7AS8zP9lnr2TPy/ChrxJ5w==", "dtPtHblMAZ8l6+4BchcuDk1g64FWur5MLbufJaM8CEs6Kvs7IYKD1YN0GDCBpi1QY3XGOzcJ07oxeWOFT5QuoeQoheuKkcz6UJCnG13/pL45KL3M3HaL4VHAH/sYt6au3elk4bzUjOZE6d+yssGRz/HIiWhtv8gybb641x6EZRE=", null, null, null, "user2" }
                 });
 
             migrationBuilder.InsertData(
@@ -345,10 +345,10 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "RoleId", "UserId", "DateAssigned", "Id" },
                 values: new object[,]
                 {
-                    { 2, 1, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6706), 0 },
-                    { 1, 2, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6709), 0 },
-                    { 2, 3, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6710), 0 },
-                    { 1, 4, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6711), 0 }
+                    { 2, 1, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3755), 0 },
+                    { 1, 2, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3757), 0 },
+                    { 2, 3, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3758), 0 },
+                    { 1, 4, new DateTime(2026, 3, 1, 13, 30, 5, 54, DateTimeKind.Utc).AddTicks(3759), 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -360,6 +360,133 @@ namespace Rentify.Services.Migrations
                     { 2, "Bez komentara", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Plaćanje mjesečne rate za 1.2026", null, "Pending", 1550.0, 1, null, 2, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
                     { 3, "Bez komentara", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Plaćanje mjesečne rate za 2.2026", null, "Pending", 1550.0, 1, null, 2, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
                     { 5, "Bez komentara", new DateTime(2026, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc), false, 0, "Plaćanje kratkog boravka", null, "Pending", 400.0, 8, null, 2, new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc), 0 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "PropertiesImage",
+                columns: new[] { "Id", "IsMain", "PropertyId", "PropertyImg" },
+                values: new object[,]
+                {
+                    { 1, true, 1, "https://picsum.photos/seed/property-1-1/900/600" },
+                    { 2, false, 1, "https://picsum.photos/seed/property-1-2/900/600" },
+                    { 3, false, 1, "https://picsum.photos/seed/property-1-3/900/600" },
+                    { 4, false, 1, "https://picsum.photos/seed/property-1-4/900/600" },
+                    { 5, true, 2, "https://picsum.photos/seed/property-2-1/900/600" },
+                    { 6, false, 2, "https://picsum.photos/seed/property-2-2/900/600" },
+                    { 7, false, 2, "https://picsum.photos/seed/property-2-3/900/600" },
+                    { 8, false, 2, "https://picsum.photos/seed/property-2-4/900/600" },
+                    { 9, true, 3, "https://picsum.photos/seed/property-3-1/900/600" },
+                    { 10, false, 3, "https://picsum.photos/seed/property-3-2/900/600" },
+                    { 11, false, 3, "https://picsum.photos/seed/property-3-3/900/600" },
+                    { 12, false, 3, "https://picsum.photos/seed/property-3-4/900/600" },
+                    { 13, true, 4, "https://picsum.photos/seed/property-4-1/900/600" },
+                    { 14, false, 4, "https://picsum.photos/seed/property-4-2/900/600" },
+                    { 15, false, 4, "https://picsum.photos/seed/property-4-3/900/600" },
+                    { 16, false, 4, "https://picsum.photos/seed/property-4-4/900/600" },
+                    { 17, true, 5, "https://picsum.photos/seed/property-5-1/900/600" },
+                    { 18, false, 5, "https://picsum.photos/seed/property-5-2/900/600" },
+                    { 19, false, 5, "https://picsum.photos/seed/property-5-3/900/600" },
+                    { 20, false, 5, "https://picsum.photos/seed/property-5-4/900/600" },
+                    { 21, true, 6, "https://picsum.photos/seed/property-6-1/900/600" },
+                    { 22, false, 6, "https://picsum.photos/seed/property-6-2/900/600" },
+                    { 23, false, 6, "https://picsum.photos/seed/property-6-3/900/600" },
+                    { 24, false, 6, "https://picsum.photos/seed/property-6-4/900/600" },
+                    { 25, true, 7, "https://picsum.photos/seed/property-7-1/900/600" },
+                    { 26, false, 7, "https://picsum.photos/seed/property-7-2/900/600" },
+                    { 27, false, 7, "https://picsum.photos/seed/property-7-3/900/600" },
+                    { 28, false, 7, "https://picsum.photos/seed/property-7-4/900/600" },
+                    { 29, true, 8, "https://picsum.photos/seed/property-8-1/900/600" },
+                    { 30, false, 8, "https://picsum.photos/seed/property-8-2/900/600" },
+                    { 31, false, 8, "https://picsum.photos/seed/property-8-3/900/600" },
+                    { 32, false, 8, "https://picsum.photos/seed/property-8-4/900/600" },
+                    { 33, true, 9, "https://picsum.photos/seed/property-9-1/900/600" },
+                    { 34, false, 9, "https://picsum.photos/seed/property-9-2/900/600" },
+                    { 35, false, 9, "https://picsum.photos/seed/property-9-3/900/600" },
+                    { 36, false, 9, "https://picsum.photos/seed/property-9-4/900/600" },
+                    { 37, true, 10, "https://picsum.photos/seed/property-10-1/900/600" },
+                    { 38, false, 10, "https://picsum.photos/seed/property-10-2/900/600" },
+                    { 39, false, 10, "https://picsum.photos/seed/property-10-3/900/600" },
+                    { 40, false, 10, "https://picsum.photos/seed/property-10-4/900/600" },
+                    { 41, true, 11, "https://picsum.photos/seed/property-11-1/900/600" },
+                    { 42, false, 11, "https://picsum.photos/seed/property-11-2/900/600" },
+                    { 43, false, 11, "https://picsum.photos/seed/property-11-3/900/600" },
+                    { 44, false, 11, "https://picsum.photos/seed/property-11-4/900/600" },
+                    { 45, true, 12, "https://picsum.photos/seed/property-12-1/900/600" },
+                    { 46, false, 12, "https://picsum.photos/seed/property-12-2/900/600" },
+                    { 47, false, 12, "https://picsum.photos/seed/property-12-3/900/600" },
+                    { 48, false, 12, "https://picsum.photos/seed/property-12-4/900/600" },
+                    { 49, true, 13, "https://picsum.photos/seed/property-13-1/900/600" },
+                    { 50, false, 13, "https://picsum.photos/seed/property-13-2/900/600" },
+                    { 51, false, 13, "https://picsum.photos/seed/property-13-3/900/600" },
+                    { 52, false, 13, "https://picsum.photos/seed/property-13-4/900/600" },
+                    { 53, true, 14, "https://picsum.photos/seed/property-14-1/900/600" },
+                    { 54, false, 14, "https://picsum.photos/seed/property-14-2/900/600" },
+                    { 55, false, 14, "https://picsum.photos/seed/property-14-3/900/600" },
+                    { 56, false, 14, "https://picsum.photos/seed/property-14-4/900/600" },
+                    { 57, true, 15, "https://picsum.photos/seed/property-15-1/900/600" },
+                    { 58, false, 15, "https://picsum.photos/seed/property-15-2/900/600" },
+                    { 59, false, 15, "https://picsum.photos/seed/property-15-3/900/600" },
+                    { 60, false, 15, "https://picsum.photos/seed/property-15-4/900/600" },
+                    { 61, true, 16, "https://picsum.photos/seed/property-16-1/900/600" },
+                    { 62, false, 16, "https://picsum.photos/seed/property-16-2/900/600" },
+                    { 63, false, 16, "https://picsum.photos/seed/property-16-3/900/600" },
+                    { 64, false, 16, "https://picsum.photos/seed/property-16-4/900/600" },
+                    { 65, true, 17, "https://picsum.photos/seed/property-17-1/900/600" },
+                    { 66, false, 17, "https://picsum.photos/seed/property-17-2/900/600" },
+                    { 67, false, 17, "https://picsum.photos/seed/property-17-3/900/600" },
+                    { 68, false, 17, "https://picsum.photos/seed/property-17-4/900/600" },
+                    { 69, true, 18, "https://picsum.photos/seed/property-18-1/900/600" },
+                    { 70, false, 18, "https://picsum.photos/seed/property-18-2/900/600" },
+                    { 71, false, 18, "https://picsum.photos/seed/property-18-3/900/600" },
+                    { 72, false, 18, "https://picsum.photos/seed/property-18-4/900/600" },
+                    { 73, true, 19, "https://picsum.photos/seed/property-19-1/900/600" },
+                    { 74, false, 19, "https://picsum.photos/seed/property-19-2/900/600" },
+                    { 75, false, 19, "https://picsum.photos/seed/property-19-3/900/600" },
+                    { 76, false, 19, "https://picsum.photos/seed/property-19-4/900/600" },
+                    { 77, true, 20, "https://picsum.photos/seed/property-20-1/900/600" },
+                    { 78, false, 20, "https://picsum.photos/seed/property-20-2/900/600" },
+                    { 79, false, 20, "https://picsum.photos/seed/property-20-3/900/600" },
+                    { 80, false, 20, "https://picsum.photos/seed/property-20-4/900/600" },
+                    { 81, true, 21, "https://picsum.photos/seed/property-21-1/900/600" },
+                    { 82, false, 21, "https://picsum.photos/seed/property-21-2/900/600" },
+                    { 83, false, 21, "https://picsum.photos/seed/property-21-3/900/600" },
+                    { 84, false, 21, "https://picsum.photos/seed/property-21-4/900/600" },
+                    { 85, true, 22, "https://picsum.photos/seed/property-22-1/900/600" },
+                    { 86, false, 22, "https://picsum.photos/seed/property-22-2/900/600" },
+                    { 87, false, 22, "https://picsum.photos/seed/property-22-3/900/600" },
+                    { 88, false, 22, "https://picsum.photos/seed/property-22-4/900/600" },
+                    { 89, true, 23, "https://picsum.photos/seed/property-23-1/900/600" },
+                    { 90, false, 23, "https://picsum.photos/seed/property-23-2/900/600" },
+                    { 91, false, 23, "https://picsum.photos/seed/property-23-3/900/600" },
+                    { 92, false, 23, "https://picsum.photos/seed/property-23-4/900/600" },
+                    { 93, true, 24, "https://picsum.photos/seed/property-24-1/900/600" },
+                    { 94, false, 24, "https://picsum.photos/seed/property-24-2/900/600" },
+                    { 95, false, 24, "https://picsum.photos/seed/property-24-3/900/600" },
+                    { 96, false, 24, "https://picsum.photos/seed/property-24-4/900/600" },
+                    { 97, true, 25, "https://picsum.photos/seed/property-25-1/900/600" },
+                    { 98, false, 25, "https://picsum.photos/seed/property-25-2/900/600" },
+                    { 99, false, 25, "https://picsum.photos/seed/property-25-3/900/600" },
+                    { 100, false, 25, "https://picsum.photos/seed/property-25-4/900/600" },
+                    { 101, true, 26, "https://picsum.photos/seed/property-26-1/900/600" },
+                    { 102, false, 26, "https://picsum.photos/seed/property-26-2/900/600" },
+                    { 103, false, 26, "https://picsum.photos/seed/property-26-3/900/600" },
+                    { 104, false, 26, "https://picsum.photos/seed/property-26-4/900/600" },
+                    { 105, true, 27, "https://picsum.photos/seed/property-27-1/900/600" },
+                    { 106, false, 27, "https://picsum.photos/seed/property-27-2/900/600" },
+                    { 107, false, 27, "https://picsum.photos/seed/property-27-3/900/600" },
+                    { 108, false, 27, "https://picsum.photos/seed/property-27-4/900/600" },
+                    { 109, true, 28, "https://picsum.photos/seed/property-28-1/900/600" },
+                    { 110, false, 28, "https://picsum.photos/seed/property-28-2/900/600" },
+                    { 111, false, 28, "https://picsum.photos/seed/property-28-3/900/600" },
+                    { 112, false, 28, "https://picsum.photos/seed/property-28-4/900/600" },
+                    { 113, true, 29, "https://picsum.photos/seed/property-29-1/900/600" },
+                    { 114, false, 29, "https://picsum.photos/seed/property-29-2/900/600" },
+                    { 115, false, 29, "https://picsum.photos/seed/property-29-3/900/600" },
+                    { 116, false, 29, "https://picsum.photos/seed/property-29-4/900/600" },
+                    { 117, true, 30, "https://picsum.photos/seed/property-30-1/900/600" },
+                    { 118, false, 30, "https://picsum.photos/seed/property-30-2/900/600" },
+                    { 119, false, 30, "https://picsum.photos/seed/property-30-3/900/600" },
+                    { 120, false, 30, "https://picsum.photos/seed/property-30-4/900/600" }
                 });
 
             migrationBuilder.InsertData(

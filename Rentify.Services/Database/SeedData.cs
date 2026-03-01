@@ -4,6 +4,10 @@ using Rentify.Services.Helpers;
 
 public static class SeedData
 {
+    private static string PropertyImageUrl(int propertyId, int index)
+            => $"https://picsum.photos/seed/property-{propertyId}-{index}/900/600";
+
+
     public static void Seed(ModelBuilder modelBuilder)
     {
 
@@ -595,6 +599,56 @@ public static class SeedData
     }
 );
 
+        int pid = 1;
+
+        void AddPropertyImages(int propertyId)
+        {
+            modelBuilder.Entity<PropertyImage>().HasData(
+                new PropertyImage
+                {
+                    Id = pid++,
+                    PropertyId = propertyId,
+                    PropertyImg = PropertyImageUrl(propertyId, 1),
+                    IsMain = true
+                },
+                new PropertyImage
+                {
+                    Id = pid++,
+                    PropertyId = propertyId,
+                    PropertyImg = PropertyImageUrl(propertyId, 2),
+                    IsMain = false
+                },
+                new PropertyImage
+                {
+                    Id = pid++,
+                    PropertyId = propertyId,
+                    PropertyImg = PropertyImageUrl(propertyId, 3),
+                    IsMain = false
+                },
+                new PropertyImage
+                {
+                    Id = pid++,
+                    PropertyId = propertyId,
+                    PropertyImg = PropertyImageUrl(propertyId, 4),
+                    IsMain = false
+                }
+            );
+        }
+
+        // ✅ ovdje samo nabroji property ID-eve koje seed-aš
+        foreach (var propertyId in new[]
+        {
+                1, 2, 3, 4, 5,
+                6, 7, 8, 9, 10,
+                11,12,13,14,15,
+                16,17,18,19,20,
+                21,22,23,24,25,
+                26,27,28,29,30
+            })
+        {
+            AddPropertyImages(propertyId);
+        }
+
         modelBuilder.Entity<Reservation>().HasData(
 
             // =============================
@@ -760,129 +814,129 @@ public static class SeedData
         UserId = 2,
         PropertyId = 8,
         Name = "Plaćanje kratkog boravka",
-        Price = 400, 
+        Price = 400,
         Comment = "Bez komentara",
         IsPayed = false,
-        MonthNumber = 0,  
-        YearNumber = 0,   
+        MonthNumber = 0,
+        YearNumber = 0,
         DateToPay = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
         WarningDateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
     }
 );
 
-modelBuilder.Entity<Review>().HasData(
+        modelBuilder.Entity<Review>().HasData(
 
-    // ================================
-    // IVANA KOVAC (UserId = 2)
-    // ================================
+            // ================================
+            // IVANA KOVAC (UserId = 2)
+            // ================================
 
-    new Review
-    {
-        Id = 1,
-        UserId = 2,
-        PropertyId = 1,
-        Comment = "Odličan stan, čisto i uredno. Lokacija savršena.",
-        StarRate = 5
-    },
-    new Review
-    {
-        Id = 2,
-        UserId = 2,
-        PropertyId = 8,
-        Comment = "Predivan pogled i jako ljubazan vlasnik.",
-        StarRate = 5
-    },
-    new Review
-    {
-        Id = 3,
-        UserId = 2,
-        PropertyId = 4,
-        Comment = "Stan je moderan i komforan, preporuka.",
-        StarRate = 4
-    },
-    new Review
-    {
-        Id = 4,
-        UserId = 2,
-        PropertyId = 12,
-        Comment = "Solidno iskustvo, sve je bilo korektno.",
-        StarRate = 4
-    },
+            new Review
+            {
+                Id = 1,
+                UserId = 2,
+                PropertyId = 1,
+                Comment = "Odličan stan, čisto i uredno. Lokacija savršena.",
+                StarRate = 5
+            },
+            new Review
+            {
+                Id = 2,
+                UserId = 2,
+                PropertyId = 8,
+                Comment = "Predivan pogled i jako ljubazan vlasnik.",
+                StarRate = 5
+            },
+            new Review
+            {
+                Id = 3,
+                UserId = 2,
+                PropertyId = 4,
+                Comment = "Stan je moderan i komforan, preporuka.",
+                StarRate = 4
+            },
+            new Review
+            {
+                Id = 4,
+                UserId = 2,
+                PropertyId = 12,
+                Comment = "Solidno iskustvo, sve je bilo korektno.",
+                StarRate = 4
+            },
 
-    // ================================
-    // AMAR HODZIC (UserId = 4)
-    // ================================
+            // ================================
+            // AMAR HODZIC (UserId = 4)
+            // ================================
 
-    new Review
-    {
-        Id = 5,
-        UserId = 4,
-        PropertyId = 2,
-        Comment = "Lijep ambijent i mirna lokacija.",
-        StarRate = 4
-    },
-    new Review
-    {
-        Id = 6,
-        UserId = 4,
-        PropertyId = 6,
-        Comment = "Stan je bio uredan, ali može bolje održavanje.",
-        StarRate = 3
-    },
-    new Review
-    {
-        Id = 7,
-        UserId = 4,
-        PropertyId = 10,
-        Comment = "Top lokacija u Mostaru, pogled fantastičan!",
-        StarRate = 5
-    },
-    new Review
-    {
-        Id = 8,
-        UserId = 4,
-        PropertyId = 14,
-        Comment = "Minimalistički stan, vrlo prijatan boravak.",
-        StarRate = 4
-    },
+            new Review
+            {
+                Id = 5,
+                UserId = 4,
+                PropertyId = 2,
+                Comment = "Lijep ambijent i mirna lokacija.",
+                StarRate = 4
+            },
+            new Review
+            {
+                Id = 6,
+                UserId = 4,
+                PropertyId = 6,
+                Comment = "Stan je bio uredan, ali može bolje održavanje.",
+                StarRate = 3
+            },
+            new Review
+            {
+                Id = 7,
+                UserId = 4,
+                PropertyId = 10,
+                Comment = "Top lokacija u Mostaru, pogled fantastičan!",
+                StarRate = 5
+            },
+            new Review
+            {
+                Id = 8,
+                UserId = 4,
+                PropertyId = 14,
+                Comment = "Minimalistički stan, vrlo prijatan boravak.",
+                StarRate = 4
+            },
 
-    // ================================
-    // DODATNE (realistične raspodjele)
-    // ================================
+            // ================================
+            // DODATNE (realistične raspodjele)
+            // ================================
 
-    new Review
-    {
-        Id = 9,
-        UserId = 2,
-        PropertyId = 16,
-        Comment = "Praktičan stan u centru Tuzle.",
-        StarRate = 4
-    },
-    new Review
-    {
-        Id = 10,
-        UserId = 4,
-        PropertyId = 23,
-        Comment = "Loft je unikatan i jako udoban.",
-        StarRate = 5
-    },
-    new Review
-    {
-        Id = 11,
-        UserId = 2,
-        PropertyId = 24,
-        Comment = "Stan uz rijeku, veoma ugodno iskustvo.",
-        StarRate = 4
-    },
-    new Review
-    {
-        Id = 12,
-        UserId = 4,
-        PropertyId = 28,
-        Comment = "Panoramski pogled vrijedi svake marke.",
-        StarRate = 5
-    }
-);
+            new Review
+            {
+                Id = 9,
+                UserId = 2,
+                PropertyId = 16,
+                Comment = "Praktičan stan u centru Tuzle.",
+                StarRate = 4
+            },
+            new Review
+            {
+                Id = 10,
+                UserId = 4,
+                PropertyId = 23,
+                Comment = "Loft je unikatan i jako udoban.",
+                StarRate = 5
+            },
+            new Review
+            {
+                Id = 11,
+                UserId = 2,
+                PropertyId = 24,
+                Comment = "Stan uz rijeku, veoma ugodno iskustvo.",
+                StarRate = 4
+            },
+            new Review
+            {
+                Id = 12,
+                UserId = 4,
+                PropertyId = 28,
+                Comment = "Panoramski pogled vrijedi svake marke.",
+                StarRate = 5
+            }
+        );
 
 
 

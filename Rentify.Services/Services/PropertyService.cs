@@ -22,6 +22,15 @@ namespace Rentify.Services.Services
 
         }
 
+        protected override IQueryable<Property> AddInclude(IQueryable<Property> query, PropertySearchObject search)
+        {
+            if (search.IncludeUser.HasValue)
+            {
+                query = query.Include(u => u.User);
+            }
+            return base.AddInclude(query, search);
+        }
+
         protected override IQueryable<Property> ApplyFilter(IQueryable<Property> query, PropertySearchObject search)
         {
             if (!string.IsNullOrWhiteSpace(search.Name))
@@ -76,7 +85,7 @@ namespace Rentify.Services.Services
                 .Distinct()
                 .ToListAsync();
 
-            var candidates = await _context.Properties
+            var candidates = await _context.Properties.Include(p => p.User)
                 .Where(p => p.IsActiveOnApp && p.IsAvailable && !reservedPropertyIds.Contains(p.Id))
                 .ToListAsync();
 

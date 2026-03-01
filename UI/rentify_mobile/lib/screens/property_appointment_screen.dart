@@ -2,54 +2,43 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
-import 'package:rentify_mobile/helper/date_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
-
-// ✅ dodaj provider (custom http poziv)
-import 'package:rentify_mobile/providers/reservation_provider.dart';
+import 'package:rentify_mobile/providers/appoitment_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/utils/session.dart';
 
-enum ReservationType { monthly, shortStay }
-
-class PropertyReservationUniversalScreen extends StatefulWidget {
-  const PropertyReservationUniversalScreen({
+class PropertyAppointmentUniversalScreen extends StatefulWidget {
+  const PropertyAppointmentUniversalScreen({
     super.key,
     required this.property,
-    required this.type,
-    this.unavailableDates = const [],
+    this.unavailableAppointments = const [],
   });
 
   final Property property;
-  final ReservationType type;
 
-  /// Za "colored calendar": listu popuniš sa API-a (zauzeti dani).
-  final List<DateTime> unavailableDates;
+  final List<DateTime> unavailableAppointments;
 
   @override
-  State<PropertyReservationUniversalScreen> createState() =>
-      _PropertyReservationUniversalScreenState();
+  State<PropertyAppointmentUniversalScreen> createState() =>
+      _PropertyAppointmentUniversalScreenState();
 }
 
-class _PropertyReservationUniversalScreenState
-    extends State<PropertyReservationUniversalScreen> {
-  // Rentify theme
+class _PropertyAppointmentUniversalScreenState
+    extends State<PropertyAppointmentUniversalScreen> {
   static const rentifyGreenDark = Color(0xFF5F9F3B);
 
-  // --- MONTHLY state ---
-  int _selectedMonth = DateTime.now().month;
-  int _selectedYear = DateTime.now().year;
-
-  // --- SHORT STAY state ---
   DateTime _visibleMonth = DateTime(
     DateTime.now().year,
     DateTime.now().month,
     1,
   );
-  DateTime? _start;
-  DateTime? _end;
 
-  late final Set<DateTime> _unavailable; // normalized (yyyy-mm-dd)
+  DateTime? _selectedDate; 
+  TimeOfDay? _selectedTime;
+
+  late final Set<DateTime> _unavailableDateTimes; 
+  late final Set<DateTime> _unavailableDates;
+
   bool _loadingUnavailable = false;
   bool _submitting = false;
 
@@ -57,20 +46,23 @@ class _PropertyReservationUniversalScreenState
   void initState() {
     super.initState();
 
-    _unavailable = widget.unavailableDates.map(_normalizeDate).toSet();
+    _unavailableDateTimes = widget.unavailableAppointments
+        .map(_normalizeMinuteUtc)
+        .toSet();
 
-    if (widget.type == ReservationType.shortStay) {
-      _loadUnavailableDates();
-    }
+    _unavailableDates =
+    widget.unavailableAppointments.map(_normalizeDateUtc).toSet();
+
+    _loadUnavailableAppointments();
   }
 
-  Future<void> _loadUnavailableDates() async {
+  Future<void> _loadUnavailableAppointments() async {
     setState(() => _loadingUnavailable = true);
 
     try {
-      final provider = ReservationProvider();
+      final provider = AppoitmentProvider();
 
-      final resp = await provider.getUnavailableDatesForReservations(
+      final resp = await provider.getUnavailableDates(
         propertyId: widget.property.id,
         from: DateTime.now(),
         to: DateTime.now().add(const Duration(days: 180)),
@@ -79,10 +71,14 @@ class _PropertyReservationUniversalScreenState
       if (!mounted) return;
 
       setState(() {
-        _unavailable
+        _unavailableDateTimes
           ..clear()
-          ..addAll(resp.dates.map(_normalizeDate));
-        _loadingUnavailable = false;
+          ..addAll(resp.dateTimes.map(_normalizeMinuteUtc)); 
+          _unavailableDates
+    ..clear()
+    ..addAll(resp.dateTimes.map(_normalizeDateUtc));
+
+  _loadingUnavailable = false;
       });
     } catch (e) {
       if (!mounted) return;
@@ -90,24 +86,30 @@ class _PropertyReservationUniversalScreenState
       setState(() => _loadingUnavailable = false);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Ne mogu učitati zauzete datume: $e")),
+        SnackBar(content: Text("Ne mogu učitati zauzete termine: $e")),
       );
     }
   }
 
+  bool _hasAnyBusyForDate(DateTime dateUtc) {
+  for (final t in _buildDefaultSlots()) {
+    if (_isSlotUnavailable(dateUtc, t)) return true;
+  }
+  return false;
+}
+
   @override
   Widget build(BuildContext context) {
-    final title = widget.type == ReservationType.monthly
-        ? "Mjesečna najamnina"
-        : "Kratki boravak";
-
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F8),
       appBar: AppBar(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.white,
         elevation: 0.5,
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+        title: const Text(
+          "Pregled uživo",
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
       ),
       body: SafeArea(
         child: ListView(
@@ -116,10 +118,40 @@ class _PropertyReservationUniversalScreenState
             _PropertyMiniHeader(property: widget.property),
             const SizedBox(height: 12),
 
-            if (widget.type == ReservationType.monthly)
-              _monthlyPickerCard()
-            else
-              _shortStayCalendarCard(),
+            _Card(
+              title: "Odaberi datum",
+              subtitle: _loadingUnavailable
+                  ? "Učitavam zauzete termine..."
+                  : "Sivo = prošlo • Crveno = dan bez termina (sve zauzeto)",
+              child: Column(
+                children: [
+                  _calendarHeader(),
+                  const SizedBox(height: 10),
+                  _weekdayRow(),
+                  const SizedBox(height: 8),
+                  _calendarGrid(),
+                  const SizedBox(height: 10),
+                  _MiniInfo(
+                    label: "Odabrani datum",
+                    value: _selectedDate == null
+                        ? "—"
+                        : _fmtDate(_selectedDate!),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            _Card(
+              title: "Odaberi termin",
+              subtitle: _selectedDate == null
+                  ? "Prvo odaberi datum."
+                  : "Zauzeti termini su onemogućeni.",
+              child: _selectedDate == null
+                  ? const _EmptyHint(text: "Odaberi datum da vidiš termine.")
+                  : _timeSlots(),
+            ),
 
             const SizedBox(height: 12),
             _summaryCard(),
@@ -130,104 +162,7 @@ class _PropertyReservationUniversalScreenState
     );
   }
 
-  // ------------------ MONTHLY UI ------------------
-
-  Widget _monthlyPickerCard() {
-  final now = DateTime.now();
-
-  // ✅ godine: od ove godine pa npr. narednih 8
-  final years = List.generate(8, (i) => now.year + i);
-
-  // ✅ mjeseci: ako je trenutna godina -> od trenutnog mjeseca nadalje
-  final months = (_selectedYear == now.year)
-      ? List.generate(12 - now.month + 1, (i) => now.month + i) // npr. 3..12
-      : List.generate(12, (i) => i + 1); // 1..12
-
-  // ✅ ako user promijeni godinu na trenutnu, a mjesec je "prošli", ispravi ga
-  if (_selectedYear == now.year && _selectedMonth < now.month) {
-    _selectedMonth = now.month;
-  }
-
-  return _Card(
-    title: "Odaberi period",
-    child: Row(
-      children: [
-        Expanded(
-          child: _Dropdown<int>(
-            label: "Mjesec",
-            value: _selectedMonth,
-            items: months
-                .map(
-                  (m) => DropdownMenuItem(
-                    value: m,
-                    child: Text(DateFormat.MMMM("bs").format(DateTime(2025, m, 1))),
-                  ),
-                )
-                .toList(),
-            onChanged: (v) => setState(() {
-              _selectedMonth = v ?? _selectedMonth;
-            }),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _Dropdown<int>(
-            label: "Godina",
-            value: _selectedYear,
-            items: years
-                .map((y) => DropdownMenuItem(value: y, child: Text(y.toString())))
-                .toList(),
-            onChanged: (v) => setState(() {
-              _selectedYear = v ?? _selectedYear;
-
-              if (_selectedYear == now.year && _selectedMonth < now.month) {
-                _selectedMonth = now.month;
-              }
-            }),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
-  // ------------------ SHORT STAY UI ------------------
-
-  Widget _shortStayCalendarCard() {
-    return _Card(
-      title: "Odaberi datume",
-      subtitle: _loadingUnavailable
-          ? "Učitavam zauzete datume..."
-          : "Crveno = zauzeto • Sivo = prošlo • Odaberi od–do (slobodne dane).",
-      child: Column(
-        children: [
-          _calendarHeader(),
-          const SizedBox(height: 10),
-          _weekdayRow(),
-          const SizedBox(height: 8),
-          _calendarGrid(),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _MiniInfo(
-                  label: "Od",
-                  value: _start == null ? "—" : _fmt(_start!),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _MiniInfo(
-                  label: "Do",
-                  value: _end == null ? "—" : _fmt(_end!),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+  // ------------------ Calendar ------------------
 
   Widget _calendarHeader() {
     final monthName = DateFormat.MMMM("bs").format(_visibleMonth);
@@ -292,10 +227,12 @@ class _PropertyReservationUniversalScreenState
   Widget _calendarGrid() {
     final firstDay = _visibleMonth;
     final daysInMonth = DateUtils.getDaysInMonth(firstDay.year, firstDay.month);
+
     final leading = firstDay.weekday - 1;
     final totalCells = leading + daysInMonth;
     final rows = (totalCells / 7.0).ceil();
-    final today = _normalizeDate(DateTime.now());
+
+    final today = _normalizeDateUtc(DateTime.now());
 
     return Column(
       children: List.generate(rows, (r) {
@@ -310,24 +247,20 @@ class _PropertyReservationUniversalScreenState
                 return const Expanded(child: SizedBox(height: 44));
               }
 
-              final date = _normalizeDate(
-                DateTime(firstDay.year, firstDay.month, dayNum),
+              // ✅ date-only u UTC da nema pomjeranja dana
+              final date = _normalizeDateUtc(
+                DateTime.utc(firstDay.year, firstDay.month, dayNum),
               );
+
               final isPast = date.isBefore(today);
-              final isUnavailable = _unavailable.contains(date);
 
-              final isSelectedStart =
-                  _start != null && _normalizeDate(_start!) == date;
-              final isSelectedEnd =
-                  _end != null && _normalizeDate(_end!) == date;
+              final isSelected =
+                  _selectedDate != null &&
+                  _normalizeDateUtc(_selectedDate!) == date;
 
-              final inRange =
-                  _start != null &&
-                  _end != null &&
-                  !date.isBefore(_normalizeDate(_start!)) &&
-                  !date.isAfter(_normalizeDate(_end!));
+              final hasBusy = _unavailableDates.contains(date);
 
-              final canTap = !_loadingUnavailable && !isPast && !isUnavailable;
+              final canTap = !_loadingUnavailable && !isPast;
 
               Color bg = Colors.white;
               Color fg = const Color(0xFF2F2F2F);
@@ -336,18 +269,13 @@ class _PropertyReservationUniversalScreenState
               if (isPast) {
                 fg = const Color(0xFFB0B0B0);
                 bg = const Color(0xFFF2F3F4);
-              } else if (isUnavailable) {
+              } else if (hasBusy) {
                 fg = const Color(0xFFE53935);
                 bg = const Color(0xFFFFE8E8);
                 border = const BorderSide(color: Color(0x33E53935));
               }
 
-              if (inRange && _start != null && _end != null) {
-                bg = const Color(0x1A5F9F3B);
-                border = const BorderSide(color: Color(0x335F9F3B));
-              }
-
-              if (isSelectedStart || isSelectedEnd) {
+              if (isSelected) {
                 bg = rentifyGreenDark;
                 fg = Colors.white;
                 border = BorderSide.none;
@@ -355,7 +283,14 @@ class _PropertyReservationUniversalScreenState
 
               return Expanded(
                 child: GestureDetector(
-                  onTap: !canTap ? null : () => _onTapDate(date),
+                  onTap: !canTap
+                      ? null
+                      : () {
+                          setState(() {
+                            _selectedDate = date;
+                            _selectedTime = null;
+                          });
+                        },
                   child: Container(
                     height: 44,
                     margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -379,68 +314,91 @@ class _PropertyReservationUniversalScreenState
     );
   }
 
-  void _onTapDate(DateTime date) {
-    if (_start == null || (_start != null && _end != null)) {
-      setState(() {
-        _start = date;
-        _end = null;
-      });
-      return;
-    }
+  // ------------------ Time slots ------------------
 
-    if (_start != null && _end == null) {
-      if (date.isBefore(_normalizeDate(_start!))) {
-        setState(() => _start = date);
-        return;
-      }
+  Widget _timeSlots() {
+    final slots = _buildDefaultSlots(); // 09:00 - 18:00
 
-      if (_rangeHasUnavailable(_normalizeDate(_start!), date)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Odabrani period sadrži zauzete dane.")),
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      children: slots.map((t) {
+        final disabled = _isSlotUnavailable(_selectedDate!, t);
+        final selected =
+            _selectedTime != null &&
+            _selectedTime!.hour == t.hour &&
+            _selectedTime!.minute == t.minute;
+
+        Color bg = const Color(0xFFF6F7F8);
+        Color fg = const Color(0xFF2F2F2F);
+        BorderSide border = const BorderSide(color: Color(0x11000000));
+
+        if (disabled) {
+          bg = const Color(0xFFFFE8E8);
+          fg = const Color(0xFFE53935);
+          border = const BorderSide(color: Color(0x33E53935));
+        }
+
+        if (selected) {
+          bg = rentifyGreenDark;
+          fg = Colors.white;
+          border = BorderSide.none;
+        }
+
+        return GestureDetector(
+          onTap: disabled
+              ? null
+              : () => setState(() {
+                  _selectedTime = t;
+                }),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.fromBorderSide(border),
+            ),
+            child: Text(
+              _fmtTime(t),
+              style: TextStyle(fontWeight: FontWeight.w900, color: fg),
+            ),
+          ),
         );
-        return;
-      }
-
-      setState(() => _end = date);
-    }
+      }).toList(),
+    );
   }
 
-  bool _rangeHasUnavailable(DateTime start, DateTime end) {
-    DateTime d = start;
-    while (!d.isAfter(end)) {
-      if (_unavailable.contains(d)) return true;
-      d = d.add(const Duration(days: 1));
+  List<TimeOfDay> _buildDefaultSlots() {
+    final List<TimeOfDay> out = [];
+    for (int h = 9; h <= 18; h++) {
+      out.add(TimeOfDay(hour: h, minute: 0));
     }
-    return false;
+    return out;
   }
 
-  // ------------------ SUMMARY + BOTTOM ------------------
+  bool _isSlotUnavailable(DateTime dateUtc, TimeOfDay t) {
+    // dateUtc je već UTC date-only
+    final dtUtc = DateTime.utc(
+      dateUtc.year,
+      dateUtc.month,
+      dateUtc.day,
+      t.hour,
+      t.minute,
+    );
+    return _unavailableDateTimes.contains(_normalizeMinuteUtc(dtUtc));
+  }
+
+  bool _allSlotsBusyForDate(DateTime dateUtc) {
+    final slots = _buildDefaultSlots();
+    if (slots.isEmpty) return false;
+    return slots.every((t) => _isSlotUnavailable(dateUtc, t));
+  }
+
+  // ------------------ Summary + Bottom ------------------
 
   Widget _summaryCard() {
-    final priceMonth = widget.property.pricePerMonth;
-    final priceDay = widget.property.pricePerDay;
-
-    String line1;
-    String line2;
-
-    if (widget.type == ReservationType.monthly) {
-      line1 =
-          "Period: ${_selectedMonth.toString().padLeft(2, '0')}.${_selectedYear}";
-      line2 = "Cijena: ${priceMonth.toStringAsFixed(0)} KM / mjesec";
-    } else {
-      final nights = _start == null || _end == null
-          ? null
-          : _end!.difference(_start!).inDays;
-      line1 =
-          "Datumi: ${_start == null ? "—" : _fmt(_start!)}  →  ${_end == null ? "—" : _fmt(_end!)}";
-
-      if (nights == null) {
-        line2 = "Cijena: —";
-      } else {
-        final total = priceDay * nights;
-        line2 = "Noći: $nights • Ukupno: ${total.toStringAsFixed(0)} KM";
-      }
-    }
+    final dateText = _selectedDate == null ? "—" : _fmtDate(_selectedDate!);
+    final timeText = _selectedTime == null ? "—" : _fmtTime(_selectedTime!);
 
     return _Card(
       title: "Sažetak",
@@ -448,7 +406,7 @@ class _PropertyReservationUniversalScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            line1,
+            "Datum: $dateText",
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               color: Color(0xFF2F2F2F),
@@ -456,7 +414,7 @@ class _PropertyReservationUniversalScreenState
           ),
           const SizedBox(height: 6),
           Text(
-            line2,
+            "Termin: $timeText",
             style: const TextStyle(
               fontWeight: FontWeight.w800,
               color: Color(0xFF7A7A7A),
@@ -468,9 +426,7 @@ class _PropertyReservationUniversalScreenState
   }
 
   Widget _bottomBar() {
-    final canContinue = widget.type == ReservationType.monthly
-        ? true
-        : (_start != null && _end != null);
+    final canReserve = _selectedDate != null && _selectedTime != null;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
@@ -508,7 +464,7 @@ class _PropertyReservationUniversalScreenState
             child: SizedBox(
               height: 48,
               child: ElevatedButton(
-                onPressed: (!canContinue || _submitting) ? null : _reserve,
+                onPressed: (!canReserve || _submitting) ? null : _reserve,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: rentifyGreenDark,
                   foregroundColor: Colors.white,
@@ -537,11 +493,8 @@ class _PropertyReservationUniversalScreenState
 
   void _reset() {
     setState(() {
-      _selectedMonth = DateTime.now().month;
-      _selectedYear = DateTime.now().year;
-
-      _start = null;
-      _end = null;
+      _selectedDate = null;
+      _selectedTime = null;
       _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
     });
   }
@@ -551,35 +504,20 @@ class _PropertyReservationUniversalScreenState
       setState(() => _submitting = true);
 
       final userId = Session.userId;
-      if (userId == null) {
-        throw Exception("Niste prijavljeni.");
-      }
+      if (userId == null) throw Exception("Niste prijavljeni.");
+
+      final d = _selectedDate!;
+      final t = _selectedTime!;
+
+      final dtUtc = DateTime.utc(d.year, d.month, d.day, t.hour, t.minute);
 
       final payload = <String, dynamic>{
         "userId": userId,
         "propertyId": widget.property.id,
-        "isMonthly": widget.type == ReservationType.monthly,
-        "createdAt": DateHelper.toUtcIso(DateTime.now())
+        "dateAppointment": dtUtc.toIso8601String(),
       };
 
-      if (widget.type == ReservationType.monthly) {
-        // mjesecna: šalješ month/year (kako si već ranije vratio)
-        payload["month"] = _selectedMonth;
-        payload["year"] = _selectedYear;
-      } else {
-        if (_start == null || _end == null) {
-          throw Exception("Odaberite period boravka.");
-        }
-
-        final startUtc = DateTime.utc(_start!.year, _start!.month, _start!.day);
-        final endUtc = DateTime.utc(_end!.year, _end!.month, _end!.day);
-
-        payload["startDateOfRenting"] = startUtc.toIso8601String();
-        payload["endDateOfRenting"] = endUtc.toIso8601String();
-      }
-
-      // ✅ BaseProvider insert (pretpostavka: insert(Map))
-      final created = await Provider.of<ReservationProvider>(
+      await Provider.of<AppoitmentProvider>(
         context,
         listen: false,
       ).insert(payload);
@@ -590,9 +528,9 @@ class _PropertyReservationUniversalScreenState
 
       await ConfirmDialogs.okConfirmation(
         context,
-        title: "Rezervacija",
+        title: "Pregled uživo",
         message:
-            "Zahtjev za rezervaciju je uspješno poslan.\n\nNa sekciji Rezervacije možete vidjeti da li je vaš domaćin odobrio.",
+            "Zahtjev za termin je uspješno poslan.\n\nNa sekciji Pregledi možete vidjeti da li je domaćin odobrio termin.",
       );
 
       if (!mounted) return;
@@ -612,21 +550,63 @@ class _PropertyReservationUniversalScreenState
     }
   }
 
-  // ------------------ helpers ------------------
+  // ------------------ helpers (UTC safe) ------------------
 
-  DateTime _normalizeDate(DateTime d) => DateTime(d.year, d.month, d.day);
+  DateTime _normalizeDateUtc(DateTime d) {
+    final u = d.toUtc();
+    return DateTime.utc(u.year, u.month, u.day);
+  }
 
-  String _fmt(DateTime d) => DateFormat("dd.MM.yyyy").format(d);
+  DateTime _normalizeMinuteUtc(DateTime d) {
+    final u = d.toUtc();
+    return DateTime.utc(u.year, u.month, u.day, u.hour, u.minute);
+  }
+
+  String _fmtDate(DateTime d) => DateFormat("dd.MM.yyyy").format(d.toLocal());
+
+  String _fmtTime(TimeOfDay t) =>
+      "${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}";
 
   String _capitalize(String s) =>
       s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
 }
 
-/* ===================== Small UI Widgets ===================== */
+/* ===================== Small UI Widgets (isto kao kod tebe) ===================== */
+
+class _EmptyHint extends StatelessWidget {
+  const _EmptyHint({required this.text});
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF6F7F8),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0x11000000)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline_rounded, color: Color(0xFF7A7A7A)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF7A7A7A),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _PropertyMiniHeader extends StatelessWidget {
   const _PropertyMiniHeader({required this.property});
-
   final Property property;
 
   @override
@@ -688,7 +668,6 @@ class _PropertyMiniHeader extends StatelessWidget {
 
 class _Card extends StatelessWidget {
   const _Card({required this.title, this.subtitle, required this.child});
-
   final String title;
   final String? subtitle;
   final Widget child;
@@ -737,46 +716,8 @@ class _Card extends StatelessWidget {
   }
 }
 
-class _Dropdown<T> extends StatelessWidget {
-  const _Dropdown({
-    required this.label,
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final String label;
-  final T value;
-  final List<DropdownMenuItem<T>> items;
-  final ValueChanged<T?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: const Color(0xFFF6F7F8),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          items: items,
-          onChanged: onChanged,
-          isExpanded: true,
-        ),
-      ),
-    );
-  }
-}
-
 class _IconBtn extends StatelessWidget {
   const _IconBtn({required this.icon, required this.onTap});
-
   final IconData icon;
   final VoidCallback onTap;
 
@@ -801,7 +742,6 @@ class _IconBtn extends StatelessWidget {
 
 class _MiniInfo extends StatelessWidget {
   const _MiniInfo({required this.label, required this.value});
-
   final String label;
   final String value;
 

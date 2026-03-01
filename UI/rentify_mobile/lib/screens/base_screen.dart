@@ -161,7 +161,7 @@ class BaseMobileScreen extends StatelessWidget {
                     text: "Rezervacije",
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigator.pushNamed(context, AppRoutes.reservations);
+                      Navigator.pushNamed(context, AppRoutes.reservations);
                     },
                   ),
                   _drawerItem(
@@ -169,7 +169,7 @@ class BaseMobileScreen extends StatelessWidget {
                     icon: Icons.payments_rounded,
                     text: "Plaćanja",
                     onTap: () {
-                      Navigator.pop(context); // zatvori drawer
+                      Navigator.pop(context); 
 
                       Navigator.push(
                         context,
@@ -177,6 +177,15 @@ class BaseMobileScreen extends StatelessWidget {
                           builder: (_) => const PaymentScreen(),
                         ),
                       );
+                    },
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.backpack,
+                    text: "Termini",
+                    onTap: () {
+                      Navigator.pop(context); 
+                      Navigator.pushNamed(context, AppRoutes.appointments);
                     },
                   ),
                   _drawerItem(
@@ -192,15 +201,6 @@ class BaseMobileScreen extends StatelessWidget {
                   const SizedBox(height: 8),
                   const Divider(height: 1),
 
-                  _drawerItem(
-                    context,
-                    icon: Icons.settings_rounded,
-                    text: "Postavke",
-                    onTap: () {
-                      Navigator.pop(context);
-                      // Navigator.pushNamed(context, AppRoutes.settings);
-                    },
-                  ),
                   _drawerItem(
                     context,
                     icon: Icons.logout_rounded,

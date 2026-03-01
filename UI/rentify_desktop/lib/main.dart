@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_desktop/providers/appointment_provider.dart';
 import 'package:rentify_desktop/providers/auth_provider.dart';
 import 'package:rentify_desktop/providers/image_provider.dart';
 import 'package:rentify_desktop/providers/payment_provider.dart';
@@ -24,6 +25,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => ReservationProvider()),
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
+        ChangeNotifierProvider(create: (_) => AppoitmentProvider()),
 
       ],
       child: const RentifyApp(),

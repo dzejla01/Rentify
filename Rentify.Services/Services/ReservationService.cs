@@ -123,5 +123,46 @@ namespace Rentify.Services.Services
                 DateTimes = dateTimes
             };
         }
+
+        public async Task<bool> DeleteAll(int id)
+        {
+            var reservation = await _context.Reservations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (reservation == null)
+                return false;
+
+            var userId = reservation.UserId;
+            var propertyId = reservation.PropertyId;
+
+            await using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _context.Payments
+                    .Where(x => x.UserId == userId && x.PropertyId == propertyId)
+                    .ExecuteDeleteAsync();
+
+                await _context.Reviews
+                    .Where(x => x.UserId == userId && x.PropertyId == propertyId)
+                    .ExecuteDeleteAsync();
+
+                await _context.Appointments
+                    .Where(x => x.UserId == userId && x.PropertyId == propertyId)
+                    .ExecuteDeleteAsync();
+
+                await _context.Reservations
+                    .Where(x => x.UserId == userId && x.PropertyId == propertyId)
+                    .ExecuteDeleteAsync();
+
+                await tx.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
     }
 }

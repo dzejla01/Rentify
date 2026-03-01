@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rentify_desktop/models/property.dart';
+import 'package:rentify_desktop/screens/appointment_screen.dart';
 import 'package:rentify_desktop/screens/home_screen.dart';
 import 'package:rentify_desktop/screens/login_screen.dart';
 import 'package:rentify_desktop/screens/payment_screen.dart';
@@ -18,6 +19,7 @@ class AppRoutes {
   static const String reviews = '/reviews';
   static const String propertyDetails = '/propertyDetails';
   static const String login = '/login';
+  static const String appointment = '/appointment';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -41,6 +43,9 @@ class AppRoutes {
 
       case login:
         return MaterialPageRoute(builder: (_) => const LoginScreen());
+      
+      case appointment:
+        return MaterialPageRoute(builder: (_) => const AppointmentScreen());
 
       case propertyDetails:
         final args = settings.arguments as Map<String, dynamic>?;

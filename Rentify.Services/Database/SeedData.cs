@@ -5,101 +5,38 @@ using Rentify.Services.Helpers;
 public static class SeedData
 {
     private static string PropertyImageUrl(int propertyId, int index)
-            => $"https://picsum.photos/seed/property-{propertyId}-{index}/900/600";
-
+        => $"https://picsum.photos/seed/property-{propertyId}-{index}/900/600";
 
     public static void Seed(ModelBuilder modelBuilder)
     {
-
         UserHelper.CreatePasswordHash(
            "Test123!",
            out var hashBase64,
            out var saltBase64
         );
 
+        // ================= ROLES =================
         modelBuilder.Entity<Role>().HasData(
-        new Role
-        {
-            Id = 1,
-            Name = "Korisnik",
-            Description = "Standardni korisnik aplikacije",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        },
-        new Role
-        {
-            Id = 2,
-            Name = "Vlasnik",
-            Description = "Vlasnik nekretnina koji može upravljati objektima",
-            IsActive = true,
-            CreatedAt = DateTime.UtcNow
-        }
+            new Role { Id = 1, Name = "Korisnik", Description = "Standardni korisnik aplikacije", IsActive = true, CreatedAt = DateTime.UtcNow },
+            new Role { Id = 2, Name = "Vlasnik", Description = "Vlasnik nekretnina", IsActive = true, CreatedAt = DateTime.UtcNow }
         );
 
-        // USERS (random, neutralni)
+        // ================= USERS =================
         modelBuilder.Entity<User>().HasData(
-            new User
-            {
-                Id = 1,
-                FirstName = "Marko",
-                LastName = "Petrov",
-                Email = "owner.testni@gmail.com",
-                Username = "owner1",
-                PasswordHash = hashBase64,
-                PasswordSalt = saltBase64,
-                IsVlasnik = true,
-                IsActive = true,
-                IsLoggingFirstTime = false
-            },
-            new User
-            {
-                Id = 2,
-                FirstName = "Ivana",
-                LastName = "Kovac",
-                Email = "ivana.kovac@rentify.dev",
-                Username = "user1",
-                PasswordHash = hashBase64,
-                PasswordSalt = saltBase64,
-                IsVlasnik = false,
-                IsActive = true,
-                IsLoggingFirstTime = false
-            },
-            new User
-            {
-                Id = 3,
-                FirstName = "Nikola",
-                LastName = "Jovic",
-                Email = "nikola.jovic@rentify.dev",
-                Username = "owner2",
-                PasswordHash = hashBase64,
-                PasswordSalt = saltBase64,
-                IsVlasnik = true,
-                IsActive = true,
-                IsLoggingFirstTime = false
-            },
-            new User
-            {
-                Id = 4,
-                FirstName = "Amar",
-                LastName = "Hodzic",
-                Email = "amar.hodzic@rentify.dev",
-                Username = "user2",
-                PasswordHash = hashBase64,
-                PasswordSalt = saltBase64,
-                IsVlasnik = false,
-                IsActive = true,
-                IsLoggingFirstTime = false
-            }
-
+            new User { Id = 1, FirstName = "Marko", LastName = "Petrov", Email = "owner.testni@gmail.com", Username = "owner1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
+            new User { Id = 2, FirstName = "Ivana", LastName = "Kovac", Email = "ivana.kovac@rentify.dev", Username = "user1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
+            new User { Id = 3, FirstName = "Nikola", LastName = "Jovic", Email = "nikola.jovic@rentify.dev", Username = "owner2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
+            new User { Id = 4, FirstName = "Amar", LastName = "Hodzic", Email = "amar.hodzic@rentify.dev", Username = "user2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false }
         );
 
         modelBuilder.Entity<UserRole>().HasData(
-            new UserRole { UserId = 1, RoleId = 2 }, // owner1 -> Vlasnik
-            new UserRole { UserId = 2, RoleId = 1 }, // user1 -> Korisnik
+            new UserRole { UserId = 1, RoleId = 2 },
+            new UserRole { UserId = 2, RoleId = 1 },
             new UserRole { UserId = 3, RoleId = 2 },
-            new UserRole { UserId = 4, RoleId = 1 }// owner2 -> Vlasnik
+            new UserRole { UserId = 4, RoleId = 1 }
         );
 
+        // ================= PROPERTIES =================
         modelBuilder.Entity<Property>().HasData(
 
     // =========================
@@ -599,346 +536,29 @@ public static class SeedData
     }
 );
 
-        int pid = 1;
-
-        void AddPropertyImages(int propertyId)
-        {
-            modelBuilder.Entity<PropertyImage>().HasData(
-                new PropertyImage
-                {
-                    Id = pid++,
-                    PropertyId = propertyId,
-                    PropertyImg = PropertyImageUrl(propertyId, 1),
-                    IsMain = true
-                },
-                new PropertyImage
-                {
-                    Id = pid++,
-                    PropertyId = propertyId,
-                    PropertyImg = PropertyImageUrl(propertyId, 2),
-                    IsMain = false
-                },
-                new PropertyImage
-                {
-                    Id = pid++,
-                    PropertyId = propertyId,
-                    PropertyImg = PropertyImageUrl(propertyId, 3),
-                    IsMain = false
-                },
-                new PropertyImage
-                {
-                    Id = pid++,
-                    PropertyId = propertyId,
-                    PropertyImg = PropertyImageUrl(propertyId, 4),
-                    IsMain = false
-                }
-            );
-        }
-
-        // ✅ ovdje samo nabroji property ID-eve koje seed-aš
-        foreach (var propertyId in new[]
-        {
-                1, 2, 3, 4, 5,
-                6, 7, 8, 9, 10,
-                11,12,13,14,15,
-                16,17,18,19,20,
-                21,22,23,24,25,
-                26,27,28,29,30
-            })
-        {
-            AddPropertyImages(propertyId);
-        }
-
+        // ================= RESERVATIONS =================
         modelBuilder.Entity<Reservation>().HasData(
-
-            // =============================
-            // MJESEČNE (automatski odobrene)
-            // =============================
             new Reservation { Id = 1, UserId = 2, PropertyId = 1, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
             new Reservation { Id = 2, UserId = 4, PropertyId = 2, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc) },
             new Reservation { Id = 3, UserId = 2, PropertyId = 4, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc) },
             new Reservation { Id = 4, UserId = 4, PropertyId = 6, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 4, 0, 0, 0, DateTimeKind.Utc) },
 
-            // =============================
-            // DNEVNE (odobrene)
-            // =============================
-            new Reservation
-            {
-                Id = 5,
-                UserId = 2,
-                PropertyId = 8,
-                IsMonthly = false,
-                StartDateOfRenting = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
-                EndDateOfRenting = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
-                IsApproved = true,
-                CreatedAt = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new Reservation
-            {
-                Id = 6,
-                UserId = 4,
-                PropertyId = 10,
-                IsMonthly = false,
-                StartDateOfRenting = new DateTime(2026, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                EndDateOfRenting = new DateTime(2026, 3, 15, 0, 0, 0, DateTimeKind.Utc),
-                IsApproved = true,
-                CreatedAt = new DateTime(2026, 2, 2, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new Reservation
-            {
-                Id = 7,
-                UserId = 2,
-                PropertyId = 12,
-                IsMonthly = false,
-                StartDateOfRenting = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc),
-                EndDateOfRenting = new DateTime(2026, 4, 7, 0, 0, 0, DateTimeKind.Utc),
-                IsApproved = true,
-                CreatedAt = new DateTime(2026, 2, 3, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new Reservation
-            {
-                Id = 8,
-                UserId = 4,
-                PropertyId = 14,
-                IsMonthly = false,
-                StartDateOfRenting = new DateTime(2026, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                EndDateOfRenting = new DateTime(2026, 4, 14, 0, 0, 0, DateTimeKind.Utc),
-                IsApproved = true,
-                CreatedAt = new DateTime(2026, 2, 4, 0, 0, 0, DateTimeKind.Utc)
-            },
-
-            // =============================
-            // ZAHTJEVI NA ČEKANJU
-            // =============================
-            new Reservation { Id = 9, UserId = 2, PropertyId = 16, IsMonthly = true, IsApproved = null, CreatedAt = new DateTime(2026, 2, 5, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation
-            {
-                Id = 10,
-                UserId = 4,
-                PropertyId = 18,
-                IsMonthly = false,
-                StartDateOfRenting = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc),
-                EndDateOfRenting = new DateTime(2026, 5, 5, 0, 0, 0, DateTimeKind.Utc),
-                IsApproved = null,
-                CreatedAt = new DateTime(2026, 2, 6, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new Reservation { Id = 11, UserId = 2, PropertyId = 20, IsMonthly = true, IsApproved = null, CreatedAt = new DateTime(2026, 2, 7, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation
-            {
-                Id = 12,
-                UserId = 4,
-                PropertyId = 22,
-                IsMonthly = false,
-                StartDateOfRenting = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc),
-                EndDateOfRenting = new DateTime(2026, 5, 14, 0, 0, 0, DateTimeKind.Utc),
-                IsApproved = null,
-                CreatedAt = new DateTime(2026, 2, 8, 0, 0, 0, DateTimeKind.Utc)
-            },
-
-            // =============================
-            // ODBIJENE
-            // =============================
-            new Reservation { Id = 13, UserId = 2, PropertyId = 24, IsMonthly = true, IsApproved = false, CreatedAt = new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation
-            {
-                Id = 14,
-                UserId = 4,
-                PropertyId = 26,
-                IsMonthly = false,
-                StartDateOfRenting = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
-                EndDateOfRenting = new DateTime(2026, 6, 5, 0, 0, 0, DateTimeKind.Utc),
-                IsApproved = false,
-                CreatedAt = new DateTime(2026, 2, 10, 0, 0, 0, DateTimeKind.Utc)
-            }
+            new Reservation { Id = 5, UserId = 2, PropertyId = 8, IsMonthly = false, StartDateOfRenting = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc), EndDateOfRenting = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc), IsApproved = true, CreatedAt = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
 
+        // ================= PAYMENTS =================
         modelBuilder.Entity<Payment>().HasData(
-
-    // =======================================================
-    // IVANA KOVAC (UserId=2) - MJESEČNA (PropertyId=1)
-    // Plaćeno: 12/2025, 01/2026, 02/2026
-    // Neplaćeno: 03/2026 -> treba poslati zahtjev za mart
-    // =======================================================
-
-    new Payment
-    {
-        Id = 1,
-        UserId = 2,
-        PropertyId = 1,
-        Name = "Plaćanje mjesečne rate za 12.2025",
-        Price = 1550,
-        Comment = "Bez komentara",
-        IsPayed = true,
-        MonthNumber = 12,
-        YearNumber = 2025,
-        DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, DateTimeKind.Utc),
-        WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, DateTimeKind.Utc),
-    },
-    new Payment
-    {
-        Id = 2,
-        UserId = 2,
-        PropertyId = 1,
-        Name = "Plaćanje mjesečne rate za 1.2026",
-        Price = 1550,
-        Comment = "Bez komentara",
-        IsPayed = true,
-        MonthNumber = 1,
-        YearNumber = 2026,
-        DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc),
-        WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, DateTimeKind.Utc),
-    },
-    new Payment
-    {
-        Id = 3,
-        UserId = 2,
-        PropertyId = 1,
-        Name = "Plaćanje mjesečne rate za 2.2026",
-        Price = 1550,
-        Comment = "Bez komentara",
-        IsPayed = true,
-        MonthNumber = 2,
-        YearNumber = 2026,
-        DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, DateTimeKind.Utc),
-        WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, DateTimeKind.Utc),
-    },
-
-    // =======================================================
-    // IVANA KOVAC (UserId=2) - NIJE MJESEČNO (PropertyId=8)
-    // Za non-monthly: jedan payment zapis (jednokratno)
-    // =======================================================
-
-    new Payment
-    {
-        Id = 5,
-        UserId = 2,
-        PropertyId = 8,
-        Name = "Plaćanje kratkog boravka",
-        Price = 400,
-        Comment = "Bez komentara",
-        IsPayed = false,
-        MonthNumber = 0,
-        YearNumber = 0,
-        DateToPay = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
-        WarningDateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
-    }
-);
-
-        modelBuilder.Entity<Review>().HasData(
-
-            // ================================
-            // IVANA KOVAC (UserId = 2)
-            // ================================
-
-            new Review
-            {
-                Id = 1,
-                UserId = 2,
-                PropertyId = 1,
-                Comment = "Odličan stan, čisto i uredno. Lokacija savršena.",
-                StarRate = 5
-            },
-            new Review
-            {
-                Id = 2,
-                UserId = 2,
-                PropertyId = 8,
-                Comment = "Predivan pogled i jako ljubazan vlasnik.",
-                StarRate = 5
-            },
-            new Review
-            {
-                Id = 3,
-                UserId = 2,
-                PropertyId = 4,
-                Comment = "Stan je moderan i komforan, preporuka.",
-                StarRate = 4
-            },
-            new Review
-            {
-                Id = 4,
-                UserId = 2,
-                PropertyId = 12,
-                Comment = "Solidno iskustvo, sve je bilo korektno.",
-                StarRate = 4
-            },
-
-            // ================================
-            // AMAR HODZIC (UserId = 4)
-            // ================================
-
-            new Review
-            {
-                Id = 5,
-                UserId = 4,
-                PropertyId = 2,
-                Comment = "Lijep ambijent i mirna lokacija.",
-                StarRate = 4
-            },
-            new Review
-            {
-                Id = 6,
-                UserId = 4,
-                PropertyId = 6,
-                Comment = "Stan je bio uredan, ali može bolje održavanje.",
-                StarRate = 3
-            },
-            new Review
-            {
-                Id = 7,
-                UserId = 4,
-                PropertyId = 10,
-                Comment = "Top lokacija u Mostaru, pogled fantastičan!",
-                StarRate = 5
-            },
-            new Review
-            {
-                Id = 8,
-                UserId = 4,
-                PropertyId = 14,
-                Comment = "Minimalistički stan, vrlo prijatan boravak.",
-                StarRate = 4
-            },
-
-            // ================================
-            // DODATNE (realistične raspodjele)
-            // ================================
-
-            new Review
-            {
-                Id = 9,
-                UserId = 2,
-                PropertyId = 16,
-                Comment = "Praktičan stan u centru Tuzle.",
-                StarRate = 4
-            },
-            new Review
-            {
-                Id = 10,
-                UserId = 4,
-                PropertyId = 23,
-                Comment = "Loft je unikatan i jako udoban.",
-                StarRate = 5
-            },
-            new Review
-            {
-                Id = 11,
-                UserId = 2,
-                PropertyId = 24,
-                Comment = "Stan uz rijeku, veoma ugodno iskustvo.",
-                StarRate = 4
-            },
-            new Review
-            {
-                Id = 12,
-                UserId = 4,
-                PropertyId = 28,
-                Comment = "Panoramski pogled vrijedi svake marke.",
-                StarRate = 5
-            }
+            new Payment { Id = 1, UserId = 2, PropertyId = 1, Name = "Mjesečna rata 12.2025", Price = 1550, Comment = "", IsPayed = true, MonthNumber = 12, YearNumber = 2025 },
+            new Payment { Id = 2, UserId = 2, PropertyId = 1, Name = "Mjesečna rata 01.2026", Price = 1550, Comment = "", IsPayed = true, MonthNumber = 1, YearNumber = 2026 },
+            new Payment { Id = 3, UserId = 2, PropertyId = 1, Name = "Mjesečna rata 02.2026", Price = 1550, Comment = "", IsPayed = true, MonthNumber = 2, YearNumber = 2026 },
+            new Payment { Id = 4, UserId = 2, PropertyId = 8, Name = "Kratki boravak 03.2026", Price = 400, Comment = "", IsPayed = true, MonthNumber = 3, YearNumber = 2026 }
         );
 
-
-
+        // ================= APPOINTMENTS (Samo available) =================
+        modelBuilder.Entity<Appointment>().HasData(
+            new Appointment { Id = 1, UserId = 2, PropertyId = 8, DateAppointment = new DateTime(2026, 3, 8, 11, 0, 0, DateTimeKind.Utc), IsApproved = true },
+            new Appointment { Id = 2, UserId = 4, PropertyId = 10, DateAppointment = new DateTime(2026, 3, 11, 9, 30, 0, DateTimeKind.Utc), IsApproved = null },
+            new Appointment { Id = 3, UserId = 2, PropertyId = 12, DateAppointment = new DateTime(2026, 3, 12, 13, 0, 0, DateTimeKind.Utc), IsApproved = true }
+        );
     }
 }

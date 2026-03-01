@@ -129,19 +129,24 @@ class _ReservationScreenState extends State<ReservationScreen> {
 
   Future<void> _deleteReservation(Reservation r) async {
   final ok = await ConfirmDialogs.yesNoConfirmation(
-    context,
-    title: "Brisanje rezervacije",
-    question:
-        "Da li sigurno želiš obrisati rezervaciju #${r.id}?\n\n"
-        "Ova radnja je trajna i ne može se poništiti.",
-    yesText: "Obriši",
-    noText: "Odustani",
-  );
+  context,
+  title: "Brisanje rezervacije",
+  question:
+      "Da li ste sigurni da želite obrisati rezervaciju #${r.id}?\n\n"
+      "Ovom radnjom će se trajno obrisati:\n"
+      "• Sve rezervacije vezane za ovu nekretninu\n"
+      "• Sva plaćanja povezana s rezervacijom\n"
+      "• Svi termini (appointments)\n"
+      "• Sve recenzije korisnika za ovu nekretninu\n\n"
+      "Nakon brisanja podaci se NE mogu vratiti.",
+  yesText: "Trajno obriši",
+  noText: "Odustani",
+);
 
   if (!ok) return;
 
   try {
-    await context.read<ReservationProvider>().delete(r.id);
+    await context.read<ReservationProvider>().deleteAll(r.id);
     await _load();
 
     if (!mounted) return;

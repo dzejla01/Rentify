@@ -13,5 +13,7 @@ namespace Rentify.Services.Interfaces
         int propertyId,
         DateTime? from = null,
         DateTime? to = null);
+
+       Task<bool> DeleteAll(int id);
     }
 }

@@ -749,6 +749,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pushNamed(context, AppRoutes.reviews);
               },
             ),
+            _dashboardCard(
+              icon: Icons.event_available_rounded,
+              title: 'Termini',
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.appointment);
+              },
+            ),
           ],
         ),
       ),

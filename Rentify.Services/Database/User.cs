@@ -45,6 +45,8 @@ namespace Rentify.Services.Database
         [MaxLength(20)]
         public string? PhoneNumber { get; set; }
 
+        public List<string>? PreferedTagsIfNoReservations { get; set; }
+
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 }

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/screens/home_screen.dart';
-import 'login_screen.dart';
+import 'package:rentify_mobile/screens/login_screen.dart';
+import 'package:rentify_mobile/screens/tags_on_boarding_screen.dart';
+import 'package:rentify_mobile/utils/session.dart';
 
 class AuthGate extends StatefulWidget {
   const AuthGate({super.key});
@@ -23,7 +25,7 @@ class _AuthGateState extends State<AuthGate> {
   Future<void> _init() async {
     final auth = Provider.of<AuthProvider>(context, listen: false);
     await auth.loadSession();
-    setState(() => _loading = false);
+    if (mounted) setState(() => _loading = false);
   }
 
   @override
@@ -36,10 +38,14 @@ class _AuthGateState extends State<AuthGate> {
 
     final auth = Provider.of<AuthProvider>(context);
 
-    if (auth.isLoggedIn) {
-      return const HomeScreen();
+    if (!auth.isLoggedIn) {
+      return const LoginScreen();
     }
 
-    return const LoginScreen();
+    if (Session.isLoggingFirstTime == true) {
+      return const TaggsOnboardingScreen();
+    }
+
+    return const HomeScreen();
   }
 }

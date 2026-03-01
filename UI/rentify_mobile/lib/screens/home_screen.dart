@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/models/search_result.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
@@ -45,42 +46,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _initPaging() {
-    _propertiesPaging = UniversalPagingProvider<Property>(
-      pageSize: 5,
-      fetcher:
-          ({
-            required int page,
-            required int pageSize,
-            String? filter,
-            Map<String, dynamic>? extra,
-            bool includeTotalCount = true,
-          }) async {
-            final query = <String, dynamic>{
-              "Page": page,
-              "PageSize": pageSize,
-              "IncludeTotalCount": includeTotalCount,
+  _propertiesPaging = UniversalPagingProvider<Property>(
+    pageSize: 5,
+    fetcher: ({
+      required int page,
+      required int pageSize,
+      String? filter,
+      Map<String, dynamic>? extra,
+      bool includeTotalCount = true,
+    }) async {
+      if (page > 0) {
+        return SearchResult<Property>()
+          ..totalCount = 0; 
+      }
 
-              if (filter != null && filter.trim().isNotEmpty)
-                "Name": filter.trim(),
-
-              if (extra?["City"] != null &&
-                  extra!["City"].toString().trim().isNotEmpty)
-                "City": extra["City"].toString().trim(),
-
-              if (extra?["MinPrice"] != null)
-                "MinPriceMonth": extra?["MinPrice"],
-              if (extra?["MaxPrice"] != null)
-                "MaxPriceMonth": extra?["MaxPrice"],
-              if (extra?["MinDailyPrice"] != null)
-                "MinPriceDays": extra?["MinDailyPrice"],
-              if (extra?["MaxDailyPrice"] != null)
-                "MaxPriceDays": extra?["MaxDailyPrice"],
-            };
-
-            return await _propertyProvider.get(filter: query);
-          },
-    );
-  }
+      return await _propertyProvider.getRecommended(take: 5);
+    },
+  );
+}
 
   Future<void> _loadUser() async {
     setState(() {

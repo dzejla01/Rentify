@@ -29,5 +29,9 @@ namespace Rentify.Model.RequestObjects
 
         public bool IsActive { get; set; } = true;
         public bool IsVlasnik { get; set; } = false;
+        public bool IsLoggingFirstTime {get; set;} = true;
+
+        public List<string>? PreferedTagsIfNoReservations { get; set; }
+
     }
 }

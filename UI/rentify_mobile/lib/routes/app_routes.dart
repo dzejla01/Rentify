@@ -3,6 +3,7 @@ import 'package:rentify_mobile/screens/home_screen.dart';
 import 'package:rentify_mobile/screens/login_screen.dart';
 import 'package:rentify_mobile/screens/property_screen.dart';
 import 'package:rentify_mobile/screens/register_screen.dart';
+import 'package:rentify_mobile/screens/tags_on_boarding_screen.dart';
 
 
 class AppRoutes {
@@ -10,6 +11,7 @@ class AppRoutes {
   static const String login = '/login';
   static const String register = '/register';
   static const String properties = '/properties';
+  static const String taggs = '/taggs';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -24,6 +26,9 @@ class AppRoutes {
 
       case properties:
         return MaterialPageRoute(builder: (_) => const PropertyScreen());
+
+      case taggs:
+        return MaterialPageRoute(builder: (_) => const TaggsOnboardingScreen());
 
       default:
         return null;

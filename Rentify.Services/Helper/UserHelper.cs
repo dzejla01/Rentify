@@ -77,10 +77,10 @@ namespace Rentify.Services.Helpers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public static Task AssignRoleByIsVlasnikAsync(
+        public static Task AssignRoleByIsVlasnikAndLogFirstTimeAsync(
            User entity, UserInsertRequest request)
         {
-            
+            entity.IsLoggingFirstTime = true;
             var roleId = request.IsVlasnik ? 2 : 1;
 
             entity.UserRoles.Add(new UserRole

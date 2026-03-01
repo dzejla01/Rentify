@@ -23,6 +23,8 @@ class AuthProvider with ChangeNotifier {
   Future<void> loadSession() async {
     _token = await TokenStorage.read();
 
+    Session.taggs = await TokenStorage.readTaggs();
+
     if (!isLoggedIn) {
       notifyListeners();
       return;
@@ -97,6 +99,7 @@ class AuthProvider with ChangeNotifier {
       Session.userId = loginResp.userId;
       Session.username = loginResp.userName;
       Session.roles = loginResp.roles;
+      Session.isLoggingFirstTime = loginResp.isLoggingFirstTime;
 
       return loginResp.token;
     }

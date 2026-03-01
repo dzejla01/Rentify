@@ -713,6 +713,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'dateOfBirth': DateHelper.toUtcIsoNullable(_dob),
         'isActive': true,
         'isVlasnik': false,
+        'IsLoggingFirstTime': true,
 
         if (uploadedImageName != null) 'userImage': uploadedImageName,
       };

@@ -119,7 +119,12 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
 
-      Navigator.pushReplacementNamed(context, AppRoutes.home);
+      final goTo = Session.isLoggingFirstTime!
+          ? AppRoutes
+                .taggs // tvoja ruta
+          : AppRoutes.home;
+
+      Navigator.pushReplacementNamed(context, goTo);
     } catch (e) {
       if (!mounted) return;
       SnackbarHelper.showError(context, 'Greška pri prijavi. Pokušaj ponovo.');

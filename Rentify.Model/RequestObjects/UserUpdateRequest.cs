@@ -20,7 +20,6 @@ namespace Rentify.Model.RequestObjects
         public string Username { get; set; } = string.Empty;
         public DateTime? DateOfBirth { get; set; }
 
-        // Kod update-a može biti null/empty ako ne mijenjaš šifru
         [MinLength(6)]
         public string? Password { get; set; }
 
@@ -29,8 +28,11 @@ namespace Rentify.Model.RequestObjects
         public string? UserImage { get; set; }
 
         public bool IsActive { get; set; } = true;
+        public bool? IsLoggingFirstTime {get; set;} = true;
 
-        // Opcionalno: role assignment preko roleId lista
         public List<int>? RoleIds { get; set; }
+
+        public List<string>? PreferedTagsIfNoReservations { get; set; }
+ 
     }
 }

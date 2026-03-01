@@ -74,14 +74,12 @@ namespace Rentify.Services
 
         protected override void MapUpdateToEntity(User entity, UserUpdateRequest request)
         {
-            // Ne diramo CreatedAt
             var createdAt = entity.CreatedAt;
 
             _mapper.Map(request, entity);
 
             entity.CreatedAt = createdAt;
 
-            // Ako je password poslan, mijenjamo hash/salt, inače ostaje isto
             if (!string.IsNullOrWhiteSpace(request.Password))
             {
                 UserHelper.CreatePasswordHash(request.Password, out var hash, out var salt);
@@ -92,19 +90,20 @@ namespace Rentify.Services
 
         protected override async Task BeforeInsert(User entity, UserInsertRequest request)
         {
-            // Unique checks (Username/Email)
+
             var exists = await _context.Users.AnyAsync(x =>
                 x.Username == entity.Username || x.Email == entity.Email);
 
             if (exists)
                 throw new InvalidOperationException("Korisnik sa istim username/email već postoji.");
 
-            await UserHelper.AssignRoleByIsVlasnikAsync(entity, request);
+            await UserHelper.AssignRoleByIsVlasnikAndLogFirstTimeAsync(entity, request);
         }
 
         protected override async Task BeforeUpdate(User entity, UserUpdateRequest request)
         {
-            // Unique checks (Username/Email) - ignorisi trenutnog usera
+            entity.IsLoggingFirstTime = false;
+            
             var exists = await _context.Users.AnyAsync(x =>
                 x.Id != entity.Id && (x.Username == request.Username || x.Email == request.Email));
 
@@ -134,7 +133,8 @@ namespace Rentify.Services
                 Token = token,
                 Roles = user.UserRoles
                     .Select(ur => ur.Role.Name)
-                    .ToList()
+                    .ToList(),
+                IsLoggingFirstTime = user.IsLoggingFirstTime
             };
 
             user.LastLoginAt = DateTime.UtcNow;

@@ -43,7 +43,9 @@ dependencies:
   flutter_map: ^6.1.0
   latlong2: ^0.9.1
   collection: ^1.18.2
-
+  pdf: ^3.10.8
+  file_picker: ^8.0.0
+  open_filex: ^4.4.0
 
 dev_dependencies:
   flutter_test:

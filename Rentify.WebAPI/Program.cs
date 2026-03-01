@@ -64,8 +64,10 @@ builder.Services.AddScoped<IReviewService, Rentify.Services.Services.ReviewServi
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IPropertyImageService, PropertyImageService>();
 builder.Services.AddScoped<IDeviceTokenService, DeviceTokenService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<PushNotificationService>();
 builder.Services.AddScoped<StripeService>();
+
 
 var stripeSection = builder.Configuration.GetSection("Stripe");
 builder.Services.Configure<StripeSettings>(stripeSection);

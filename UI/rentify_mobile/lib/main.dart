@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
@@ -42,6 +43,10 @@ Future<void> _setupFirebaseMessagingHandlers() async {
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  Stripe.publishableKey = "pk_test_51T60TkCCmkU2IHDTQPvhA3RXU3tom6LLk1qksc8vFbV2fXDOHRHh3NI1o3poP8ruSCpeZuCKsca3XVPVgJoB6Tfd00RUDpuhgH";
+
+  await Stripe.instance.applySettings();
 
   await Firebase.initializeApp();
 

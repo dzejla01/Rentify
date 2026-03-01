@@ -28,5 +28,8 @@ namespace Rentify.Services.Database
         public int YearNumber { get; set; }
         public DateTime? DateToPay { get; set; }
         public DateTime? WarningDateToPay { get; set; }
+        public string? StripePaymentIntentId { get; set; }
+        public DateTime? PaidAt { get; set; }
+        public string PaymentStatus { get; set; } = "Pending"; 
     }
 }

@@ -9,6 +9,9 @@ using Rentify.Services;
 using Rentify.Services.Interfaces;
 using Rentify.Services.Services;
 using Rentify.WebAPI.Authentication;
+using Rentify.WebAPI.Configuration;
+using Rentify.WebAPI.Services;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,11 +60,18 @@ builder.Services.AddScoped<IPropertyService,PropertyService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
-builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IReviewService, Rentify.Services.Services.ReviewService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IPropertyImageService, PropertyImageService>();
 builder.Services.AddScoped<IDeviceTokenService, DeviceTokenService>();
 builder.Services.AddScoped<PushNotificationService>();
+builder.Services.AddScoped<StripeService>();
+
+var stripeSection = builder.Configuration.GetSection("Stripe");
+builder.Services.Configure<StripeSettings>(stripeSection);
+
+var stripeSettings = stripeSection.Get<StripeSettings>();
+StripeConfiguration.ApiKey = stripeSettings.SecretKey;
 
 
 builder.Services.AddSingleton<IConnection>(_ =>

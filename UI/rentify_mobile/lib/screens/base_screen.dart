@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
+import 'package:rentify_mobile/screens/payment_screen.dart';
 
 class BaseMobileScreen extends StatelessWidget {
   const BaseMobileScreen({
@@ -26,56 +27,56 @@ class BaseMobileScreen extends StatelessWidget {
   static const Color textDark = Color(0xFF2F2F2F);
 
   @override
-Widget build(BuildContext context) {
-  return Scaffold(
-    endDrawer: _buildDrawer(context), // ✅ desni drawer
+  Widget build(BuildContext context) {
+    return Scaffold(
+      endDrawer: _buildDrawer(context), // ✅ desni drawer
 
-    appBar: AppBar(
-      automaticallyImplyLeading: false,
-      elevation: 0,
-      backgroundColor: Colors.white,
-      surfaceTintColor: Colors.white,
-      centerTitle: false,
-      titleSpacing: 16,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        elevation: 0,
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
+        centerTitle: false,
+        titleSpacing: 16,
 
-      title: Row(
-        children: [
-          Image.asset(
-            'assets/images/rentify_single_R_green.png',
-            width: 28,
-            height: 28,
-            fit: BoxFit.contain,
-          ),
-          const SizedBox(width: 10),
-          Text(
-            title ?? "Rentify",
-            style: const TextStyle(
-              color: textDark,
-              fontWeight: FontWeight.w900,
-              fontSize: 18,
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/rentify_single_R_green.png',
+              width: 28,
+              height: 28,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              title ?? "Rentify",
+              style: const TextStyle(
+                color: textDark,
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+
+        iconTheme: const IconThemeData(color: textDark),
+
+        actions: [
+          Builder(
+            builder: (context) => IconButton(
+              tooltip: "Menu",
+              icon: const Icon(Icons.menu_rounded, size: 28),
+              onPressed: () => Scaffold.of(context).openEndDrawer(), // ✅ bitno
             ),
           ),
+          const SizedBox(width: 10),
         ],
       ),
 
-      iconTheme: const IconThemeData(color: textDark),
-
-      actions: [
-        Builder(
-          builder: (context) => IconButton(
-            tooltip: "Menu",
-            icon: const Icon(Icons.menu_rounded, size: 28),
-            onPressed: () => Scaffold.of(context).openEndDrawer(), // ✅ bitno
-          ),
-        ),
-        const SizedBox(width: 10),
-      ],
-    ),
-
-    backgroundColor: const Color(0xFFF6F7F8),
-    body: SafeArea(child: child),
-  );
-}
+      backgroundColor: const Color(0xFFF6F7F8),
+      body: SafeArea(child: child),
+    );
+  }
 
   Drawer _buildDrawer(BuildContext context) {
     return Drawer(
@@ -168,8 +169,14 @@ Widget build(BuildContext context) {
                     icon: Icons.payments_rounded,
                     text: "Plaćanja",
                     onTap: () {
-                      Navigator.pop(context);
-                      // Navigator.pushNamed(context, AppRoutes.payments);
+                      Navigator.pop(context); // zatvori drawer
+
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const PaymentScreen(),
+                        ),
+                      );
                     },
                   ),
                   _drawerItem(
@@ -261,13 +268,13 @@ Widget build(BuildContext context) {
     final color = danger ? Colors.red.shade600 : textDark;
 
     return ListTile(
-      leading: Icon(icon, color: danger ? Colors.red.shade600 : rentifyGreenDark),
+      leading: Icon(
+        icon,
+        color: danger ? Colors.red.shade600 : rentifyGreenDark,
+      ),
       title: Text(
         text,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w800,
-        ),
+        style: TextStyle(color: color, fontWeight: FontWeight.w800),
       ),
       onTap: onTap,
       horizontalTitleGap: 10,

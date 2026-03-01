@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:rentify_mobile/screens/home_screen.dart';
 import 'package:rentify_mobile/screens/login_screen.dart';
+import 'package:rentify_mobile/screens/payment_screen.dart';
 import 'package:rentify_mobile/screens/property_screen.dart';
 import 'package:rentify_mobile/screens/register_screen.dart';
 import 'package:rentify_mobile/screens/tags_on_boarding_screen.dart';
@@ -12,6 +13,7 @@ class AppRoutes {
   static const String register = '/register';
   static const String properties = '/properties';
   static const String taggs = '/taggs';
+  static const String payments = '/payments';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {

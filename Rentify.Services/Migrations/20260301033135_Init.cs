@@ -181,7 +181,10 @@ namespace Rentify.Services.Migrations
                     MonthNumber = table.Column<int>(type: "integer", nullable: false),
                     YearNumber = table.Column<int>(type: "integer", nullable: false),
                     DateToPay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    WarningDateToPay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                    WarningDateToPay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    StripePaymentIntentId = table.Column<string>(type: "text", nullable: true),
+                    PaidAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    PaymentStatus = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -285,8 +288,8 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "Description", "IsActive", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(2961), "Standardni korisnik aplikacije", true, "Korisnik" },
-                    { 2, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(2967), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
+                    { 1, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6461), "Standardni korisnik aplikacije", true, "Korisnik" },
+                    { 2, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6464), "Vlasnik nekretnina koji može upravljati objektima", true, "Vlasnik" }
                 });
 
             migrationBuilder.InsertData(
@@ -294,10 +297,10 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "DateOfBirth", "Email", "FirstName", "IsActive", "IsLoggingFirstTime", "IsVlasnik", "LastLoginAt", "LastName", "PasswordHash", "PasswordSalt", "PhoneNumber", "PreferedTagsIfNoReservations", "UserImage", "Username" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(3498), null, "owner.testni@gmail.com", "Marko", true, false, true, null, "Petrov", "LkivJxWkNS3E6Jddj7WaOVnhA9nMkh4K5IYdO0ZJUNETnAjsdGiaUzztHzGXDrvBOUAVDkQiBeP8Rg3iBIoFcw==", "dBq51ihn/qkvXRLpQpsLc5HZHlA8ET/CPW9CtLNi82eYp/zuiQVTi8c4wr3FbbGyDj+dk8U/nl9q+mbHNLa+rJGna1NlgYU3GLtgLOqJosYzjM2pWhHrr4zumqfFBUwCTzxBt1UQJLtUHM6tXdKXaG9YSmxpn5iEbJWl+rMWdyw=", null, null, null, "owner1" },
-                    { 2, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(3513), null, "ivana.kovac@rentify.dev", "Ivana", true, false, false, null, "Kovac", "LkivJxWkNS3E6Jddj7WaOVnhA9nMkh4K5IYdO0ZJUNETnAjsdGiaUzztHzGXDrvBOUAVDkQiBeP8Rg3iBIoFcw==", "dBq51ihn/qkvXRLpQpsLc5HZHlA8ET/CPW9CtLNi82eYp/zuiQVTi8c4wr3FbbGyDj+dk8U/nl9q+mbHNLa+rJGna1NlgYU3GLtgLOqJosYzjM2pWhHrr4zumqfFBUwCTzxBt1UQJLtUHM6tXdKXaG9YSmxpn5iEbJWl+rMWdyw=", null, null, null, "user1" },
-                    { 3, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(3516), null, "nikola.jovic@rentify.dev", "Nikola", true, false, true, null, "Jovic", "LkivJxWkNS3E6Jddj7WaOVnhA9nMkh4K5IYdO0ZJUNETnAjsdGiaUzztHzGXDrvBOUAVDkQiBeP8Rg3iBIoFcw==", "dBq51ihn/qkvXRLpQpsLc5HZHlA8ET/CPW9CtLNi82eYp/zuiQVTi8c4wr3FbbGyDj+dk8U/nl9q+mbHNLa+rJGna1NlgYU3GLtgLOqJosYzjM2pWhHrr4zumqfFBUwCTzxBt1UQJLtUHM6tXdKXaG9YSmxpn5iEbJWl+rMWdyw=", null, null, null, "owner2" },
-                    { 4, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(3519), null, "amar.hodzic@rentify.dev", "Amar", true, false, false, null, "Hodzic", "LkivJxWkNS3E6Jddj7WaOVnhA9nMkh4K5IYdO0ZJUNETnAjsdGiaUzztHzGXDrvBOUAVDkQiBeP8Rg3iBIoFcw==", "dBq51ihn/qkvXRLpQpsLc5HZHlA8ET/CPW9CtLNi82eYp/zuiQVTi8c4wr3FbbGyDj+dk8U/nl9q+mbHNLa+rJGna1NlgYU3GLtgLOqJosYzjM2pWhHrr4zumqfFBUwCTzxBt1UQJLtUHM6tXdKXaG9YSmxpn5iEbJWl+rMWdyw=", null, null, null, "user2" }
+                    { 1, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6668), null, "owner.testni@gmail.com", "Marko", true, false, true, null, "Petrov", "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==", "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=", null, null, null, "owner1" },
+                    { 2, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6677), null, "ivana.kovac@rentify.dev", "Ivana", true, false, false, null, "Kovac", "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==", "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=", null, null, null, "user1" },
+                    { 3, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6680), null, "nikola.jovic@rentify.dev", "Nikola", true, false, true, null, "Jovic", "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==", "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=", null, null, null, "owner2" },
+                    { 4, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6681), null, "amar.hodzic@rentify.dev", "Amar", true, false, false, null, "Hodzic", "Yw6oIyI/4bFTUNDB+VIlOzaBU8ZwNxLOgTbR6/9NqGBeNb4WoRtDqVxcqpzEQ7LRsr5pyeZyhjjmYnP3XL8NWg==", "CsFs4KteIDZnFGdC0MLDm4X5umGT+rswiSTu2thgexs3Vibq4xxJHeAW0+ZKIAE/ZWc1ye6sjBhHPiUwdGe6MkSiKu3A2l4mb17w19KNXIso1rWlg1wVcIwBOUqKbe6GxeyulsZpWkfeCguJQIVGZlbIvKWhKu+qQhy1z5DkzEw=", null, null, null, "user2" }
                 });
 
             migrationBuilder.InsertData(
@@ -342,21 +345,21 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "RoleId", "UserId", "DateAssigned", "Id" },
                 values: new object[,]
                 {
-                    { 2, 1, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(3601), 0 },
-                    { 1, 2, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(3605), 0 },
-                    { 2, 3, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(3606), 0 },
-                    { 1, 4, new DateTime(2026, 3, 1, 1, 10, 3, 322, DateTimeKind.Utc).AddTicks(3607), 0 }
+                    { 2, 1, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6706), 0 },
+                    { 1, 2, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6709), 0 },
+                    { 2, 3, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6710), 0 },
+                    { 1, 4, new DateTime(2026, 3, 1, 3, 31, 32, 204, DateTimeKind.Utc).AddTicks(6711), 0 }
                 });
 
             migrationBuilder.InsertData(
                 table: "Payments",
-                columns: new[] { "Id", "Comment", "DateToPay", "IsPayed", "MonthNumber", "Name", "Price", "PropertyId", "UserId", "WarningDateToPay", "YearNumber" },
+                columns: new[] { "Id", "Comment", "DateToPay", "IsPayed", "MonthNumber", "Name", "PaidAt", "PaymentStatus", "Price", "PropertyId", "StripePaymentIntentId", "UserId", "WarningDateToPay", "YearNumber" },
                 values: new object[,]
                 {
-                    { 1, "Bez komentara", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Plaćanje mjesečne rate za 12.2025", 1550.0, 1, 2, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 2, "Bez komentara", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Plaćanje mjesečne rate za 1.2026", 1550.0, 1, 2, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 3, "Bez komentara", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Plaćanje mjesečne rate za 2.2026", 1550.0, 1, 2, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 5, "Bez komentara", new DateTime(2026, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc), false, 0, "Plaćanje kratkog boravka", 400.0, 8, 2, new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc), 0 }
+                    { 1, "Bez komentara", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Plaćanje mjesečne rate za 12.2025", null, "Pending", 1550.0, 1, null, 2, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 2, "Bez komentara", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Plaćanje mjesečne rate za 1.2026", null, "Pending", 1550.0, 1, null, 2, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 3, "Bez komentara", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Plaćanje mjesečne rate za 2.2026", null, "Pending", 1550.0, 1, null, 2, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 5, "Bez komentara", new DateTime(2026, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc), false, 0, "Plaćanje kratkog boravka", null, "Pending", 400.0, 8, null, 2, new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc), 0 }
                 });
 
             migrationBuilder.InsertData(

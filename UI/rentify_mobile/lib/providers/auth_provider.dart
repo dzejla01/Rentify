@@ -9,7 +9,7 @@ import '../models/login_response.dart';
 import '../utils/session.dart';
 
 class AuthProvider with ChangeNotifier {
-  static const String apiUrl = "http://192.168.2.23:5103/api/User/login";
+  static const String apiUrl = "http://10.0.2.2:5002/api/User/login";
 
   String? _token;
 

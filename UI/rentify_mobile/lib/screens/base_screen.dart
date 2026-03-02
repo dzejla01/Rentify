@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rentify_mobile/helper/image_helper.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/screens/payment_screen.dart';
 
@@ -194,7 +195,7 @@ class BaseMobileScreen extends StatelessWidget {
                     text: "Profil",
                     onTap: () {
                       Navigator.pop(context);
-                      // Navigator.pushNamed(context, AppRoutes.profile);
+                      Navigator.pushNamed(context, AppRoutes.profile);
                     },
                   ),
 
@@ -241,22 +242,34 @@ class BaseMobileScreen extends StatelessWidget {
   }
 
   Widget _avatar() {
-    return Container(
-      width: 52,
-      height: 52,
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.25),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(14),
-        child: userImageAsset != null
-            ? Image.asset(userImageAsset!, fit: BoxFit.cover)
-            : const Icon(Icons.person_rounded, color: Colors.white, size: 34),
-      ),
+  Widget avatarContent;
+
+  if (ImageHelper.hasValidImage(userImageAsset)) {
+    avatarContent = Image.network(
+      ImageHelper.safeUserImageUrl(userImageAsset),
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) =>
+          const Icon(Icons.person_rounded, color: Colors.white, size: 34),
     );
+  } else {
+    avatarContent =
+        const Icon(Icons.person_rounded, color: Colors.white, size: 34);
   }
+
+  return Container(
+    width: 52,
+    height: 52,
+    decoration: BoxDecoration(
+      color: Colors.white.withOpacity(0.25),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: avatarContent,
+    ),
+  );
+}
 
   Widget _drawerItem(
     BuildContext context, {

@@ -97,7 +97,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
         .toList();
 
     final propertiesResult = await _propertyProvider.get(
-      filter: {"userId": Session.userId},
+      filter: {"userId": Session.userId, "retrieveAll": true},
     );
 
     final ownerPropertyIds = propertiesResult.items.map((p) => p.id).toSet();
@@ -121,7 +121,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     try {
       final result = await _propertyProvider.get(
-        filter: {"userId": Session.userId},
+        filter: {"userId": Session.userId, "retrieveAll": true},
       );
 
       setState(() {

@@ -3,6 +3,7 @@ import 'package:rentify_mobile/screens/appointment_list_screen.dart';
 import 'package:rentify_mobile/screens/home_screen.dart';
 import 'package:rentify_mobile/screens/login_screen.dart';
 import 'package:rentify_mobile/screens/payment_screen.dart';
+import 'package:rentify_mobile/screens/profile_screen.dart';
 import 'package:rentify_mobile/screens/property_screen.dart';
 import 'package:rentify_mobile/screens/register_screen.dart';
 import 'package:rentify_mobile/screens/reservation_list_screen.dart';
@@ -18,6 +19,7 @@ class AppRoutes {
   static const String payments = '/payments';
   static const String reservations = '/reservations';
   static const String appointments = '/appointments';
+  static const String profile = '/profile';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -38,6 +40,9 @@ class AppRoutes {
 
       case appointments:
         return MaterialPageRoute(builder: (_) => const AppointmentListScreen());
+
+      case profile:
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
 
       case taggs:
         return MaterialPageRoute(builder: (_) => const TaggsOnboardingScreen());

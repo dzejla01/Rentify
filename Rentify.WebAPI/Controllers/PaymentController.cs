@@ -44,7 +44,6 @@ namespace Rentify.WebAPI.Controllers
             if (payment.IsPayed == true)
                 return BadRequest("Uplata je već plaćena.");
 
-            // Metadata - koristi se na webhooku da znamo koji je payment u bazi
             var metadata = new Dictionary<string, string>
             {
                 ["paymentId"] = payment.Id.ToString(),
@@ -52,20 +51,17 @@ namespace Rentify.WebAPI.Controllers
                 ["propertyId"] = payment.PropertyId.ToString()
             };
 
-            // Kreiraj PaymentIntent u Stripe
             var intent = await _stripeService.CreatePaymentIntentAsync(
                 amount: payment.Price,
-                currency: "eur", // preporuka za test; BAM često nije podržan
+                currency: "bam", 
                 metadata: metadata
             );
 
-            // Snimi intent id + status u bazi
             payment.StripePaymentIntentId = intent.Id;
             payment.PaymentStatus = "Processing";
 
             await _context.SaveChangesAsync();
 
-            // Flutter koristi clientSecret u PaymentSheet-u
             return Ok(new
             {
                 clientSecret = intent.ClientSecret
@@ -83,14 +79,12 @@ namespace Rentify.WebAPI.Controllers
             {
                 var signatureHeader = Request.Headers["Stripe-Signature"].ToString();
 
-                // Validacija webhook signature-a
                 var stripeEvent = EventUtility.ConstructEvent(
                     json,
                     signatureHeader,
                     _stripeSettings.WebhookSecret
                 );
 
-                // ✅ Uspješno plaćanje
                 if (stripeEvent.Type == "payment_intent.succeeded")
                 {
                     var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
@@ -108,7 +102,6 @@ namespace Rentify.WebAPI.Controllers
                     if (payment == null)
                         return Ok();
 
-                    // Idempotentno (Stripe može poslati isti event više puta)
                     if (payment.IsPayed == true)
                         return Ok();
 

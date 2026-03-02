@@ -274,7 +274,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                                 context,
                                 title: "Odabir rezervacije",
                                 question:
-                                    "Da li želite rezervisati mjesečnu kiriju ili kratki boravak?",
+                                    "Da li želite rezervisati kao mjesečnu najamninu ili kratki boravak?",
                                 goodText: "Najamnina",
                                 badText: "Kratki boravak",
                                 goodEnabled: !alreadyMonthly,
@@ -356,9 +356,6 @@ class PropertyDetailsScreen extends StatelessWidget {
                       title: "Pregled uživo",
                       message: "Termin je pripremljen.\n\nPodaci:\n$payload",
                     );
-
-                    // 🔥 OVDJE KASNIJE IDE:
-                    // await _appointmentProvider.insert(payload);
                   }
                 },
                 icon: const Icon(Icons.visibility_rounded, size: 18),

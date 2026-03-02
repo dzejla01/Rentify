@@ -17,6 +17,7 @@ import 'package:rentify_mobile/providers/reservation_provider.dart';
 import 'package:rentify_mobile/providers/property_provider.dart';
 import 'package:rentify_mobile/providers/payment_provider.dart';
 
+import 'package:rentify_mobile/widgets/swipe_widget.dart';
 
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
@@ -40,6 +41,8 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   bool _metaLoading = false;
   String? _metaError;
+
+  bool _metaQueued = false;
 
   @override
   void initState() {
@@ -78,9 +81,25 @@ class _PaymentScreenState extends State<PaymentScreen> {
       },
     );
 
+    _reservationPaging.addListener(_onPagingChanged);
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await _refreshWithMeta();
     });
+  }
+
+  void _onPagingChanged() {
+    if (!mounted) return;
+
+    if (!_reservationPaging.isLoading) {
+      if (_metaQueued) return;
+      _metaQueued = true;
+
+      Future.microtask(() async {
+        _metaQueued = false;
+        await _loadAuxForCurrentPage();
+      });
+    }
   }
 
   Future<void> _refreshWithMeta() async {
@@ -93,6 +112,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _debounce?.cancel();
     _debounce = Timer(const Duration(milliseconds: 350), () async {
       await _reservationPaging.search(value);
+
       if (!mounted) return;
       await _loadAuxForCurrentPage();
     });
@@ -156,8 +176,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final paging = _reservationPaging;
-    final reservations = paging.items;
+    final reservations = _reservationPaging.items;
 
     return BaseMobileScreen(
       title: "Plaćanja",
@@ -165,7 +184,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
       userUsername: Session.username ?? "Nepoznato",
       onLogout: () {
         Session.odjava();
-        // ti ovdje već radiš logout flow u app-u, ostavi kako ti je
       },
       child: Container(
         color: const Color(0xFFF6F7FB),
@@ -182,6 +200,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
                 setState(() {});
               },
             ),
+
+            // ne mijenja dizajn, samo mali indikator kad meta učitava
+            if (_metaLoading && reservations.isNotEmpty)
+              const LinearProgressIndicator(minHeight: 2),
+
             Expanded(
               child: (_metaLoading && reservations.isEmpty)
                   ? const Center(child: CircularProgressIndicator())
@@ -191,71 +214,60 @@ class _PaymentScreenState extends State<PaymentScreen> {
                           ? const _EmptyState()
                           : RefreshIndicator(
                               onRefresh: _refreshWithMeta,
-                              child: ListView.builder(
+                              child: ListView(
                                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                                itemCount: reservations.length + 1,
-                                itemBuilder: (context, index) {
-                                  if (index == reservations.length) {
-                                    return _PagingFooter(
-                                      paging: paging,
-                                      onPrev: () async {
-                                        await paging.previousPage();
-                                        if (!mounted) return;
-                                        await _loadAuxForCurrentPage();
-                                      },
-                                      onNext: () async {
-                                        await paging.nextPage();
-                                        if (!mounted) return;
-                                        await _loadAuxForCurrentPage();
-                                      },
-                                    );
-                                  }
+                                children: [
+                                  // ✅ SWIPE LISTA (paging se radi swipe-om)
+                                  SwipePagedList<Reservation>(
+                                    provider: _reservationPaging,
+                                    separatorHeight: 12,
+                                    itemBuilder: (context, r) {
+                                      final property = _propertiesMap[r.propertyId];
+                                      final payment = _lastPaymentByPropertyId[r.propertyId];
 
-                                  final r = reservations[index];
-                                  final property = _propertiesMap[r.propertyId];
-                                  final payment = _lastPaymentByPropertyId[r.propertyId];
+                                      return _PaymentCard(
+                                        propertyName: property?.name ?? "Učitavanje...",
+                                        isMonthly: r.isMonthly == true,
+                                        start: r.startDateOfRenting,
+                                        end: r.endDateOfRenting,
+                                        payment: payment,
+                                        onOpen: property == null
+                                            ? null
+                                            : () async {
+                                                if (r.isMonthly == true) {
+                                                  await Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) => PaymentListScreen(property: property),
+                                                    ),
+                                                  );
+                                                  await _refreshWithMeta();
+                                                  return;
+                                                }
 
-                                  return _PaymentCard(
-                                    propertyName: property?.name ?? "Učitavanje...",
-                                    isMonthly: r.isMonthly == true,
-                                    start: r.startDateOfRenting,
-                                    end: r.endDateOfRenting,
-                                    payment: payment,
-                                    onOpen: property == null
-                                        ? null
-                                        : () async {
-                                            if (r.isMonthly == true) {
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) => PaymentListScreen(property: property),
-                                                ),
-                                              );
-                                              await _refreshWithMeta();
-                                              return;
-                                            }
+                                                // short stay
+                                                if (payment == null) {
+                                                  _snack("Još nema kreiranog zahtjeva za ovu rezervaciju.");
+                                                  return;
+                                                }
 
-                                            // short stay
-                                            if (payment == null) {
-                                              _snack("Još nema kreiranog zahtjeva za ovu rezervaciju.");
-                                              return;
-                                            }
+                                                await Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => PaymentPreviewScreen(
+                                                      payment: payment,
+                                                      property: property,
+                                                      isMonthly: false,
+                                                    ),
+                                                  ),
+                                                );
 
-                                            await Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (_) => PaymentPreviewScreen(
-                                                  payment: payment,
-                                                  property: property,
-                                                  isMonthly: false,
-                                                ),
-                                              ),
-                                            );
-
-                                            await _refreshWithMeta();
-                                          },
-                                  );
-                                },
+                                                await _refreshWithMeta();
+                                              },
+                                      );
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
             ),
@@ -271,6 +283,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   @override
   void dispose() {
+    _reservationPaging.removeListener(_onPagingChanged);
     _debounce?.cancel();
     _searchCtrl.dispose();
     _reservationPaging.dispose();
@@ -351,7 +364,7 @@ class _PaymentCard extends StatelessWidget {
     final mm = d.month.toString().padLeft(2, '0');
     final yy = d.year.toString();
     return "$dd.$mm.$yy";
-    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -359,7 +372,9 @@ class _PaymentCard extends StatelessWidget {
     final isPayed = payment?.isPayed == true;
 
     final typeText = isMonthly ? "Najamnina" : "Kratki boravak";
-    final cta = isMonthly ? "Lista plaćanja" : (hasPayment ? "Pregled zahtjeva" : "Nema zahtjeva");
+    final cta = isMonthly
+        ? "Lista plaćanja"
+        : (hasPayment ? "Pregled zahtjeva" : "Nema zahtjeva");
 
     final enabled = isMonthly ? true : hasPayment;
 
@@ -503,37 +518,6 @@ class _StatusChip extends StatelessWidget {
       child: Text(
         text,
         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 12),
-      ),
-    );
-  }
-}
-
-class _PagingFooter extends StatelessWidget {
-  const _PagingFooter({
-    required this.paging,
-    required this.onPrev,
-    required this.onNext,
-  });
-
-  final UniversalPagingProvider paging;
-  final VoidCallback onPrev;
-  final VoidCallback onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    final totalPages = ((paging.totalCount + paging.pageSize - 1) ~/ paging.pageSize);
-    final current = paging.page + 1;
-    final displayTotal = totalPages == 0 ? 1 : totalPages;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(onPressed: paging.hasPreviousPage ? onPrev : null, icon: const Icon(Icons.arrow_back)),
-          Text("$current / $displayTotal", style: const TextStyle(fontWeight: FontWeight.w800)),
-          IconButton(onPressed: paging.hasNextPage ? onNext : null, icon: const Icon(Icons.arrow_forward)),
-        ],
       ),
     );
   }

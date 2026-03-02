@@ -610,7 +610,7 @@ public static class SeedData
             new User { Id = 3, FirstName = "Nikola", LastName = "Jovic", Email = "nikola.jovic@rentify.dev", Username = "owner2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
 
             // Renters
-            new User { Id = 2, FirstName = "Ivana", LastName = "Kovac", Email = "ivana.kovac@rentify.dev", Username = "user1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
+            new User { Id = 2, FirstName = "Ivana", LastName = "Kovac", Email = "usertestni089@gmail.com", Username = "user1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
             new User { Id = 4, FirstName = "Amar", LastName = "Hodzic", Email = "amar.hodzic@rentify.dev", Username = "user2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
             new User { Id = 5, FirstName = "Lejla", LastName = "Mehic", Email = "lejla.mehic@rentify.dev", Username = "user3", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
             new User { Id = 6, FirstName = "Haris", LastName = "Begic", Email = "haris.begic@rentify.dev", Username = "user4", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },

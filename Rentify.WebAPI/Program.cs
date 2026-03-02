@@ -78,11 +78,11 @@ StripeConfiguration.ApiKey = stripeSettings.SecretKey;
 
 builder.Services.AddSingleton<IConnection>(_ =>
 {
-    var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
-    var port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672");
-    var user = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? "guest";
-    var pass = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest";
-    var vhost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST") ?? "/";
+    var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST");
+    var port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT"));
+    var user = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME");
+    var pass = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD");
+    var vhost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST");
 
     var factory = new ConnectionFactory
     {
@@ -96,7 +96,10 @@ builder.Services.AddSingleton<IConnection>(_ =>
     return factory.CreateConnectionAsync().GetAwaiter().GetResult();
 });
 
-var firebasePath = builder.Configuration["Firebase:ServiceAccountPath"];
+var firebasePath =
+    builder.Configuration["FIREBASE_CREDENTIALS_PATH"] 
+    ?? builder.Configuration["Firebase:ServiceAccountPath"]; 
+
 FirebaseApp.Create(new AppOptions
 {
     Credential = GoogleCredential.FromFile(firebasePath)

@@ -102,6 +102,7 @@ class _HomeScreenState extends State<HomeScreen> {
       NameAndSurname: "${_user?.firstName ?? ""} ${_user?.lastName ?? ""}"
           .trim(),
       userUsername: Session.username ?? "Nepoznato",
+      userImageAsset: _user?.userImage,
       onLogout: () async {
         final deviceTokenProvider = context.read<DeviceTokenProvider>();
         final authProvider = context.read<AuthProvider>();

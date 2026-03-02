@@ -5,7 +5,6 @@ import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_mobile/helper/date_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 
-// ✅ dodaj provider (custom http poziv)
 import 'package:rentify_mobile/providers/reservation_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/utils/session.dart';

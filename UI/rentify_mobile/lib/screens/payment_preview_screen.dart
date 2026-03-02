@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_mobile/helper/stripe_payment_helper.dart';
 
 import 'package:rentify_mobile/screens/base_screen.dart';
@@ -47,69 +48,60 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
     return "$m.${p.yearNumber}";
   }
 
-
-Future<void> _payNow() async {
-  setState(() {
-    _loading = true;
-    _error = null;
-  });
-
-  try {
-    final stripeSuccess = await StripePaymentHelper.pay(
-      context,
-      paymentId: p.id,
-    );
-
-    if (!stripeSuccess) {
-      setState(() => _loading = false);
-      return;
-    }
-
-    final req = <String, dynamic>{
-      "userId": p.userId,
-      "propertyId": p.propertyId,
-      "price": p.price,
-      "name": p.name,
-      "comment": p.comment,
-      "isPayed": true,
-      "monthNumber": widget.isMonthly ? p.monthNumber : 0,
-      "yearNumber": widget.isMonthly ? p.yearNumber : 0,
-      "dateToPay": p.dateToPay?.toIso8601String(),
-      "warningDateToPay": p.warningDateToPay?.toIso8601String(),
-    };
-
-    await _paymentProvider.update(p.id, req);
-
-    if (!mounted) return;
-
-    setState(() => _loading = false);
-
-    await showDialog(
-  context: context,
-  builder: (_) => AlertDialog(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    title: const Text("Uspješno"),
-    content: const Text("Plaćanje je uspješno izvršeno."),
-    actions: [
-      TextButton(
-        onPressed: () => Navigator.pop(context),
-        child: const Text("U redu"),
-      ),
-    ],
-  ),
-);
-
-    if (!mounted) return;
-    Navigator.pop(context, true);
-  } catch (e) {
-    if (!mounted) return;
-
+  Future<void> _payNow() async {
     setState(() {
-      _loading = false;
-      _error = e.toString();
+      _loading = true;
+      _error = null;
     });
+
+    try {
+      final stripeSuccess = await StripePaymentHelper.pay(
+        context,
+        paymentId: p.id,
+      );
+
+      if (!stripeSuccess) {
+        setState(() => _loading = false);
+        return;
+      }
+
+      final req = <String, dynamic>{
+        "userId": p.userId,
+        "propertyId": p.propertyId,
+        "price": p.price,
+        "name": p.name,
+        "comment": p.comment,
+        "isPayed": true,
+        "monthNumber": widget.isMonthly ? p.monthNumber : 0,
+        "yearNumber": widget.isMonthly ? p.yearNumber : 0,
+        "dateToPay": p.dateToPay?.toIso8601String(),
+        "warningDateToPay": p.warningDateToPay?.toIso8601String(),
+      };
+
+      await _paymentProvider.update(p.id, req);
+
+      if (!mounted) return;
+
+      setState(() => _loading = false);
+
+      await ConfirmDialogs.okConfirmation(
+        context,
+        title: "Uspješno",
+        message: "Plaćanje je uspješno izvršeno.",
+        okText: "U redu",
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
+    }
   }
-}
 
   @override
   void initState() {
@@ -139,12 +131,18 @@ Future<void> _payNow() async {
                       children: [
                         Text(
                           widget.property.name,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           "${widget.property.city} • ${widget.property.location}",
-                          style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 12),
 
@@ -152,9 +150,20 @@ Future<void> _payNow() async {
                           spacing: 10,
                           runSpacing: 10,
                           children: [
-                            _Chip(icon: Icons.category_rounded, label: widget.isMonthly ? "Najamnina" : "Kratki boravak"),
-                            _Chip(icon: Icons.calendar_month_outlined, label: _periodText()),
-                            _Chip(icon: Icons.event_busy_outlined, label: "Rok: ${_fmtDate(p.dateToPay)}"),
+                            _Chip(
+                              icon: Icons.category_rounded,
+                              label: widget.isMonthly
+                                  ? "Najamnina"
+                                  : "Kratki boravak",
+                            ),
+                            _Chip(
+                              icon: Icons.calendar_month_outlined,
+                              label: _periodText(),
+                            ),
+                            _Chip(
+                              icon: Icons.event_busy_outlined,
+                              label: "Rok: ${_fmtDate(p.dateToPay)}",
+                            ),
                           ],
                         ),
                       ],
@@ -178,12 +187,18 @@ Future<void> _payNow() async {
                         Expanded(
                           child: Text(
                             "Iznos",
-                            style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w700),
+                            style: TextStyle(
+                              color: Colors.grey.shade700,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                         Text(
                           "${p.price.toStringAsFixed(2)} KM",
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
                       ],
                     ),
@@ -194,23 +209,38 @@ Future<void> _payNow() async {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Komentar", style: TextStyle(fontWeight: FontWeight.w900)),
+                        const Text(
+                          "Komentar",
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
                         const SizedBox(height: 8),
                         Text(
                           p.comment,
-                          style: TextStyle(color: Colors.grey.shade800, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            color: Colors.grey.shade800,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         Row(
                           children: [
-                            const Text("Status:", style: TextStyle(fontWeight: FontWeight.w900)),
+                            const Text(
+                              "Status:",
+                              style: TextStyle(fontWeight: FontWeight.w900),
+                            ),
                             const SizedBox(width: 8),
                             _StatusText(isPayed: isPayed),
                           ],
                         ),
                         if (_error != null) ...[
                           const SizedBox(height: 10),
-                          Text(_error!, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.w700)),
+                          Text(
+                            _error!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ],
                       ],
                     ),
@@ -225,7 +255,9 @@ Future<void> _payNow() async {
                         onPressed: _payNow,
                         style: ElevatedButton.styleFrom(
                           elevation: 0,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
                         ),
                         icon: const Icon(Icons.payments_rounded),
                         label: Text(

@@ -50,15 +50,26 @@ services:
     build:
       context: .
       dockerfile: Rentify.WebAPI/DockerFile.api
+
+    env_file:
+      - .env
+
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+
       ConnectionStrings__DefaultConnection: "Host=rentify-postgres;Port=5432;Database=${PG_DB};Username=${PG_USER};Password=${PG_PASSWORD};Pooling=true;Include Error Detail=true"
+
       RABBITMQ_HOST: rentify-rabbitmq
       RABBITMQ_USERNAME: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       RABBITMQ_VIRTUALHOST: /
       RABBITMQ_PORT: 5672
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      FIREBASE_CREDENTIALS_PATH: ${FIREBASE_CREDENTIALS_PATH}
+
     ports:
       - "${API_PORT}:8080"
     depends_on:
@@ -70,6 +81,7 @@ services:
       - rentifynet
     volumes:
       - ./Rentify.WebAPI/data/wwwroot:/app/wwwroot
+      - ./firebase:/app/firebase:ro
 
   rentify-emailconsumer:
     container_name: rentify-emailconsumer
@@ -77,6 +89,10 @@ services:
     build:
       context: .
       dockerfile: Rentify.EmailConsumer/DockerFile.emailconsumer
+
+    env_file:
+      - .env
+
     environment:
       RABBITMQ_HOST: rentify-rabbitmq
       RABBITMQ_USERNAME: ${RABBITMQ_USER}
@@ -90,6 +106,7 @@ services:
       SMTP_SSL: ${SMTP_SSL}
       FROM_EMAIL: ${FROM_EMAIL}
       FROM_NAME: ${FROM_NAME}
+
     depends_on:
       rentify-rabbitmq:
         condition: service_healthy

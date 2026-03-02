@@ -11,6 +11,7 @@ import 'package:rentify_mobile/models/search_result.dart';
 import 'package:rentify_mobile/helper/univerzal_pagging_helper.dart';
 
 import 'package:rentify_mobile/providers/payment_provider.dart';
+import 'package:rentify_mobile/widgets/swipe_widget.dart';
 import 'payment_preview_screen.dart';
 
 class PaymentListScreen extends StatefulWidget {
@@ -63,13 +64,9 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
       },
     );
 
-    _paging.addListener(() {
-    if (mounted) setState(() {});
-  });
-
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _paging.refresh();
-  });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _paging.refresh();
+    });
   }
 
   void _onSearchChanged(String v) {
@@ -95,6 +92,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
         color: const Color(0xFFF6F7FB),
         child: Column(
           children: [
+            // 🔎 Search bar
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Container(
@@ -112,7 +110,10 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                 ),
                 child: TextField(
                   controller: _searchCtrl,
-                  onChanged: _onSearchChanged,
+                  onChanged: (v) {
+                    _onSearchChanged(v);
+                    setState(() {}); // da se suffixIcon osvježi
+                  },
                   decoration: InputDecoration(
                     hintText: "Pretraga (naziv / period)...",
                     border: InputBorder.none,
@@ -131,110 +132,101 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                 ),
               ),
             ),
+
+            // ✅ Scroll + SwipePagedList
             Expanded(
-              child: _paging.isLoading && _paging.items.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : _paging.items.isEmpty
-                      ? const Center(
-                          child: Text(
-                            "Nema uplata za ovu nekretninu.",
-                            style: TextStyle(fontWeight: FontWeight.w800),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                child: SwipePagedList<Payment>(
+                  provider: _paging,
+                  separatorHeight: 12,
+                  itemBuilder: (context, p) {
+                    final isPayed = p.isPayed == true;
+
+                    return Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.black.withOpacity(0.05)),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x12000000),
+                            blurRadius: 18,
+                            offset: Offset(0, 10),
                           ),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                          itemCount: _paging.items.length + 1,
-                          itemBuilder: (context, index) {
-                            if (index == _paging.items.length) {
-                              return _PagingFooter(
-                                paging: _paging,
-                                onPrev: () => _paging.previousPage(),
-                                onNext: () => _paging.nextPage(),
-                              );
-                            }
-
-                            final p = _paging.items[index];
-                            final isPayed = p.isPayed == true;
-
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 12),
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(color: Colors.black.withOpacity(0.05)),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x12000000),
-                                    blurRadius: 18,
-                                    offset: Offset(0, 10),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  p.name,
+                                  style: const TextStyle(
+                                    fontSize: 14.8,
+                                    fontWeight: FontWeight.w900,
                                   ),
-                                ],
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          p.name,
-                                          style: const TextStyle(
-                                            fontSize: 14.8,
-                                            fontWeight: FontWeight.w900,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 10),
-                                      _MiniStatus(isPayed: isPayed),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 10),
-                                  _Line(label: "Period", value: _periodText(p)),
-                                  _Line(label: "Iznos", value: "${p.price.toStringAsFixed(2)} KM"),
-                                  _Line(
-                                    label: "Rok",
-                                    value: p.dateToPay == null ? "-" : _fmt(p.dateToPay!),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: SizedBox(
-                                      height: 42,
-                                      child: ElevatedButton.icon(
-                                        onPressed: () async {
-                                          final refreshed = await Navigator.push<bool>(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (_) => PaymentPreviewScreen(
-                                                payment: p,
-                                                property: widget.property,
-                                                isMonthly: true,
-                                              ),
-                                            ),
-                                          );
-
-                                          if (refreshed == true && mounted) {
-                                            await _paging.refresh();
-                                          }
-                                        },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: const Color(0xFF5F9F3B),
-                                          foregroundColor: Colors.white,
-                                          elevation: 0,
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                        ),
-                                        icon: const Icon(Icons.visibility_rounded, size: 18),
-                                        label: const Text("Pregled", style: TextStyle(fontWeight: FontWeight.w800)),
+                              const SizedBox(width: 10),
+                              _MiniStatus(isPayed: isPayed),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          _Line(label: "Period", value: _periodText(p)),
+                          _Line(label: "Iznos", value: "${p.price.toStringAsFixed(2)} KM"),
+                          _Line(
+                            label: "Rok",
+                            value: p.dateToPay == null ? "-" : _fmt(p.dateToPay!),
+                          ),
+                          const SizedBox(height: 12),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: SizedBox(
+                              height: 42,
+                              child: ElevatedButton.icon(
+                                onPressed: () async {
+                                  final refreshed = await Navigator.push<bool>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PaymentPreviewScreen(
+                                        payment: p,
+                                        property: widget.property,
+                                        isMonthly: true,
                                       ),
                                     ),
-                                  )
-                                ],
+                                  );
+
+                                  if (refreshed == true && mounted) {
+                                    await _paging.refresh();
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF5F9F3B),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.visibility_rounded, size: 18),
+                                label: const Text(
+                                  "Pregled",
+                                  style: TextStyle(fontWeight: FontWeight.w800),
+                                ),
                               ),
-                            );
-                          },
-                        ),
+                            ),
+                          )
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -274,7 +266,10 @@ class _Line extends StatelessWidget {
             width: 70,
             child: Text(
               "$label:",
-              style: const TextStyle(color: Color(0xFF6B7280), fontWeight: FontWeight.w800),
+              style: const TextStyle(
+                color: Color(0xFF6B7280),
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
           Expanded(
@@ -301,37 +296,6 @@ class _MiniStatus extends StatelessWidget {
       style: TextStyle(
         color: isPayed ? Colors.green : Colors.orange,
         fontWeight: FontWeight.w900,
-      ),
-    );
-  }
-}
-
-class _PagingFooter extends StatelessWidget {
-  const _PagingFooter({
-    required this.paging,
-    required this.onPrev,
-    required this.onNext,
-  });
-
-  final UniversalPagingProvider paging;
-  final VoidCallback onPrev;
-  final VoidCallback onNext;
-
-  @override
-  Widget build(BuildContext context) {
-    final totalPages = ((paging.totalCount + paging.pageSize - 1) ~/ paging.pageSize);
-    final current = paging.page + 1;
-    final displayTotal = totalPages == 0 ? 1 : totalPages;
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(onPressed: paging.hasPreviousPage ? onPrev : null, icon: const Icon(Icons.arrow_back)),
-          Text("$current / $displayTotal", style: const TextStyle(fontWeight: FontWeight.w800)),
-          IconButton(onPressed: paging.hasNextPage ? onNext : null, icon: const Icon(Icons.arrow_forward)),
-        ],
       ),
     );
   }

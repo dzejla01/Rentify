@@ -37,7 +37,7 @@ git clone <GITHUB_REPO_LINK>
 
 ## 🔐 Konfiguracija (VAŽNO)
 
-⚠️ **NAPOMENA**
+⚠️ **NAPOMENA ZA ENV**
 
 Nakon `git clone`, u repozitoriju se nalazi **šifrirani fajl**: 
 
@@ -56,9 +56,25 @@ Env-postavke.7z
 
 ---
 
+⚠️ **NAPOMENA ZA PUSH NOTOFIKACIJE**
+
+Nakon `git clone`, u repozitoriju se nalazi **šifrirani fajl**: 
+
+firebase-postavke.7z
+
+### Koraci:
+
+🔐 **Šifra arhive:** `FIT`
+
+1. Otvoriti šifrirani folder `firebase-postavke.7z`
+2. Iz njega izvaditi folder **`firebase`**
+3. **Prije pokretanja Dockera**, `firebase` folder ubaciti u **root folder projekta**  
+   (folder gdje je urađen `git clone`)
+
+
 ## 🐳 Pokretanje Dockera
 
-Kada je `.env` fajl pravilno postavljen, u terminalu (root folder projekta) pokrenuti:
+Kada su `.env` i `firebase` fajl pravilno postavljen, u terminalu (root folder projekta) pokrenuti:
 
 
 docker compose up -d --build
@@ -70,12 +86,13 @@ docker compose up -d --build
 
 
 U projektu se nalazi **šifrirani fajl**:
-FIT-RS2-IB200024-DesktopApp.7z
+FIT-RS2-IB200024-Both-App.7z
 
 🔐 **Šifra arhive:** `FIT`
 
 Unutar arhive se nalaze:
 - **Release/** – `.exe` fajl za pokretanje **desktop aplikacije**
+- **flutter-apk/** – `.apk` fajl za pokretanje **mobilne aplikacije**
 
 Ovo je **najbrži način** za testiranje aplikacije bez dodatne konfiguracije.
 
@@ -97,6 +114,22 @@ Za testiranje dolaska maila na email dummy korisnika
 
 - **Email:** `owner.testni@gmail.com`
 - **Password:** `ownertestni123`
+
+
+
+### 🖥️ Mobilna aplikacija
+
+**Korisnik**
+
+- Username: `user1`
+- Password: `Test123!`
+
+Za testiranje dolaska maila na email dummy korisnika
+"Ivana Kovac (user1)" koristite:
+
+- **Email:** `usertestni089@gmail.com`
+- **Password:** `USTestniER@!`
+
 
 NAPOMENA 
 

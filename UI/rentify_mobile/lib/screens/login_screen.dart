@@ -115,7 +115,6 @@ class _LoginScreenState extends State<LoginScreen> {
           await context.read<DeviceTokenProvider>().registerFcmToken();
           context.read<DeviceTokenProvider>().listenForTokenRefresh();
         } catch (_) {
-          // ne ruši login ako push register faila
         }
       }
 

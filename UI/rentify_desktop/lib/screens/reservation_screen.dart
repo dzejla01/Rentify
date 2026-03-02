@@ -109,9 +109,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
     barrierDismissible: true,
   );
 
-  if (res == TriConfirmResult.cancel) return;
-
-  final approved = (res == TriConfirmResult.good);
+  final approved = (res == true);
 
   try {
     final payload = reservationPutPayload(r, isApproved: approved);

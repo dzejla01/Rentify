@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/providers/user_provider.dart';
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
 import 'package:rentify_mobile/models/search_result.dart';
@@ -31,6 +32,39 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
 
   bool _metaLoading = false;
   String? _metaError;
+
+  late UserProvider _userProvider;
+
+  String _fullName = "";
+  bool _userLoading = false;
+
+  Future<String> _getUserFullName(int userId) async {
+  final u = await _userProvider.getById(userId); 
+  final first = (u.firstName ?? "").trim();
+  final last = (u.lastName ?? "").trim();
+  final full = "$first $last".trim();
+  return full.isEmpty ? (Session.username ?? "Nepoznato") : full;
+}
+
+Future<void> _loadHeaderUserFullName() async {
+  final userId = Session.userId;
+  if (userId == null) return;
+
+  if (!mounted) return;
+  setState(() => _userLoading = true);
+
+  try {
+    final name = await _getUserFullName(userId);
+    if (!mounted) return;
+    setState(() => _fullName = name);
+  } catch (_) {
+    if (!mounted) return;
+    // fallback ako API pukne
+    setState(() => _fullName = (Session.username ?? "Nepoznato"));
+  } finally {
+    if (mounted) setState(() => _userLoading = false);
+  }
+}
 
   @override
   void initState() {
@@ -69,6 +103,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     _paging.addListener(_onPagingChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadHeaderUserFullName(); 
       await _refreshWithMeta();
     });
   }
@@ -131,7 +166,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   Widget build(BuildContext context) {
     return BaseMobileScreen(
       title: "Rezervacije",
-      NameAndSurname: (Session.username ?? "").trim(),
+      NameAndSurname: (_fullName.isNotEmpty ? _fullName : (Session.username ?? "Nepoznato")).trim(),
       userUsername: Session.username ?? "Nepoznato",
       onLogout: () => Session.odjava(),
       child: Container(

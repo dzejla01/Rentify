@@ -62,6 +62,8 @@ namespace Rentify.Services.Services
             }
         }
 
+        
+
         public async Task<List<string>> GetActiveTokensAsync(int userId)
         {
             return await _context.UserDeviceTokens

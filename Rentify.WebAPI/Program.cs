@@ -12,6 +12,9 @@ using Rentify.WebAPI.Authentication;
 using Rentify.WebAPI.Configuration;
 using Rentify.WebAPI.Services;
 using Stripe;
+using DotNetEnv;
+
+Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -69,20 +72,32 @@ builder.Services.AddScoped<PushNotificationService>();
 builder.Services.AddScoped<StripeService>();
 
 
-var stripeSection = builder.Configuration.GetSection("Stripe");
-builder.Services.Configure<StripeSettings>(stripeSection);
+var stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
 
-var stripeSettings = stripeSection.Get<StripeSettings>();
-StripeConfiguration.ApiKey = stripeSettings.SecretKey;
+if (string.IsNullOrEmpty(stripeSecretKey))
+{
+    throw new Exception("Stripe secret key nije pronađen u .env fajlu!");
+}
+
+StripeConfiguration.ApiKey = stripeSecretKey;
 
 
 builder.Services.AddSingleton<IConnection>(_ =>
 {
     var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST");
-    var port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT"));
-    var user = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME");
+    var portRaw = Environment.GetEnvironmentVariable("RABBITMQ_PORT");
+    var user = Environment.GetEnvironmentVariable("RABBITMQ_USER"); 
     var pass = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD");
-    var vhost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST");
+    var vhost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST") ?? "/";
+
+    if (string.IsNullOrWhiteSpace(host))
+        throw new InvalidOperationException("Missing env var: RABBITMQ_HOST");
+    if (string.IsNullOrWhiteSpace(portRaw) || !int.TryParse(portRaw, out var port))
+        throw new InvalidOperationException("Missing/invalid env var: RABBITMQ_PORT");
+    if (string.IsNullOrWhiteSpace(user))
+        throw new InvalidOperationException("Missing env var: RABBITMQ_USER");
+    if (string.IsNullOrWhiteSpace(pass))
+        throw new InvalidOperationException("Missing env var: RABBITMQ_PASSWORD");
 
     var factory = new ConnectionFactory
     {
@@ -97,7 +112,7 @@ builder.Services.AddSingleton<IConnection>(_ =>
 });
 
 var firebasePath =
-    builder.Configuration["FIREBASE_CREDENTIALS_PATH"] 
+    builder.Configuration["FIREBASE_CREDENTIALS_PATH_DOCKER"] 
     ?? builder.Configuration["Firebase:ServiceAccountPath"]; 
 
 FirebaseApp.Create(new AppOptions

@@ -109,9 +109,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       barrierDismissible: true,
     );
 
-    if (res == TriConfirmResult.cancel) return;
-
-    final approved = (res == TriConfirmResult.good);
+    final approved = (res == true);
 
     try {
       final payload = appointmentPutPayload(a, isApproved: approved);

@@ -47,7 +47,7 @@ Env-postavke.7z
 
 🔐 **Šifra arhive:** `FIT`
 
-1. Otvoriti šifrirani fajl `EnviormentalPostavke.7z`
+1. Otvoriti šifrirani fajl `Env-Postavke.7z`
 2. Iz njega izvaditi fajl **`.env`**
 3. **Prije pokretanja Dockera**, `.env` fajl ubaciti u **root folder projekta**  
    (folder gdje je urađen `git clone`)
@@ -104,13 +104,13 @@ Ovo je **najbrži način** za testiranje aplikacije bez dodatne konfiguracije.
 ### 🖥️ Desktop aplikacija
 
 **Admin**
-- Username: `owner1`
+- Username: `owner2`
 - Password: `Test123!`
 
 ## Email testiranje
 
 Za testiranje dolaska maila na email dummy korisnika
-"Marko Petrov (owner1)" koristite:
+"Nikola Jovic (owner2)" koristite:
 
 - **Email:** `owner.testni@gmail.com`
 - **Password:** `ownertestni123`

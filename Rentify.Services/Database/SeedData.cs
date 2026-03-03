@@ -606,8 +606,8 @@ public static class SeedData
         // Owners: 1 (Marko), 3 (Nikola)
         // Renters: 2,4,5,6,7,8,9,10  (Ivana može ostati ali više NIJE “glavni lik”)
         modelBuilder.Entity<User>().HasData(
-            new User { Id = 1, FirstName = "Marko", LastName = "Petrov", Email = "owner.testni@gmail.com", Username = "owner1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
-            new User { Id = 3, FirstName = "Nikola", LastName = "Jovic", Email = "nikola.jovic@rentify.dev", Username = "owner2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
+            new User { Id = 1, FirstName = "Marko", LastName = "Petrov", Email = "marko.petrov@rentify.dev", Username = "owner1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
+            new User { Id = 3, FirstName = "Nikola", LastName = "Jovic", Email = "owner.testni@gmail.com", Username = "owner2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
 
             // Renters
             new User { Id = 2, FirstName = "Ivana", LastName = "Kovac", Email = "usertestni089@gmail.com", Username = "user1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },

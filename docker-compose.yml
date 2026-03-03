@@ -34,8 +34,8 @@ services:
       - "8080:15672"
       - "15692:15692"
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
     networks:
       - rentifynet
     healthcheck:
@@ -61,7 +61,7 @@ services:
       ConnectionStrings__DefaultConnection: "Host=rentify-postgres;Port=5432;Database=${PG_DB};Username=${PG_USER};Password=${PG_PASSWORD};Pooling=true;Include Error Detail=true"
 
       RABBITMQ_HOST: rentify-rabbitmq
-      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       RABBITMQ_VIRTUALHOST: ${RABBITMQ_VIRTUALHOST}
       RABBITMQ_PORT: ${RABBITMQ_PORT}
@@ -95,7 +95,7 @@ services:
 
     environment:
       RABBITMQ_HOST: rentify-rabbitmq
-      RABBITMQ_USERNAME: ${RABBITMQ_USER}
+      RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
       RABBITMQ_VIRTUALHOST: ${RABBITMQ_VIRTUALHOST}
       RABBITMQ_PORT: ${RABBITMQ_PORT}

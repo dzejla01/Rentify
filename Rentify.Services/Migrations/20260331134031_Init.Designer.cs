@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Rentify.Services.Migrations
 {
     [DbContext(typeof(RentifyDbContext))]
-    [Migration("20260303185812_Init")]
+    [Migration("20260331134031_Init")]
     partial class Init
     {
         /// <inheritdoc />
@@ -24,6 +24,127 @@ namespace Rentify.Services.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("Rentify.Services.Database.Answer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Answers");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Content = "Režije nisu uključene u cijenu i plaćaju se odvojeno svaki mjesec.",
+                            CreatedAt = new DateTime(2026, 3, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 1,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Content = "Kućni ljubimci su dozvoljeni uz prethodni dogovor sa vlasnikom.",
+                            CreatedAt = new DateTime(2026, 3, 2, 13, 10, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 2,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Content = "Da, uz stan dolazi jedno privatno parking mjesto.",
+                            CreatedAt = new DateTime(2026, 3, 4, 15, 0, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 4,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Content = "Moguće je iznajmiti nekretninu i na period od jednog mjeseca.",
+                            CreatedAt = new DateTime(2026, 3, 6, 14, 20, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 6,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Content = "Grijanje je centralno i uključeno je u redovne mjesečne troškove.",
+                            CreatedAt = new DateTime(2026, 3, 8, 15, 45, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 8,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Content = "Da, moguće je zakazati razgledanje i vikendom uz prethodnu rezervaciju termina.",
+                            CreatedAt = new DateTime(2026, 3, 9, 12, 0, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 9,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Content = "Da, zgrada posjeduje lift koji je redovno održavan.",
+                            CreatedAt = new DateTime(2026, 3, 11, 11, 30, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 11,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Content = "Prosječne mjesečne režije iznose između 120 KM i 180 KM, zavisno od sezone.",
+                            CreatedAt = new DateTime(2026, 3, 13, 13, 40, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 13,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Content = "Da, moguće je depozit platiti u dvije rate prema dogovoru.",
+                            CreatedAt = new DateTime(2026, 3, 15, 12, 25, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 15,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Content = "Da, kuhinja dolazi sa frižiderom, šporetom i mašinom za suđe.",
+                            CreatedAt = new DateTime(2026, 3, 17, 18, 10, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 17,
+                            UserId = 1
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Content = "Da, uz stan se dobija i podrumska ostava koja je uključena u cijenu.",
+                            CreatedAt = new DateTime(2026, 3, 19, 11, 0, 0, 0, DateTimeKind.Utc),
+                            QuestionId = 19,
+                            UserId = 1
+                        });
+                });
 
             modelBuilder.Entity("Rentify.Services.Database.Appointment", b =>
                 {
@@ -79,6 +200,33 @@ namespace Rentify.Services.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Rentify.Services.Database.Favorite", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("UserId", "PropertyId")
+                        .IsUnique();
+
+                    b.ToTable("Favorites");
+                });
+
             modelBuilder.Entity("Rentify.Services.Database.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -114,14 +262,11 @@ namespace Rentify.Services.Migrations
                     b.Property<double>("Price")
                         .HasColumnType("double precision");
 
-                    b.Property<int>("PropertyId")
+                    b.Property<int>("ReservationId")
                         .HasColumnType("integer");
 
                     b.Property<string>("StripePaymentIntentId")
                         .HasColumnType("text");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime?>("WarningDateToPay")
                         .HasColumnType("timestamp with time zone");
@@ -131,9 +276,7 @@ namespace Rentify.Services.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PropertyId");
-
-                    b.HasIndex("UserId");
+                    b.HasIndex("ReservationId");
 
                     b.ToTable("Payments");
 
@@ -146,10 +289,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
+                            PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
                             Price = 1550.0,
-                            PropertyId = 1,
-                            UserId = 4,
+                            ReservationId = 1,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -161,10 +304,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
+                            PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
                             Price = 1550.0,
-                            PropertyId = 1,
-                            UserId = 4,
+                            ReservationId = 1,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -176,10 +319,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
+                            PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
                             Price = 1550.0,
-                            PropertyId = 1,
-                            UserId = 4,
+                            ReservationId = 1,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -191,10 +334,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
+                            PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
                             Price = 1450.0,
-                            PropertyId = 2,
-                            UserId = 5,
+                            ReservationId = 2,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -206,10 +349,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
+                            PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
                             Price = 1450.0,
-                            PropertyId = 2,
-                            UserId = 5,
+                            ReservationId = 2,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -221,10 +364,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
+                            PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
                             Price = 1450.0,
-                            PropertyId = 2,
-                            UserId = 5,
+                            ReservationId = 2,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -236,10 +379,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1800.0,
-                            PropertyId = 4,
-                            UserId = 7,
+                            PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1650.0,
+                            ReservationId = 3,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -251,10 +394,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1800.0,
-                            PropertyId = 4,
-                            UserId = 7,
+                            PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1650.0,
+                            ReservationId = 3,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -266,10 +409,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1800.0,
-                            PropertyId = 4,
-                            UserId = 7,
+                            PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1650.0,
+                            ReservationId = 3,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -281,10 +424,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 2000.0,
-                            PropertyId = 10,
-                            UserId = 9,
+                            PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1800.0,
+                            ReservationId = 4,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -296,10 +439,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 2000.0,
-                            PropertyId = 10,
-                            UserId = 9,
+                            PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1800.0,
+                            ReservationId = 4,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -311,10 +454,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 2000.0,
-                            PropertyId = 10,
-                            UserId = 9,
+                            PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1800.0,
+                            ReservationId = 4,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -326,10 +469,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1750.0,
-                            PropertyId = 12,
-                            UserId = 5,
+                            PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1650.0,
+                            ReservationId = 5,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -341,10 +484,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1750.0,
-                            PropertyId = 12,
-                            UserId = 5,
+                            PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1650.0,
+                            ReservationId = 5,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -356,10 +499,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1750.0,
-                            PropertyId = 12,
-                            UserId = 5,
+                            PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1650.0,
+                            ReservationId = 5,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -371,10 +514,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1200.0,
-                            PropertyId = 16,
-                            UserId = 10,
+                            PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 2000.0,
+                            ReservationId = 6,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -386,10 +529,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1200.0,
-                            PropertyId = 16,
-                            UserId = 10,
+                            PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 2000.0,
+                            ReservationId = 6,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -401,10 +544,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1200.0,
-                            PropertyId = 16,
-                            UserId = 10,
+                            PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 2000.0,
+                            ReservationId = 6,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -416,10 +559,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 950.0,
-                            PropertyId = 18,
-                            UserId = 8,
+                            PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1200.0,
+                            ReservationId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -431,10 +574,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 950.0,
-                            PropertyId = 18,
-                            UserId = 8,
+                            PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1200.0,
+                            ReservationId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -446,10 +589,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 950.0,
-                            PropertyId = 18,
-                            UserId = 8,
+                            PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1200.0,
+                            ReservationId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -461,10 +604,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1750.0,
-                            PropertyId = 24,
-                            UserId = 6,
+                            PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1650.0,
+                            ReservationId = 8,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -476,10 +619,10 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1750.0,
-                            PropertyId = 24,
-                            UserId = 6,
+                            PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1650.0,
+                            ReservationId = 8,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -491,601 +634,46 @@ namespace Rentify.Services.Migrations
                             IsPayed = true,
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1750.0,
-                            PropertyId = 24,
-                            UserId = 6,
+                            PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 1650.0,
+                            ReservationId = 8,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
                         new
                         {
                             Id = 25,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Comment = "Uplata za kratki boravak.",
+                            DateToPay = new DateTime(2026, 2, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1850.0,
-                            PropertyId = 28,
-                            UserId = 7,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
+                            MonthNumber = 2,
+                            Name = "Kratki boravak 02.2026",
+                            PaidAt = new DateTime(2026, 2, 9, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 420.0,
+                            ReservationId = 9,
+                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            YearNumber = 2026
                         },
                         new
                         {
                             Id = 26,
-                            Comment = "Uplata evidentirana.",
+                            Comment = "Uplata za kratki boravak.",
                             DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsPayed = true,
                             MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1850.0,
-                            PropertyId = 28,
-                            UserId = 7,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Name = "Kratki boravak 01.2026",
+                            PaidAt = new DateTime(2026, 1, 4, 0, 0, 0, 0, DateTimeKind.Utc),
+                            PaymentStatus = "Paid",
+                            Price = 380.0,
+                            ReservationId = 10,
+                            WarningDateToPay = new DateTime(2026, 1, 8, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
                         new
                         {
                             Id = 27,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1850.0,
-                            PropertyId = 28,
-                            UserId = 7,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 28,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1700.0,
-                            PropertyId = 30,
-                            UserId = 4,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 29,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1700.0,
-                            PropertyId = 30,
-                            UserId = 4,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 30,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1700.0,
-                            PropertyId = 30,
-                            UserId = 4,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 31,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 3,
-                            UserId = 6,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 32,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 3,
-                            UserId = 6,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 33,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 3,
-                            UserId = 6,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 34,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1100.0,
-                            PropertyId = 7,
-                            UserId = 8,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 35,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1100.0,
-                            PropertyId = 7,
-                            UserId = 8,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 36,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1100.0,
-                            PropertyId = 7,
-                            UserId = 8,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 37,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 9,
-                            UserId = 8,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 38,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 9,
-                            UserId = 8,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 39,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 9,
-                            UserId = 8,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 40,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1550.0,
-                            PropertyId = 13,
-                            UserId = 10,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 41,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1550.0,
-                            PropertyId = 13,
-                            UserId = 10,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 42,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1550.0,
-                            PropertyId = 13,
-                            UserId = 10,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 43,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1600.0,
-                            PropertyId = 15,
-                            UserId = 9,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 44,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1600.0,
-                            PropertyId = 15,
-                            UserId = 9,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 45,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1600.0,
-                            PropertyId = 15,
-                            UserId = 9,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 46,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1500.0,
-                            PropertyId = 17,
-                            UserId = 2,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 47,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1500.0,
-                            PropertyId = 17,
-                            UserId = 2,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 48,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1500.0,
-                            PropertyId = 17,
-                            UserId = 2,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 49,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1300.0,
-                            PropertyId = 19,
-                            UserId = 4,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 50,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1300.0,
-                            PropertyId = 19,
-                            UserId = 4,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 51,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1300.0,
-                            PropertyId = 19,
-                            UserId = 4,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 52,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1350.0,
-                            PropertyId = 21,
-                            UserId = 7,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 53,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1350.0,
-                            PropertyId = 21,
-                            UserId = 7,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 54,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1350.0,
-                            PropertyId = 21,
-                            UserId = 7,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 55,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 23,
-                            UserId = 2,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 56,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 23,
-                            UserId = 2,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 57,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 23,
-                            UserId = 2,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 58,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 1200.0,
-                            PropertyId = 29,
-                            UserId = 10,
-                            WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 59,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1200.0,
-                            PropertyId = 29,
-                            UserId = 10,
-                            WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 60,
-                            Comment = "Uplata evidentirana.",
-                            DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 1200.0,
-                            PropertyId = 29,
-                            UserId = 10,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 61,
-                            Comment = "Uplata za kratki boravak.",
-                            DateToPay = new DateTime(2025, 12, 18, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 12,
-                            Name = "Kratki boravak 12.2025",
-                            PaymentStatus = "Pending",
-                            Price = 420.0,
-                            PropertyId = 8,
-                            UserId = 5,
-                            WarningDateToPay = new DateTime(2025, 12, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2025
-                        },
-                        new
-                        {
-                            Id = 62,
-                            Comment = "Uplata za kratki boravak.",
-                            DateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 1,
-                            Name = "Kratki boravak 01.2026",
-                            PaymentStatus = "Pending",
-                            Price = 380.0,
-                            PropertyId = 14,
-                            UserId = 6,
-                            WarningDateToPay = new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 63,
-                            Comment = "Uplata za kratki boravak.",
-                            DateToPay = new DateTime(2026, 2, 8, 0, 0, 0, 0, DateTimeKind.Utc),
-                            IsPayed = true,
-                            MonthNumber = 2,
-                            Name = "Kratki boravak 02.2026",
-                            PaymentStatus = "Pending",
-                            Price = 510.0,
-                            PropertyId = 25,
-                            UserId = 9,
-                            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
-                            YearNumber = 2026
-                        },
-                        new
-                        {
-                            Id = 64,
                             Comment = "Čeka uplatu.",
                             DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsPayed = false,
@@ -1093,23 +681,21 @@ namespace Rentify.Services.Migrations
                             Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
                             PaymentStatus = "Pending",
                             Price = 1550.0,
-                            PropertyId = 1,
-                            UserId = 4,
+                            ReservationId = 1,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
                         new
                         {
-                            Id = 65,
+                            Id = 28,
                             Comment = "Čeka uplatu.",
                             DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             IsPayed = false,
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
                             PaymentStatus = "Pending",
-                            Price = 1650.0,
-                            PropertyId = 23,
-                            UserId = 10,
+                            Price = 2000.0,
+                            ReservationId = 6,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         });
@@ -2521,6 +2107,222 @@ namespace Rentify.Services.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Rentify.Services.Database.Question", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsAnswered")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("PropertyId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Questions");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Content = "Da li su režije uključene u cijenu najma?",
+                            CreatedAt = new DateTime(2026, 3, 1, 10, 15, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 1,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Content = "Da li je dozvoljeno držanje kućnih ljubimaca?",
+                            CreatedAt = new DateTime(2026, 3, 2, 11, 20, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 2,
+                            UserId = 4
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Content = "Koliki je depozit za ovu nekretninu?",
+                            CreatedAt = new DateTime(2026, 3, 3, 9, 45, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = false,
+                            PropertyId = 3,
+                            UserId = 5
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Content = "Da li stan ima parking mjesto?",
+                            CreatedAt = new DateTime(2026, 3, 4, 14, 10, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 4,
+                            UserId = 6
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Content = "Da li je internet uključen u cijenu?",
+                            CreatedAt = new DateTime(2026, 3, 5, 16, 0, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = false,
+                            PropertyId = 5,
+                            UserId = 7
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Content = "Može li se nekretnina iznajmiti samo na mjesec dana?",
+                            CreatedAt = new DateTime(2026, 3, 6, 12, 30, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 6,
+                            UserId = 8
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Content = "Koji je minimalan period najma?",
+                            CreatedAt = new DateTime(2026, 3, 7, 8, 50, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = false,
+                            PropertyId = 7,
+                            UserId = 9
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Content = "Da li je grijanje centralno ili etažno?",
+                            CreatedAt = new DateTime(2026, 3, 8, 13, 15, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 8,
+                            UserId = 10
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Content = "Postoji li mogućnost razgledanja uživo vikendom?",
+                            CreatedAt = new DateTime(2026, 3, 9, 10, 40, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 9,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 10,
+                            Content = "Da li su dozvoljene manje adaptacije u stanu?",
+                            CreatedAt = new DateTime(2026, 3, 10, 15, 25, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = false,
+                            PropertyId = 10,
+                            UserId = 4
+                        },
+                        new
+                        {
+                            Id = 11,
+                            Content = "Ima li zgrada lift?",
+                            CreatedAt = new DateTime(2026, 3, 11, 9, 5, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 1,
+                            UserId = 5
+                        },
+                        new
+                        {
+                            Id = 12,
+                            Content = "Da li je stan odmah useljiv?",
+                            CreatedAt = new DateTime(2026, 3, 12, 17, 35, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = false,
+                            PropertyId = 2,
+                            UserId = 6
+                        },
+                        new
+                        {
+                            Id = 13,
+                            Content = "Koliko iznose prosječne mjesečne režije?",
+                            CreatedAt = new DateTime(2026, 3, 13, 11, 55, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 3,
+                            UserId = 7
+                        },
+                        new
+                        {
+                            Id = 14,
+                            Content = "Da li nekretnina ima balkon?",
+                            CreatedAt = new DateTime(2026, 3, 14, 14, 45, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = false,
+                            PropertyId = 4,
+                            UserId = 8
+                        },
+                        new
+                        {
+                            Id = 15,
+                            Content = "Da li je moguće platiti depozit u dvije rate?",
+                            CreatedAt = new DateTime(2026, 3, 15, 10, 10, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 5,
+                            UserId = 9
+                        },
+                        new
+                        {
+                            Id = 16,
+                            Content = "Da li su studenti poželjni kao zakupci?",
+                            CreatedAt = new DateTime(2026, 3, 16, 13, 20, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = false,
+                            PropertyId = 6,
+                            UserId = 10
+                        },
+                        new
+                        {
+                            Id = 17,
+                            Content = "Da li kuhinja dolazi sa svim aparatima?",
+                            CreatedAt = new DateTime(2026, 3, 17, 16, 40, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 7,
+                            UserId = 2
+                        },
+                        new
+                        {
+                            Id = 18,
+                            Content = "Može li se rezervisati termin razgledanja za sutra?",
+                            CreatedAt = new DateTime(2026, 3, 18, 12, 5, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = false,
+                            PropertyId = 8,
+                            UserId = 4
+                        },
+                        new
+                        {
+                            Id = 19,
+                            Content = "Da li se uz stan dobija i podrumska ostava?",
+                            CreatedAt = new DateTime(2026, 3, 19, 9, 30, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = true,
+                            PropertyId = 9,
+                            UserId = 5
+                        },
+                        new
+                        {
+                            Id = 20,
+                            Content = "Koliko je udaljena najbliža autobuska stanica?",
+                            CreatedAt = new DateTime(2026, 3, 20, 18, 10, 0, 0, DateTimeKind.Utc),
+                            IsAnswered = false,
+                            PropertyId = 10,
+                            UserId = 6
+                        });
+                });
+
             modelBuilder.Entity("Rentify.Services.Database.Reservation", b =>
                 {
                     b.Property<int>("Id")
@@ -2653,6 +2455,36 @@ namespace Rentify.Services.Migrations
                             StartDateOfRenting = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = 6
                         });
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.ReservationHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("ReservationId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReservationId");
+
+                    b.ToTable("ReservationHistories");
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Review", b =>
@@ -3006,141 +2838,141 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1072),
-                            Email = "owner.testni@gmail.com",
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7896),
+                            Email = "marko.petrov@rentify.dev",
                             FirstName = "Marko",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Petrov",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "owner1"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1080),
-                            Email = "nikola.jovic@rentify.dev",
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7904),
+                            Email = "owner.testni@gmail.com",
                             FirstName = "Nikola",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Jovic",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "owner2"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1082),
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7906),
                             Email = "usertestni089@gmail.com",
                             FirstName = "Ivana",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kovac",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "user1"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1084),
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7908),
                             Email = "amar.hodzic@rentify.dev",
                             FirstName = "Amar",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hodzic",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "user2"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1085),
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7909),
                             Email = "lejla.mehic@rentify.dev",
                             FirstName = "Lejla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mehic",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "user3"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1086),
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7918),
                             Email = "haris.begic@rentify.dev",
                             FirstName = "Haris",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Begic",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "user4"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1088),
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7919),
                             Email = "selma.kurtovic@rentify.dev",
                             FirstName = "Selma",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kurtovic",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "user5"
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1089),
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7921),
                             Email = "adnan.delic@rentify.dev",
                             FirstName = "Adnan",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Delic",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "user6"
                         },
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1090),
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7923),
                             Email = "emina.zahiragic@rentify.dev",
                             FirstName = "Emina",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Zahiragic",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "user7"
                         },
                         new
                         {
                             Id = 10,
-                            CreatedAt = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1092),
+                            CreatedAt = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7924),
                             Email = "nermin.basic@rentify.dev",
                             FirstName = "Nermin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Basic",
-                            PasswordHash = "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==",
-                            PasswordSalt = "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=",
+                            PasswordHash = "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==",
+                            PasswordSalt = "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=",
                             Username = "user8"
                         });
                 });
@@ -3208,72 +3040,91 @@ namespace Rentify.Services.Migrations
                         {
                             UserId = 1,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1124),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7960),
                             Id = 0
                         },
                         new
                         {
                             UserId = 3,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1127),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7962),
                             Id = 0
                         },
                         new
                         {
                             UserId = 2,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1128),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7963),
                             Id = 0
                         },
                         new
                         {
                             UserId = 4,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1128),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7963),
                             Id = 0
                         },
                         new
                         {
                             UserId = 5,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1129),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7964),
                             Id = 0
                         },
                         new
                         {
                             UserId = 6,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1129),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7964),
                             Id = 0
                         },
                         new
                         {
                             UserId = 7,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1130),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7965),
                             Id = 0
                         },
                         new
                         {
                             UserId = 8,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1130),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7965),
                             Id = 0
                         },
                         new
                         {
                             UserId = 9,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1131),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7966),
                             Id = 0
                         },
                         new
                         {
                             UserId = 10,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1131),
+                            DateAssigned = new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7966),
                             Id = 0
                         });
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.Answer", b =>
+                {
+                    b.HasOne("Rentify.Services.Database.Question", "Question")
+                        .WithMany("Answers")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Rentify.Services.Database.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Appointment", b =>
@@ -3295,7 +3146,7 @@ namespace Rentify.Services.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Rentify.Services.Database.Payment", b =>
+            modelBuilder.Entity("Rentify.Services.Database.Favorite", b =>
                 {
                     b.HasOne("Rentify.Services.Database.Property", "Property")
                         .WithMany()
@@ -3306,12 +3157,23 @@ namespace Rentify.Services.Migrations
                     b.HasOne("Rentify.Services.Database.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Property");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.Payment", b =>
+                {
+                    b.HasOne("Rentify.Services.Database.Reservation", "Reservation")
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reservation");
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Property", b =>
@@ -3336,6 +3198,25 @@ namespace Rentify.Services.Migrations
                     b.Navigation("Property");
                 });
 
+            modelBuilder.Entity("Rentify.Services.Database.Question", b =>
+                {
+                    b.HasOne("Rentify.Services.Database.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Rentify.Services.Database.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Property");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Rentify.Services.Database.Reservation", b =>
                 {
                     b.HasOne("Rentify.Services.Database.Property", "Property")
@@ -3353,6 +3234,17 @@ namespace Rentify.Services.Migrations
                     b.Navigation("Property");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.ReservationHistory", b =>
+                {
+                    b.HasOne("Rentify.Services.Database.Reservation", "Reservation")
+                        .WithMany()
+                        .HasForeignKey("ReservationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Reservation");
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Review", b =>
@@ -3402,6 +3294,11 @@ namespace Rentify.Services.Migrations
                     b.Navigation("Role");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.Question", b =>
+                {
+                    b.Navigation("Answers");
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Role", b =>

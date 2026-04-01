@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using System.IO;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
 using Rentify.Services.Interfaces;
 using Rentify.WebAPI.Configuration;
-using Rentify.WebAPI.Services;
 using Stripe;
 
 namespace Rentify.WebAPI.Controllers
@@ -17,130 +17,108 @@ namespace Rentify.WebAPI.Controllers
     public class PaymentController
         : BaseCRUDController<PaymentResponse, PaymentSearchObject, PaymentUpsertRequest, PaymentUpsertRequest>
     {
-        private readonly RentifyDbContext _context;
-        private readonly StripeService _stripeService;
         private readonly StripeSettings _stripeSettings;
+        private readonly IPaymentService _paymentService;
 
         public PaymentController(
             IPaymentService service,
-            RentifyDbContext context,
-            StripeService stripeService,
-            IOptions<StripeSettings> stripeOptions
+            StripeSettings stripeSettings
         ) : base(service)
         {
-            _context = context;
-            _stripeService = stripeService;
-            _stripeSettings = stripeOptions.Value;
+            _paymentService = service;
+            _stripeSettings = stripeSettings;
         }
 
-        // POST: api/payments/{id}/create-intent
-        [HttpPost("{id:int}/create-intent")]
-        public async Task<IActionResult> CreatePaymentIntent(int id)
+        //[Authorize(Roles = "Korisnik")]
+        [HttpPost("create-new-intent")]
+        public async Task<IActionResult> CreateNewPaymentIntent([FromBody] CreatePaymentIntentRequest req)
         {
-            var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == id);
-            if (payment == null)
-                return NotFound("Payment nije pronađen.");
-
-            if (payment.IsPayed == true)
-                return BadRequest("Uplata je već plaćena.");
-
-            var metadata = new Dictionary<string, string>
+            try
             {
-                ["paymentId"] = payment.Id.ToString(),
-                ["userId"] = payment.UserId.ToString(),
-                ["propertyId"] = payment.PropertyId.ToString()
-            };
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var intent = await _stripeService.CreatePaymentIntentAsync(
-                amount: payment.Price,
-                currency: "bam", 
-                metadata: metadata
-            );
+                if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var loggedInUserId))
+                    return Unauthorized("Neispravan token");
 
-            payment.StripePaymentIntentId = intent.Id;
-            payment.PaymentStatus = "Processing";
+                var isAdmin = User.IsInRole("Admin");
 
-            await _context.SaveChangesAsync();
+                if (!isAdmin && req.UserId != loggedInUserId)
+                    return Forbid("Nije dozvoljeno kreirati payment intent za drugog korisnika.");
 
-            return Ok(new
+                var result = await _paymentService.CreateNewPaymentIntentAsync(req);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
             {
-                clientSecret = intent.ClientSecret
-            });
+                return BadRequest(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (StripeException)
+            {
+                return StatusCode(500, "Greška prilikom komunikacije sa Stripe servisom.");
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, "Došlo je do greške prilikom kreiranja payment intenta.");
+            }
         }
 
-        // POST: api/payments/webhook
         [AllowAnonymous]
         [HttpPost("webhook")]
         public async Task<IActionResult> StripeWebhook()
         {
-            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-
             try
             {
+                using var reader = new StreamReader(HttpContext.Request.Body);
+                var json = await reader.ReadToEndAsync();
+
                 var signatureHeader = Request.Headers["Stripe-Signature"].ToString();
 
                 var stripeEvent = EventUtility.ConstructEvent(
                     json,
                     signatureHeader,
-                    _stripeSettings.WebhookSecret
+                    _stripeSettings.WebhookSecret,  
+                    throwOnApiVersionMismatch: false
                 );
+
+                var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
+                if (paymentIntent == null)
+                    return Ok();
 
                 if (stripeEvent.Type == "payment_intent.succeeded")
                 {
-                    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-
-                    if (paymentIntent?.Metadata == null)
-                        return Ok();
-
-                    if (!paymentIntent.Metadata.TryGetValue("paymentId", out var paymentIdString))
-                        return Ok();
-
-                    if (!int.TryParse(paymentIdString, out var paymentId))
-                        return Ok();
-
-                    var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == paymentId);
-                    if (payment == null)
-                        return Ok();
-
-                    if (payment.IsPayed == true)
-                        return Ok();
-
-                    payment.IsPayed = true;
-                    payment.PaymentStatus = "Paid";
-                    payment.PaidAt = DateTime.UtcNow;
-                    payment.StripePaymentIntentId = paymentIntent.Id;
-
-                    await _context.SaveChangesAsync();
+                    await _paymentService.HandlePaymentIntentSucceededAsync(
+                        paymentIntent.Id,
+                        paymentIntent.Metadata
+                    );
                 }
                 else if (stripeEvent.Type == "payment_intent.payment_failed")
                 {
-                    var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
-
-                    if (paymentIntent?.Metadata == null)
-                        return Ok();
-
-                    if (paymentIntent.Metadata.TryGetValue("paymentId", out var paymentIdString) &&
-                        int.TryParse(paymentIdString, out var paymentId))
-                    {
-                        var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == paymentId);
-                        if (payment != null && payment.IsPayed != true)
-                        {
-                            payment.PaymentStatus = "Failed";
-                            payment.StripePaymentIntentId = paymentIntent.Id;
-                            await _context.SaveChangesAsync();
-                        }
-                    }
+                    await _paymentService.HandlePaymentIntentFailedAsync(
+                        paymentIntent.Id,
+                        paymentIntent.Metadata
+                    );
+                }
+                else if (stripeEvent.Type == "payment_intent.canceled")
+                {
+                    await _paymentService.HandlePaymentIntentCanceledAsync(
+                        paymentIntent.Id,
+                        paymentIntent.Metadata
+                    );
                 }
 
                 return Ok();
             }
-            catch (StripeException e)
+            catch (StripeException)
             {
-                return BadRequest($"Stripe error: {e.Message}");
+                return BadRequest("Neispravan Stripe webhook potpis ili payload.");
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                return BadRequest($"Webhook error: {e.Message}");
+                return StatusCode(500, "Greška pri obradi Stripe webhook-a.");
             }
         }
     }

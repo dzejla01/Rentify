@@ -5,11 +5,14 @@ namespace Rentify.Model.RequestObjects
 {
     public class PaymentUpsertRequest
     {
-        [Required]
-        public int UserId { get; set; }
+        //[Required]
+        //public int UserId { get; set; }
+
+        //[Required]
+        //public int PropertyId { get; set; }
 
         [Required]
-        public int PropertyId { get; set; }
+        public int ReservationId { get; set; }
 
         [Range(0, double.MaxValue)]
         public double Price { get; set; }

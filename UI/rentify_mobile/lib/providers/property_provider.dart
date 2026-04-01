@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:rentify_mobile/config/api_config.dart';
+import 'package:rentify_mobile/helper/http_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/search_result.dart';
 
@@ -23,24 +24,15 @@ class PropertyProvider extends BaseProvider<Property> {
 
     final response = await http.get(
       Uri.parse(url),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer ${Session.token}",
-      },
+      headers: HttpHelper.getHeaders()
     );
 
-    if (response.statusCode == 401) {
-      throw Exception("Unauthorized");
-    }
-    if (response.statusCode < 200 || response.statusCode > 299) {
-      throw Exception("API Error: ${response.statusCode} → ${response.body}");
-    }
+    HttpHelper.checkResponse(response);
 
     final json = jsonDecode(response.body);
 
     final result = SearchResult<Property>();
 
-    // endpoint može vratiti listu
     if (json is List) {
       result.totalCount = json.length;
       for (final item in json) {
@@ -49,7 +41,6 @@ class PropertyProvider extends BaseProvider<Property> {
       return result;
     }
 
-    // ili { items: [], totalCount: x }
     if (json is Map && json.containsKey("items")) {
       result.totalCount = json["totalCount"] ?? (json["items"] as List).length;
       for (final item in json["items"]) {

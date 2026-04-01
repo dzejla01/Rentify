@@ -24,7 +24,7 @@ namespace Rentify.Services.Helpers
             saltBase64 = Convert.ToBase64String(salt);
         }
 
-        // 🔐 Password verify
+        
         public static bool VerifyPassword(string password, string storedHashBase64, string storedSaltBase64)
         {
             if (string.IsNullOrWhiteSpace(storedHashBase64) || string.IsNullOrWhiteSpace(storedSaltBase64))
@@ -41,24 +41,35 @@ namespace Rentify.Services.Helpers
 
         public static string CreateJwt(User user, IConfiguration configuration)
         {
-            var jwtKey = configuration["Jwt:Key"]!;
-            var jwtIssuer = configuration["Jwt:Issuer"]!;
+            var jwtKey = configuration["JWT_SECRET"];
+            var jwtIssuer = configuration["JWT_ISSUER"];
+            var jwtAudience = configuration["JWT_AUDIENCE"];
+
+            if (string.IsNullOrWhiteSpace(jwtKey))
+                throw new InvalidOperationException("JWT_SECRET nije postavljen.");
+
+            if (string.IsNullOrWhiteSpace(jwtIssuer))
+                throw new InvalidOperationException("JWT_ISSUER nije postavljen.");
 
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username)
-            };
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+        new Claim(ClaimTypes.Name, user.Username ?? string.Empty),
+        new Claim("fullName", $"{user.FirstName} {user.LastName}".Trim()),
+        new Claim("userImage", user.UserImage ?? string.Empty),
+        new Claim("isLoggingFirstTime", user.IsLoggingFirstTime.ToString().ToLower())
+    };
 
-            if (user.IsVlasnik)
+            if (user.UserRoles != null)
             {
-                claims.Add(new Claim(ClaimTypes.Role, "Vlasnik"));
+                foreach (var userRole in user.UserRoles)
+                {
+                    if (userRole.Role != null && !string.IsNullOrWhiteSpace(userRole.Role.Name))
+                    {
+                        claims.Add(new Claim(ClaimTypes.Role, userRole.Role.Name));
+                    }
+                }
             }
-            else
-            {
-                claims.Add(new Claim(ClaimTypes.Role, "Korisnik"));
-            }
-
 
             var signingKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(jwtKey)
@@ -68,7 +79,7 @@ namespace Rentify.Services.Helpers
 
             var token = new JwtSecurityToken(
                 issuer: jwtIssuer,
-                audience: jwtIssuer,
+                audience: jwtAudience,
                 claims: claims,
                 expires: DateTime.UtcNow.AddHours(2),
                 signingCredentials: creds

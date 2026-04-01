@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/providers/auth_provider.dart';
+import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
@@ -10,8 +12,6 @@ import 'package:rentify_mobile/models/user.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/helper/univerzal_pagging_helper.dart';
 import 'package:rentify_mobile/widgets/home_screen_widget.dart';
-
-// ✅ promijeni putanju gdje ti je dialog
 import 'package:rentify_mobile/dialogs/property_filter_dialog.dart';
 
 class PropertyScreen extends StatefulWidget {
@@ -145,13 +145,23 @@ class _PropertyScreenState extends State<PropertyScreen> {
   Widget build(BuildContext context) {
     return BaseMobileScreen(
       title: "Nekretnine",
-      NameAndSurname:
-          "${_user?.firstName ?? ""} ${_user?.lastName ?? ""}".trim(),
+      NameAndSurname: Session.fullName!,
       userUsername: Session.username ?? "Nepoznato",
-      onLogout: () {
-        Session.odjava();
-        Navigator.pushReplacementNamed(context, AppRoutes.login);
-      },
+      userImageAsset: Session.userImage,
+      onLogout: () async {
+  await Session.odjava(
+    deviceTokenProvider: context.read<DeviceTokenProvider>(),
+    authProvider: context.read<AuthProvider>(),
+  );
+
+  if (!context.mounted) return;
+
+  Navigator.pushNamedAndRemoveUntil(
+    context,
+    AppRoutes.login,
+    (route) => false,
+  );
+},
       child: _loadingUser
           ? const Center(child: CircularProgressIndicator())
           : _userError != null

@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Rentify.Services.Exceptions;
 using Rentify.Services.Interfaces;
 using System.Text.RegularExpressions;
 
@@ -14,7 +15,7 @@ namespace Rentify.Services
             ".jpg", ".jpeg", ".png", ".webp"
         };
 
-        private const long MaxBytes = 10 * 1024 * 1024; // 10MB
+        private const long MaxBytes = 10 * 1024 * 1024;
 
         private readonly IWebHostEnvironment _env;
 
@@ -26,7 +27,7 @@ namespace Rentify.Services
         public async Task<string> SaveAsync(IFormFile file, string nameOfTheFolder, string? desiredFileName = null, CancellationToken ct = default)
         {
             if (file == null || file.Length == 0)
-                throw new ArgumentException("Fajl nije poslan ili je prazan.");
+                throw new UserException("Fajl nije poslan ili je prazan.");
 
             if (file.Length > MaxBytes)
                 throw new ArgumentException("Slika je prevelika (max 10MB).");

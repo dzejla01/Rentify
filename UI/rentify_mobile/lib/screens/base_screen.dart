@@ -8,13 +8,15 @@ class BaseMobileScreen extends StatelessWidget {
     super.key,
     required this.child,
     this.title,
-    this.NameAndSurname = "Ajdin Sofić",
-    this.userUsername = "@ajdinsofic",
+    this.NameAndSurname = "user blank",
+    this.userUsername = "blank",
     this.userImageAsset,
     this.onLogout,
+    this.leading,
   });
 
   final Widget child;
+  final Widget? leading;
   final String? title;
 
   final String NameAndSurname;
@@ -30,7 +32,7 @@ class BaseMobileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      endDrawer: _buildDrawer(context), // ✅ desni drawer
+      endDrawer: _buildDrawer(context),
 
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -42,13 +44,18 @@ class BaseMobileScreen extends StatelessWidget {
 
         title: Row(
           children: [
-            Image.asset(
-              'assets/images/rentify_single_R_green.png',
-              width: 28,
-              height: 28,
-              fit: BoxFit.contain,
-            ),
-            const SizedBox(width: 10),
+            if (leading != null) ...[
+              leading!,
+              const SizedBox(width: 6),
+            ] else ...[
+              Image.asset(
+                'assets/images/rentify_single_R_green.png',
+                width: 28,
+                height: 28,
+                fit: BoxFit.contain,
+              ),
+              const SizedBox(width: 10),
+            ],
             Text(
               title ?? "Rentify",
               style: const TextStyle(
@@ -150,6 +157,15 @@ class BaseMobileScreen extends StatelessWidget {
                   ),
                   _drawerItem(
                     context,
+                    icon: Icons.person_rounded,
+                    text: "Profil",
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, AppRoutes.profile);
+                    },
+                  ),
+                  _drawerItem(
+                    context,
                     icon: Icons.apartment_rounded,
                     text: "Nekretnine",
                     onTap: () {
@@ -170,7 +186,7 @@ class BaseMobileScreen extends StatelessWidget {
                     icon: Icons.payments_rounded,
                     text: "Plaćanja",
                     onTap: () {
-                      Navigator.pop(context); 
+                      Navigator.pop(context);
 
                       Navigator.push(
                         context,
@@ -185,17 +201,26 @@ class BaseMobileScreen extends StatelessWidget {
                     icon: Icons.backpack,
                     text: "Termini",
                     onTap: () {
-                      Navigator.pop(context); 
+                      Navigator.pop(context);
                       Navigator.pushNamed(context, AppRoutes.appointments);
                     },
                   ),
                   _drawerItem(
                     context,
-                    icon: Icons.person_rounded,
-                    text: "Profil",
+                    icon: Icons.favorite_rounded,
+                    text: "Favoriti",
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.pushNamed(context, AppRoutes.profile);
+                      Navigator.pushNamed(context, AppRoutes.favorites);
+                    },
+                  ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.question_answer_rounded,
+                    text: "Pitanja",
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, AppRoutes.questions);
                     },
                   ),
 
@@ -242,34 +267,37 @@ class BaseMobileScreen extends StatelessWidget {
   }
 
   Widget _avatar() {
-  Widget avatarContent;
+    Widget avatarContent;
 
-  if (ImageHelper.hasValidImage(userImageAsset)) {
-    avatarContent = Image.network(
-      ImageHelper.safeUserImageUrl(userImageAsset),
-      fit: BoxFit.cover,
-      errorBuilder: (_, __, ___) =>
-          const Icon(Icons.person_rounded, color: Colors.white, size: 34),
+    if (ImageHelper.hasValidImage(userImageAsset)) {
+      avatarContent = Image.network(
+        ImageHelper.safeUserImageUrl(userImageAsset),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+            const Icon(Icons.person_rounded, color: Colors.white, size: 34),
+      );
+    } else {
+      avatarContent = const Icon(
+        Icons.person_rounded,
+        color: Colors.white,
+        size: 34,
+      );
+    }
+
+    return Container(
+      width: 52,
+      height: 52,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.25),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14),
+        child: avatarContent,
+      ),
     );
-  } else {
-    avatarContent =
-        const Icon(Icons.person_rounded, color: Colors.white, size: 34);
   }
-
-  return Container(
-    width: 52,
-    height: 52,
-    decoration: BoxDecoration(
-      color: Colors.white.withOpacity(0.25),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
-    ),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: avatarContent,
-    ),
-  );
-}
 
   Widget _drawerItem(
     BuildContext context, {

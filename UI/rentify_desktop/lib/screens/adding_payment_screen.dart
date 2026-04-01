@@ -281,8 +281,9 @@ class _PaymentAddingScreenState extends State<PaymentAddingScreen> {
           double.tryParse(_fields.text("amount").replaceAll(",", ".")) ?? 0.0;
 
       final request = <String, dynamic>{
-        "userId": widget.user.id,
-        "propertyId": widget.property.id,
+        // "userId": widget.user.id,
+        // "propertyId": widget.property.id,
+        "reservationId": widget.reservation!.id,
         "price": price,
         "isPayed": false,
         "name": _fields.text("title"),
@@ -460,3 +461,4 @@ class _PaymentAddingScreenState extends State<PaymentAddingScreen> {
     );
   }
 }
+

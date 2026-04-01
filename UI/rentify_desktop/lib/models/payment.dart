@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:rentify_desktop/models/property.dart';
+import 'package:rentify_desktop/models/reservation.dart';
 import 'package:rentify_desktop/models/user.dart';
 
 part 'payment.g.dart';
@@ -7,10 +8,9 @@ part 'payment.g.dart';
 @JsonSerializable()
 class Payment {
   final int id;
-  final int userId;
-  User? user;
-  final int propertyId;
-  Property? property;
+  // ako bude se vracalo ovdj ide userid user, prpertyid, property
+  final int reservationId;
+  Reservation? reservation;
   final String name;
   final String comment;
   final double price;
@@ -22,10 +22,8 @@ class Payment {
 
   Payment({
     required this.id,
-    required this.userId,
-    this.user,
-    required this.propertyId,
-    this.property,
+    required this.reservationId,
+    this.reservation,
     required this.name,
     required this.comment,
     required this.price,

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:rentify_mobile/screens/appointment_list_screen.dart';
+import 'package:rentify_mobile/screens/favorite_screen.dart';
 import 'package:rentify_mobile/screens/home_screen.dart';
 import 'package:rentify_mobile/screens/login_screen.dart';
 import 'package:rentify_mobile/screens/payment_screen.dart';
 import 'package:rentify_mobile/screens/profile_screen.dart';
 import 'package:rentify_mobile/screens/property_screen.dart';
+import 'package:rentify_mobile/screens/question_screen.dart';
 import 'package:rentify_mobile/screens/register_screen.dart';
 import 'package:rentify_mobile/screens/reservation_list_screen.dart';
 import 'package:rentify_mobile/screens/tags_on_boarding_screen.dart';
@@ -20,6 +22,8 @@ class AppRoutes {
   static const String reservations = '/reservations';
   static const String appointments = '/appointments';
   static const String profile = '/profile';
+  static const String favorites = '/favorites';
+  static const String questions = "/questions";
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -46,6 +50,12 @@ class AppRoutes {
 
       case taggs:
         return MaterialPageRoute(builder: (_) => const TaggsOnboardingScreen());
+      
+      case favorites:
+        return MaterialPageRoute(builder: (_) => const FavoritesScreen());
+
+      case questions:
+        return MaterialPageRoute(builder: (_) => const QuestionsScreen());
 
       default:
         return null;

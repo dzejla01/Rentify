@@ -54,15 +54,6 @@ class _TaggsOnboardingScreenState extends State<TaggsOnboardingScreen> {
     super.initState();
     // Ako već imaš lokalno snimljene tagove, možeš ih učitati (opc.)
     _loadUserName();
-    _loadExisting();
-  }
-
-  Future<void> _loadExisting() async {
-    try {
-      final existing = await TokenStorage.readTaggs();
-      if (!mounted) return;
-      setState(() => _selected.addAll(existing));
-    } catch (_) {}
   }
 
   @override
@@ -193,10 +184,6 @@ class _TaggsOnboardingScreenState extends State<TaggsOnboardingScreen> {
 
     try {
       final taggs = _selected.toList();
-      Session.taggs = taggs;
-
-      // 1) lokalno snimi
-      await TokenStorage.saveTaggs(taggs);
 
       final user = await context.read<UserProvider>().getById(Session.userId!);
 

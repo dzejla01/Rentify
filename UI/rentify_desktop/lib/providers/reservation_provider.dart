@@ -15,20 +15,4 @@ class ReservationProvider extends BaseProvider<Reservation> {
   Reservation fromJson(dynamic data) {
     return Reservation.fromJson(data);
   }
-
-  Future<void> deleteAll(int id) async {
-  final url = "${ApiConfig.apiBase}/api/Reservation/delete-all/$id";
-
-  final response = await http.delete(
-    Uri.parse(url),
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer ${Session.token}",
-    },
-  );
-
-  if (response.statusCode != 200 && response.statusCode != 204) {
-    throw Exception("Greška pri brisanju: ${response.body}");
-  }
-}
 }

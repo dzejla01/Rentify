@@ -2,14 +2,15 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:rentify_mobile/config/api_config.dart';
 import 'package:rentify_mobile/config/token_storage.dart';
-
+import 'package:rentify_mobile/helper/http_helper.dart';
 import '../models/login_request.dart';
 import '../models/login_response.dart';
 import '../utils/session.dart';
 
 class AuthProvider with ChangeNotifier {
-  static const String apiUrl = "http://10.0.2.2:5002/api/User/login";
+  static String apiUrl = "${ApiConfig.apiBase}/api/User/login";
 
   String? _token;
 
@@ -21,45 +22,76 @@ class AuthProvider with ChangeNotifier {
   }
 
   Future<void> loadSession() async {
-    _token = await TokenStorage.read();
+  _token = await TokenStorage.read();
 
-    Session.taggs = await TokenStorage.readTaggs();
-
-    if (!isLoggedIn) {
-      notifyListeners();
-      return;
-    }
-
-    _fillSessionFromJwt(_token!);
+  if (_token == null || _token!.isEmpty) {
+    Session.token = null;
+    Session.userId = null;
+    Session.username = null;
+    Session.fullName = null;
+    Session.userImage = null;
+    Session.fcmToken = null;
+    Session.isLoggingFirstTime = null;
+    Session.roles = [];
     notifyListeners();
+    return;
   }
 
-  void _fillSessionFromJwt(String jwt) {
-    final payload = JwtDecoder.decode(jwt);
+  await _fillSessionFromJwt(_token!);
+  notifyListeners();
+}
 
-    final idRaw = payload['nameid'] ??
-        payload['sub'] ??
-        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+Future<void> _fillSessionFromJwt(String jwt) async {
+  final payload = JwtDecoder.decode(jwt);
 
-    final usernameRaw = payload['unique_name'] ??
-        payload['name'] ??
-        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
+  final idRaw = payload['nameid'] ??
+      payload['sub'] ??
+      payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
 
-    final roleRaw = payload['role'] ??
-        payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
+  final usernameRaw = payload['unique_name'] ??
+      payload['name'] ??
+      payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'];
 
-    Session.token = jwt;
-    Session.userId = int.tryParse(idRaw?.toString() ?? "");
-    Session.username = usernameRaw?.toString();
+  final roleRaw = payload['role'] ??
+      payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'];
 
-    if (roleRaw is List) {
-      Session.roles = roleRaw.map((e) => e.toString()).toList();
-    } else if (roleRaw != null) {
-      Session.roles = [roleRaw.toString()];
+  final fullNameRaw = payload['fullName'] ??
+      payload['fullname'] ??
+      payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'];
+
+  final userImageRaw = payload['userImage'] ??
+      payload['userimage'];
+
+  final isLoggingFirstTimeRaw = payload['isLoggingFirstTime'] ??
+      payload['isloggingfirsttime'];
+
+  Session.token = jwt;
+  Session.userId = int.tryParse(idRaw?.toString() ?? "");
+  Session.username = usernameRaw?.toString();
+  Session.fullName = fullNameRaw?.toString();
+  Session.userImage = userImageRaw?.toString();
+
+  if (isLoggingFirstTimeRaw != null) {
+    if (isLoggingFirstTimeRaw is bool) {
+      Session.isLoggingFirstTime = isLoggingFirstTimeRaw;
     } else {
-      Session.roles = [];
+      Session.isLoggingFirstTime =
+          isLoggingFirstTimeRaw.toString().toLowerCase() == "true";
     }
+  } else {
+    Session.isLoggingFirstTime = null;
   }
+
+  if (roleRaw is List) {
+    Session.roles = roleRaw.map((e) => e.toString()).toList();
+  } else if (roleRaw != null) {
+    Session.roles = [roleRaw.toString()];
+  } else {
+    Session.roles = [];
+  }
+
+  Session.fcmToken = await TokenStorage.readFcmToken();
+}
 
   Future<void> setToken(String token) async {
     _token = token;
@@ -78,35 +110,26 @@ class AuthProvider with ChangeNotifier {
 
     final response = await http.post(
       url,
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-      },
+      headers: HttpHelper.getHeaders(withToken: false),
       body: jsonEncode(request.toJson()),
     );
 
-    print("STATUS: ${response.statusCode}");
-    print("BODY: ${response.body}");
+    HttpHelper.checkResponse(response);
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final loginResp = LoginResponse.fromJson(data);
+    final data = jsonDecode(response.body);
+    final loginResp = LoginResponse.fromJson(data);
 
-      final imaPristup = loginResp.roles.contains("Korisnik");
-      if (!imaPristup) return "ZABRANJENO";
+    final imaPristup = loginResp.roles.contains("Korisnik");
+    if (!imaPristup) return "ZABRANJENO";
 
-      Session.token = loginResp.token;
-      Session.userId = loginResp.userId;
-      Session.username = loginResp.userName;
-      Session.roles = loginResp.roles;
-      Session.isLoggingFirstTime = loginResp.isLoggingFirstTime;
+    Session.token = loginResp.token;
+    Session.userId = loginResp.userId;
+    Session.username = loginResp.userName;
+    Session.fullName = loginResp.fullName;
+    Session.userImage = loginResp.userImage;
+    Session.roles = loginResp.roles;
+    Session.isLoggingFirstTime = loginResp.isLoggingFirstTime;
 
-      return loginResp.token;
-    }
-
-    if (response.statusCode == 401) return "NEISPRAVNO";
-    if (response.statusCode == 403) return "ZABRANJENO";
-
-    return "GRESKA";
+    return "OK";
   }
 }

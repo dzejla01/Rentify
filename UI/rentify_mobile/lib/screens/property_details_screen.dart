@@ -1,18 +1,188 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/dialogs/base_dialogs.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/property_images.dart';
+import 'package:rentify_mobile/providers/favorite_provider.dart';
 import 'package:rentify_mobile/providers/property_image_provider.dart';
+import 'package:rentify_mobile/providers/question_provider.dart';
 import 'package:rentify_mobile/providers/reservation_provider.dart';
 import 'package:rentify_mobile/screens/property_appointment_screen.dart';
 import 'package:rentify_mobile/screens/property_reservation_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
 
-class PropertyDetailsScreen extends StatelessWidget {
+class PropertyDetailsScreen extends StatefulWidget {
   const PropertyDetailsScreen({super.key, required this.property});
 
   final Property property;
+
+  @override
+  State<PropertyDetailsScreen> createState() => _PropertyDetailsScreenState();
+}
+
+class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
+  bool _favoriteLoading = false;
+  bool _isFavorite = false;
+  int? _favoriteId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFavoriteState();
+  }
+
+  Future<void> _loadFavoriteState() async {
+    final userId = Session.userId;
+    final propertyId = widget.property.id;
+
+    if (userId == null || propertyId == null) return;
+
+    try {
+      final favoriteProvider = context.read<FavoriteProvider>();
+
+      final result = await favoriteProvider.get(
+        filter: {
+          "userId": userId,
+          "propertyId": propertyId,
+          "page": 0,
+          "pageSize": 1,
+          "includeTotalCount": false,
+        },
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        if (result.items.isNotEmpty) {
+          _isFavorite = true;
+          _favoriteId = result.items.first.id;
+        } else {
+          _isFavorite = false;
+          _favoriteId = null;
+        }
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _toggleFavorite() async {
+    final userId = Session.userId;
+    final propertyId = widget.property.id;
+
+    if (userId == null || propertyId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Korisnik ili nekretnina nisu dostupni."),
+        ),
+      );
+      return;
+    }
+
+    if (_favoriteLoading) return;
+
+    setState(() => _favoriteLoading = true);
+
+    try {
+      final favoriteProvider = context.read<FavoriteProvider>();
+
+      if (_isFavorite) {
+        if (_favoriteId != null) {
+          await favoriteProvider.delete(_favoriteId);
+        } else {
+          final existing = await favoriteProvider.get(
+            filter: {
+              "userId": userId,
+              "propertyId": propertyId,
+              "page": 0,
+              "pageSize": 1,
+              "includeTotalCount": false,
+            },
+          );
+
+          if (existing.items.isNotEmpty) {
+            await favoriteProvider.delete(existing.items.first.id);
+          }
+        }
+
+        if (!mounted) return;
+        setState(() {
+          _isFavorite = false;
+          _favoriteId = null;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Nekretnina je uklonjena iz favorita."),
+          ),
+        );
+      } else {
+        final inserted = await favoriteProvider.insert({
+          "userId": userId,
+          "propertyId": propertyId,
+        });
+
+        if (!mounted) return;
+        setState(() {
+          _isFavorite = true;
+          _favoriteId = inserted.id;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Nekretnina je dodana u favorite."),
+          ),
+        );
+      }
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Greška pri radu sa favoritima."),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _favoriteLoading = false);
+      }
+    }
+  }
+
+  Future<void> _openAskQuestionDialog() async {
+    final propertyId = widget.property.id;
+    final userId = Session.userId;
+
+    if (propertyId == null || userId == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Korisnik ili nekretnina nisu dostupni."),
+        ),
+      );
+      return;
+    }
+
+    final sent = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => _AskQuestionDialog(
+        propertyId: propertyId,
+        userId: userId,
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (sent == true) {
+      await ConfirmDialogs.okConfirmation(
+        context,
+        title: "Pitanje poslano",
+        message:
+            "Vaše pitanje je uspješno poslano.\n\nOdgovor na pitanje moći ćete vidjeti u sekciji sa pitanjima kada admin odgovori na pitanje.",
+      );
+    }
+  }
 
   Future<bool> _hasActiveMonthlyRent(
     BuildContext context,
@@ -23,8 +193,6 @@ class PropertyDetailsScreen extends StatelessWidget {
 
     final reservationProvider = context.read<ReservationProvider>();
 
-    // tražimo samo mjesečne rezervacije za taj property i tog user-a
-    // i uzmemo 1 komad (brže)
     final res = await reservationProvider.get(
       filter: {
         "userId": userId,
@@ -43,6 +211,8 @@ class PropertyDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     const rentifyGreenDark = Color(0xFF5F9F3B);
 
+    final property = widget.property;
+
     final title = (property.name ?? "").trim();
     final city = (property.city ?? "").trim();
     final location = (property.location ?? "").trim();
@@ -60,21 +230,21 @@ class PropertyDetailsScreen extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // HEADER + GALERIJA
             _GalleryHeader(
               propertyId: property.id,
               accent: rentifyGreenDark,
               title: title.isEmpty ? "Nekretnina" : title,
+              isFavorite: _isFavorite,
+              favoriteLoading: _favoriteLoading,
+              onBack: () => Navigator.of(context).pop(),
+              onToggleFavorite: _toggleFavorite,
             ),
-
-            // BODY
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 90),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Title + badges
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -102,7 +272,6 @@ class PropertyDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
 
-                    // Location card
                     _InfoCard(
                       child: Column(
                         children: [
@@ -139,11 +308,10 @@ class PropertyDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    // ✅ USER MINI SCREEN
+
                     _UserMiniScreen(property: property),
                     const SizedBox(height: 12),
 
-                    // Prices
                     _InfoCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,7 +354,6 @@ class PropertyDetailsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // Tags
                     if ((property.tags ?? const <String>[]).isNotEmpty) ...[
                       const Text(
                         "Tagovi",
@@ -206,7 +373,6 @@ class PropertyDetailsScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                     ],
 
-                    // Details / description
                     _InfoCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -230,6 +396,54 @@ class PropertyDetailsScreen extends StatelessWidget {
                         ],
                       ),
                     ),
+                    const SizedBox(height: 12),
+
+                    _InfoCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "Imate pitanje o ovoj nekretnini?",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w900,
+                              color: Color(0xFF2F2F2F),
+                              fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "Ako vas zanima nešto dodatno, možete poslati pitanje. Odgovor ćete kasnije vidjeti u sekciji sa pitanjima kada admin odgovori.",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF7A7A7A),
+                              height: 1.35,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: _openAskQuestionDialog,
+                              icon: const Icon(Icons.question_answer_rounded),
+                              label: const Text("Postavi pitanje"),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: rentifyGreenDark,
+                                side: const BorderSide(
+                                  color: Color(0x225F9F3B),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 14,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -237,9 +451,6 @@ class PropertyDetailsScreen extends StatelessWidget {
           ],
         ),
       ),
-
-      // BOTTOM BAR (CTA)
-      // BOTTOM BAR (CTA)
       bottomNavigationBar: Container(
         padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
         decoration: const BoxDecoration(
@@ -254,7 +465,6 @@ class PropertyDetailsScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // 1) Rezerviši
             Expanded(
               child: SizedBox(
                 height: 48,
@@ -311,8 +521,6 @@ class PropertyDetailsScreen extends StatelessWidget {
                               message:
                                   "Rezervacija je pripremljena.\n\nPodaci:\n$payload",
                             );
-
-                            // await _reservationProvider.insert(payload);
                           }
                         },
                   style: ElevatedButton.styleFrom(
@@ -330,10 +538,7 @@ class PropertyDetailsScreen extends StatelessWidget {
                 ),
               ),
             ),
-
             const SizedBox(width: 10),
-
-            // 2) Pregled uživo
             SizedBox(
               height: 48,
               child: OutlinedButton.icon(
@@ -377,6 +582,183 @@ class PropertyDetailsScreen extends StatelessWidget {
   }
 }
 
+/* ------------------- DIALOG ZA PITANJE ------------------- */
+
+class _AskQuestionDialog extends StatefulWidget {
+  const _AskQuestionDialog({
+    required this.propertyId,
+    required this.userId,
+  });
+
+  final int propertyId;
+  final int userId;
+
+  @override
+  State<_AskQuestionDialog> createState() => _AskQuestionDialogState();
+}
+
+class _AskQuestionDialogState extends State<_AskQuestionDialog> {
+  final TextEditingController _questionController = TextEditingController();
+  bool _sending = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _questionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final content = _questionController.text.trim();
+
+    if (content.isEmpty) {
+      setState(() {
+        _error = "Unesite pitanje.";
+      });
+      return;
+    }
+
+    if (content.length < 5) {
+      setState(() {
+        _error = "Pitanje je prekratko.";
+      });
+      return;
+    }
+
+    setState(() {
+      _sending = true;
+      _error = null;
+    });
+
+    try {
+      await context.read<QuestionProvider>().insert({
+        "userId": widget.userId,
+        "propertyId": widget.propertyId,
+        "content": content,
+        "isAnswered": false,
+      });
+
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _error = "Greška pri slanju pitanja. Pokušajte ponovo.";
+        _sending = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RentifyBaseDialog(
+      title: "Postavi pitanje",
+      width: 520,
+      onClose: () => Navigator.of(context).pop(false),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            "Unesite pitanje vezano za ovu nekretninu. Odgovor ćete moći vidjeti u sekciji sa pitanjima kada admin odgovori.",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF6E6E6E),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _questionController,
+            minLines: 4,
+            maxLines: 6,
+            textInputAction: TextInputAction.newline,
+            decoration: InputDecoration(
+              hintText: "Npr. Da li su režije uključene u cijenu?",
+              filled: true,
+              fillColor: const Color(0xFFF7F7F7),
+              errorText: _error,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 14,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(
+                  color: Color(0xFF5F9F3B),
+                  width: 2,
+                ),
+              ),
+            ),
+            onChanged: (_) {
+              if (_error != null) {
+                setState(() => _error = null);
+              }
+            },
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _sending
+                      ? null
+                      : () => Navigator.of(context).pop(false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF6E6E6E),
+                    side: const BorderSide(color: Color(0xFFBDBDBD)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    "Odustani",
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _sending ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF5F9F3B),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: _sending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          "Pošalji",
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /* ------------------- GALERIJA + HEADER ------------------- */
 
 class _GalleryHeader extends StatefulWidget {
@@ -384,11 +766,19 @@ class _GalleryHeader extends StatefulWidget {
     required this.propertyId,
     required this.accent,
     required this.title,
+    required this.isFavorite,
+    required this.favoriteLoading,
+    required this.onBack,
+    required this.onToggleFavorite,
   });
 
   final int? propertyId;
   final Color accent;
   final String title;
+  final bool isFavorite;
+  final bool favoriteLoading;
+  final VoidCallback onBack;
+  final VoidCallback onToggleFavorite;
 
   @override
   State<_GalleryHeader> createState() => _GalleryHeaderState();
@@ -404,8 +794,6 @@ class _GalleryHeaderState extends State<_GalleryHeader> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _imgProvider = Provider.of<PropertyImageProvider>(context, listen: false);
-
-    // ✅ pozovi samo jednom za taj propertyId
     _imagesFuture ??= _loadImages(_imgProvider, widget.propertyId);
   }
 
@@ -413,7 +801,6 @@ class _GalleryHeaderState extends State<_GalleryHeader> {
   void didUpdateWidget(covariant _GalleryHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // ✅ ako se promijeni propertyId (npr. otvoriš drugi details), refetch
     if (oldWidget.propertyId != widget.propertyId) {
       _index = 0;
       _imagesFuture = _loadImages(_imgProvider, widget.propertyId);
@@ -427,7 +814,7 @@ class _GalleryHeaderState extends State<_GalleryHeader> {
       child: Stack(
         children: [
           FutureBuilder<List<PropertyImage>>(
-            future: _imagesFuture, // ✅ isti future, nema ponovnog fetcha
+            future: _imagesFuture,
             builder: (context, snap) {
               final loading = snap.connectionState == ConnectionState.waiting;
               final hasError = snap.hasError;
@@ -454,8 +841,7 @@ class _GalleryHeaderState extends State<_GalleryHeader> {
                 children: [
                   PageView.builder(
                     itemCount: images.length,
-                    onPageChanged: (i) =>
-                        setState(() => _index = i), // ✅ samo UI
+                    onPageChanged: (i) => setState(() => _index = i),
                     itemBuilder: (context, i) {
                       final url = images[i].propertyImg;
                       return Image.network(
@@ -489,8 +875,50 @@ class _GalleryHeaderState extends State<_GalleryHeader> {
               );
             },
           ),
-
-          // ... ostatak overlay/back/title ostaje isti
+          Positioned(
+            top: 14,
+            left: 14,
+            right: 14,
+            child: Row(
+              children: [
+                _RoundIconButton(
+                  onTap: widget.onBack,
+                  icon: Icons.arrow_back_rounded,
+                ),
+                const Spacer(),
+                _RoundIconButton(
+                  onTap: widget.favoriteLoading ? () {} : widget.onToggleFavorite,
+                  icon: widget.favoriteLoading
+                      ? Icons.more_horiz_rounded
+                      : (widget.isFavorite
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 38,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0x66000000),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                widget.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -517,27 +945,6 @@ class _GalleryHeaderState extends State<_GalleryHeader> {
   }
 }
 
-Future<List<PropertyImage>> _loadImages(
-  PropertyImageProvider provider,
-  int? propertyId,
-) async {
-  if (propertyId == null) return const <PropertyImage>[];
-
-  final res = await provider.get(
-    filter: {
-      "PropertyId": propertyId,
-      "Page": 0,
-      "PageSize": 50,
-      "IncludeTotalCount": false,
-    },
-  );
-
-  // ako želiš main sliku prvu:
-  final imgs = [...res.items];
-  imgs.sort((a, b) => (b.isMain ? 1 : 0).compareTo(a.isMain ? 1 : 0));
-  return imgs;
-}
-
 class _UserMiniScreen extends StatelessWidget {
   const _UserMiniScreen({required this.property});
 
@@ -547,7 +954,6 @@ class _UserMiniScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final u = property.user;
 
-    // ako nema user-a u property-u
     if (u == null) {
       return _InfoCard(
         child: Column(
@@ -897,7 +1303,11 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: fg),
+        style: TextStyle(
+          fontWeight: FontWeight.w900,
+          fontSize: 12,
+          color: fg,
+        ),
       ),
     );
   }

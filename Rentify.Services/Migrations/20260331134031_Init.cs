@@ -167,40 +167,30 @@ namespace Rentify.Services.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Payments",
+                name: "Favorites",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     PropertyId = table.Column<int>(type: "integer", nullable: false),
-                    Name = table.Column<string>(type: "text", nullable: false),
-                    Comment = table.Column<string>(type: "text", nullable: false),
-                    Price = table.Column<double>(type: "double precision", nullable: false),
-                    IsPayed = table.Column<bool>(type: "boolean", nullable: false),
-                    MonthNumber = table.Column<int>(type: "integer", nullable: false),
-                    YearNumber = table.Column<int>(type: "integer", nullable: false),
-                    DateToPay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    WarningDateToPay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    StripePaymentIntentId = table.Column<string>(type: "text", nullable: true),
-                    PaidAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
-                    PaymentStatus = table.Column<string>(type: "text", nullable: false)
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Payments", x => x.Id);
+                    table.PrimaryKey("PK_Favorites", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Payments_Properties_PropertyId",
+                        name: "FK_Favorites_Properties_PropertyId",
                         column: x => x.PropertyId,
                         principalTable: "Properties",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Payments_Users_UserId",
+                        name: "FK_Favorites_Users_UserId",
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -222,6 +212,35 @@ namespace Rentify.Services.Migrations
                         principalTable: "Properties",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Questions",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    PropertyId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsAnswered = table.Column<bool>(type: "boolean", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Questions", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Questions_Properties_PropertyId",
+                        column: x => x.PropertyId,
+                        principalTable: "Properties",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Questions_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -283,6 +302,86 @@ namespace Rentify.Services.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "Answers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    QuestionId = table.Column<int>(type: "integer", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: false),
+                    Content = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Answers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Answers_Questions_QuestionId",
+                        column: x => x.QuestionId,
+                        principalTable: "Questions",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Answers_Users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Payments",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ReservationId = table.Column<int>(type: "integer", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Comment = table.Column<string>(type: "text", nullable: false),
+                    Price = table.Column<double>(type: "double precision", nullable: false),
+                    IsPayed = table.Column<bool>(type: "boolean", nullable: false),
+                    MonthNumber = table.Column<int>(type: "integer", nullable: false),
+                    YearNumber = table.Column<int>(type: "integer", nullable: false),
+                    DateToPay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    WarningDateToPay = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    StripePaymentIntentId = table.Column<string>(type: "text", nullable: true),
+                    PaidAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    PaymentStatus = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Payments", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Payments_Reservations_ReservationId",
+                        column: x => x.ReservationId,
+                        principalTable: "Reservations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ReservationHistories",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ReservationId = table.Column<int>(type: "integer", nullable: false),
+                    Status = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Note = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    ChangedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ReservationHistories", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ReservationHistories_Reservations_ReservationId",
+                        column: x => x.ReservationId,
+                        principalTable: "Reservations",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.InsertData(
                 table: "Roles",
                 columns: new[] { "Id", "CreatedAt", "Description", "IsActive", "Name" },
@@ -297,16 +396,16 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "Id", "CreatedAt", "DateOfBirth", "Email", "FirstName", "IsActive", "IsLoggingFirstTime", "IsVlasnik", "LastLoginAt", "LastName", "PasswordHash", "PasswordSalt", "PhoneNumber", "PreferedTagsIfNoReservations", "UserImage", "Username" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1072), null, "owner.testni@gmail.com", "Marko", true, false, true, null, "Petrov", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "owner1" },
-                    { 2, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1082), null, "usertestni089@gmail.com", "Ivana", true, false, false, null, "Kovac", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "user1" },
-                    { 3, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1080), null, "nikola.jovic@rentify.dev", "Nikola", true, false, true, null, "Jovic", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "owner2" },
-                    { 4, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1084), null, "amar.hodzic@rentify.dev", "Amar", true, false, false, null, "Hodzic", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "user2" },
-                    { 5, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1085), null, "lejla.mehic@rentify.dev", "Lejla", true, false, false, null, "Mehic", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "user3" },
-                    { 6, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1086), null, "haris.begic@rentify.dev", "Haris", true, false, false, null, "Begic", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "user4" },
-                    { 7, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1088), null, "selma.kurtovic@rentify.dev", "Selma", true, false, false, null, "Kurtovic", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "user5" },
-                    { 8, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1089), null, "adnan.delic@rentify.dev", "Adnan", true, false, false, null, "Delic", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "user6" },
-                    { 9, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1090), null, "emina.zahiragic@rentify.dev", "Emina", true, false, false, null, "Zahiragic", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "user7" },
-                    { 10, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1092), null, "nermin.basic@rentify.dev", "Nermin", true, false, false, null, "Basic", "WFPDoKY5n7pLyw/KtofyzGgmXsLbP5IzCJF9NUSD5Q7rf/0QiUCrnxpsLGkZmDc8SluAQ4SONsMrEMreJMBFTA==", "Y/9ws9gSHsRwhjJtUe/H/VegwRqkgPnuIN/jNLgT5u4YUEuoWtUy2a12Syhi18hVa1joOllOC0IM0evdFpelPE0YH/VRNTzqr/Mm10J7U8biEUd+lSV2A0G6y275TNH/m37XxOKT5qTZjjroC7NfvIjysM7uTY27L+n3c7F+Ctg=", null, null, null, "user8" }
+                    { 1, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7896), null, "marko.petrov@rentify.dev", "Marko", true, false, true, null, "Petrov", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "owner1" },
+                    { 2, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7906), null, "usertestni089@gmail.com", "Ivana", true, false, false, null, "Kovac", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "user1" },
+                    { 3, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7904), null, "owner.testni@gmail.com", "Nikola", true, false, true, null, "Jovic", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "owner2" },
+                    { 4, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7908), null, "amar.hodzic@rentify.dev", "Amar", true, false, false, null, "Hodzic", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "user2" },
+                    { 5, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7909), null, "lejla.mehic@rentify.dev", "Lejla", true, false, false, null, "Mehic", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "user3" },
+                    { 6, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7918), null, "haris.begic@rentify.dev", "Haris", true, false, false, null, "Begic", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "user4" },
+                    { 7, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7919), null, "selma.kurtovic@rentify.dev", "Selma", true, false, false, null, "Kurtovic", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "user5" },
+                    { 8, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7921), null, "adnan.delic@rentify.dev", "Adnan", true, false, false, null, "Delic", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "user6" },
+                    { 9, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7923), null, "emina.zahiragic@rentify.dev", "Emina", true, false, false, null, "Zahiragic", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "user7" },
+                    { 10, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7924), null, "nermin.basic@rentify.dev", "Nermin", true, false, false, null, "Basic", "0UAaWu8l0tMqVZdRpSzbPIIJriW6Enu8Sphjl+KU0nx9lw3sVs6ngWIIJwPYlmuULRQPsJifK4LOdZL7rgZGXQ==", "63YducqX/EsPy1zU2kvdVv0UklrRYryCKRlnddEIaOVu/fNtYFTqghNa9BMbRL+ApjbDnbW87Ug1qxfIP0LhIQ/IF5MoWOSgl2mzXjoAwVemYb9HIc48+gZrP7veSWH0Gb1/6qtmOQtLGBGahlJPp68OEBwTImaDWrHG/mT332k=", null, null, null, "user8" }
                 });
 
             migrationBuilder.InsertData(
@@ -351,16 +450,16 @@ namespace Rentify.Services.Migrations
                 columns: new[] { "RoleId", "UserId", "DateAssigned", "Id" },
                 values: new object[,]
                 {
-                    { 2, 1, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1124), 0 },
-                    { 1, 2, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1128), 0 },
-                    { 2, 3, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1127), 0 },
-                    { 1, 4, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1128), 0 },
-                    { 1, 5, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1129), 0 },
-                    { 1, 6, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1129), 0 },
-                    { 1, 7, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1130), 0 },
-                    { 1, 8, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1130), 0 },
-                    { 1, 9, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1131), 0 },
-                    { 1, 10, new DateTime(2026, 3, 3, 18, 58, 12, 222, DateTimeKind.Utc).AddTicks(1131), 0 }
+                    { 2, 1, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7960), 0 },
+                    { 1, 2, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7963), 0 },
+                    { 2, 3, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7962), 0 },
+                    { 1, 4, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7963), 0 },
+                    { 1, 5, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7964), 0 },
+                    { 1, 6, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7964), 0 },
+                    { 1, 7, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7965), 0 },
+                    { 1, 8, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7965), 0 },
+                    { 1, 9, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7966), 0 },
+                    { 1, 10, new DateTime(2026, 3, 31, 13, 40, 30, 593, DateTimeKind.Utc).AddTicks(7966), 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -371,78 +470,6 @@ namespace Rentify.Services.Migrations
                     { 1, new DateTime(2026, 3, 8, 11, 0, 0, 0, DateTimeKind.Utc), true, 8, 5 },
                     { 2, new DateTime(2026, 3, 11, 9, 30, 0, 0, DateTimeKind.Utc), null, 10, 6 },
                     { 3, new DateTime(2026, 3, 12, 13, 0, 0, 0, DateTimeKind.Utc), true, 12, 7 }
-                });
-
-            migrationBuilder.InsertData(
-                table: "Payments",
-                columns: new[] { "Id", "Comment", "DateToPay", "IsPayed", "MonthNumber", "Name", "PaidAt", "PaymentStatus", "Price", "PropertyId", "StripePaymentIntentId", "UserId", "WarningDateToPay", "YearNumber" },
-                values: new object[,]
-                {
-                    { 1, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1550.0, 1, null, 4, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 2, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1550.0, 1, null, 4, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 3, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1550.0, 1, null, 4, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 4, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1450.0, 2, null, 5, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 5, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1450.0, 2, null, 5, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 6, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1450.0, 2, null, 5, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 7, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1800.0, 4, null, 7, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 8, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1800.0, 4, null, 7, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 9, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1800.0, 4, null, 7, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 10, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 2000.0, 10, null, 9, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 11, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 2000.0, 10, null, 9, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 12, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 2000.0, 10, null, 9, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 13, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1750.0, 12, null, 5, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 14, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1750.0, 12, null, 5, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 15, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1750.0, 12, null, 5, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 16, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1200.0, 16, null, 10, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 17, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1200.0, 16, null, 10, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 18, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1200.0, 16, null, 10, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 19, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 950.0, 18, null, 8, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 20, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 950.0, 18, null, 8, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 21, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 950.0, 18, null, 8, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 22, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1750.0, 24, null, 6, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 23, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1750.0, 24, null, 6, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 24, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1750.0, 24, null, 6, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 25, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1850.0, 28, null, 7, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 26, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1850.0, 28, null, 7, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 27, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1850.0, 28, null, 7, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 28, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1700.0, 30, null, 4, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 29, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1700.0, 30, null, 4, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 30, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1700.0, 30, null, 4, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 31, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1650.0, 3, null, 6, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 32, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1650.0, 3, null, 6, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 33, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1650.0, 3, null, 6, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 34, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1100.0, 7, null, 8, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 35, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1100.0, 7, null, 8, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 36, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1100.0, 7, null, 8, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 37, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1650.0, 9, null, 8, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 38, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1650.0, 9, null, 8, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 39, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1650.0, 9, null, 8, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 40, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1550.0, 13, null, 10, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 41, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1550.0, 13, null, 10, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 42, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1550.0, 13, null, 10, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 43, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1600.0, 15, null, 9, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 44, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1600.0, 15, null, 9, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 45, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1600.0, 15, null, 9, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 46, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1500.0, 17, null, 2, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 47, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1500.0, 17, null, 2, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 48, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1500.0, 17, null, 2, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 49, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1300.0, 19, null, 4, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 50, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1300.0, 19, null, 4, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 51, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1300.0, 19, null, 4, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 52, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1350.0, 21, null, 7, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 53, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1350.0, 21, null, 7, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 54, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1350.0, 21, null, 7, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 55, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1650.0, 23, null, 2, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 56, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1650.0, 23, null, 2, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 57, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1650.0, 23, null, 2, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 58, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", null, "Pending", 1200.0, 29, null, 10, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 59, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", null, "Pending", 1200.0, 29, null, 10, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 60, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", null, "Pending", 1200.0, 29, null, 10, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 61, "Uplata za kratki boravak.", new DateTime(2025, 12, 18, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Kratki boravak 12.2025", null, "Pending", 420.0, 8, null, 5, new DateTime(2025, 12, 22, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
-                    { 62, "Uplata za kratki boravak.", new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Kratki boravak 01.2026", null, "Pending", 380.0, 14, null, 6, new DateTime(2026, 1, 15, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 63, "Uplata za kratki boravak.", new DateTime(2026, 2, 8, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Kratki boravak 02.2026", null, "Pending", 510.0, 25, null, 9, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 64, "Čeka uplatu.", new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc), false, 3, "Mjesečna rata 03.2026 (NEPLAĆENO)", null, "Pending", 1550.0, 1, null, 4, new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
-                    { 65, "Čeka uplatu.", new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc), false, 3, "Mjesečna rata 03.2026 (NEPLAĆENO)", null, "Pending", 1650.0, 23, null, 10, new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 }
                 });
 
             migrationBuilder.InsertData(
@@ -573,6 +600,33 @@ namespace Rentify.Services.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Questions",
+                columns: new[] { "Id", "Content", "CreatedAt", "IsAnswered", "PropertyId", "UserId" },
+                values: new object[,]
+                {
+                    { 1, "Da li su režije uključene u cijenu najma?", new DateTime(2026, 3, 1, 10, 15, 0, 0, DateTimeKind.Utc), true, 1, 2 },
+                    { 2, "Da li je dozvoljeno držanje kućnih ljubimaca?", new DateTime(2026, 3, 2, 11, 20, 0, 0, DateTimeKind.Utc), true, 2, 4 },
+                    { 3, "Koliki je depozit za ovu nekretninu?", new DateTime(2026, 3, 3, 9, 45, 0, 0, DateTimeKind.Utc), false, 3, 5 },
+                    { 4, "Da li stan ima parking mjesto?", new DateTime(2026, 3, 4, 14, 10, 0, 0, DateTimeKind.Utc), true, 4, 6 },
+                    { 5, "Da li je internet uključen u cijenu?", new DateTime(2026, 3, 5, 16, 0, 0, 0, DateTimeKind.Utc), false, 5, 7 },
+                    { 6, "Može li se nekretnina iznajmiti samo na mjesec dana?", new DateTime(2026, 3, 6, 12, 30, 0, 0, DateTimeKind.Utc), true, 6, 8 },
+                    { 7, "Koji je minimalan period najma?", new DateTime(2026, 3, 7, 8, 50, 0, 0, DateTimeKind.Utc), false, 7, 9 },
+                    { 8, "Da li je grijanje centralno ili etažno?", new DateTime(2026, 3, 8, 13, 15, 0, 0, DateTimeKind.Utc), true, 8, 10 },
+                    { 9, "Postoji li mogućnost razgledanja uživo vikendom?", new DateTime(2026, 3, 9, 10, 40, 0, 0, DateTimeKind.Utc), true, 9, 2 },
+                    { 10, "Da li su dozvoljene manje adaptacije u stanu?", new DateTime(2026, 3, 10, 15, 25, 0, 0, DateTimeKind.Utc), false, 10, 4 },
+                    { 11, "Ima li zgrada lift?", new DateTime(2026, 3, 11, 9, 5, 0, 0, DateTimeKind.Utc), true, 1, 5 },
+                    { 12, "Da li je stan odmah useljiv?", new DateTime(2026, 3, 12, 17, 35, 0, 0, DateTimeKind.Utc), false, 2, 6 },
+                    { 13, "Koliko iznose prosječne mjesečne režije?", new DateTime(2026, 3, 13, 11, 55, 0, 0, DateTimeKind.Utc), true, 3, 7 },
+                    { 14, "Da li nekretnina ima balkon?", new DateTime(2026, 3, 14, 14, 45, 0, 0, DateTimeKind.Utc), false, 4, 8 },
+                    { 15, "Da li je moguće platiti depozit u dvije rate?", new DateTime(2026, 3, 15, 10, 10, 0, 0, DateTimeKind.Utc), true, 5, 9 },
+                    { 16, "Da li su studenti poželjni kao zakupci?", new DateTime(2026, 3, 16, 13, 20, 0, 0, DateTimeKind.Utc), false, 6, 10 },
+                    { 17, "Da li kuhinja dolazi sa svim aparatima?", new DateTime(2026, 3, 17, 16, 40, 0, 0, DateTimeKind.Utc), true, 7, 2 },
+                    { 18, "Može li se rezervisati termin razgledanja za sutra?", new DateTime(2026, 3, 18, 12, 5, 0, 0, DateTimeKind.Utc), false, 8, 4 },
+                    { 19, "Da li se uz stan dobija i podrumska ostava?", new DateTime(2026, 3, 19, 9, 30, 0, 0, DateTimeKind.Utc), true, 9, 5 },
+                    { 20, "Koliko je udaljena najbliža autobuska stanica?", new DateTime(2026, 3, 20, 18, 10, 0, 0, DateTimeKind.Utc), false, 10, 6 }
+                });
+
+            migrationBuilder.InsertData(
                 table: "Reservations",
                 columns: new[] { "Id", "CreatedAt", "EndDateOfRenting", "IsApproved", "IsMonthly", "PropertyId", "StartDateOfRenting", "UserId" },
                 values: new object[,]
@@ -621,6 +675,69 @@ namespace Rentify.Services.Migrations
                     { 25, "Sve ok, ali parkiranje je bilo problem.", 10, 3, 8 }
                 });
 
+            migrationBuilder.InsertData(
+                table: "Answers",
+                columns: new[] { "Id", "Content", "CreatedAt", "QuestionId", "UserId" },
+                values: new object[,]
+                {
+                    { 1, "Režije nisu uključene u cijenu i plaćaju se odvojeno svaki mjesec.", new DateTime(2026, 3, 1, 12, 0, 0, 0, DateTimeKind.Utc), 1, 1 },
+                    { 2, "Kućni ljubimci su dozvoljeni uz prethodni dogovor sa vlasnikom.", new DateTime(2026, 3, 2, 13, 10, 0, 0, DateTimeKind.Utc), 2, 1 },
+                    { 3, "Da, uz stan dolazi jedno privatno parking mjesto.", new DateTime(2026, 3, 4, 15, 0, 0, 0, DateTimeKind.Utc), 4, 1 },
+                    { 4, "Moguće je iznajmiti nekretninu i na period od jednog mjeseca.", new DateTime(2026, 3, 6, 14, 20, 0, 0, DateTimeKind.Utc), 6, 1 },
+                    { 5, "Grijanje je centralno i uključeno je u redovne mjesečne troškove.", new DateTime(2026, 3, 8, 15, 45, 0, 0, DateTimeKind.Utc), 8, 1 },
+                    { 6, "Da, moguće je zakazati razgledanje i vikendom uz prethodnu rezervaciju termina.", new DateTime(2026, 3, 9, 12, 0, 0, 0, DateTimeKind.Utc), 9, 1 },
+                    { 7, "Da, zgrada posjeduje lift koji je redovno održavan.", new DateTime(2026, 3, 11, 11, 30, 0, 0, DateTimeKind.Utc), 11, 1 },
+                    { 8, "Prosječne mjesečne režije iznose između 120 KM i 180 KM, zavisno od sezone.", new DateTime(2026, 3, 13, 13, 40, 0, 0, DateTimeKind.Utc), 13, 1 },
+                    { 9, "Da, moguće je depozit platiti u dvije rate prema dogovoru.", new DateTime(2026, 3, 15, 12, 25, 0, 0, DateTimeKind.Utc), 15, 1 },
+                    { 10, "Da, kuhinja dolazi sa frižiderom, šporetom i mašinom za suđe.", new DateTime(2026, 3, 17, 18, 10, 0, 0, DateTimeKind.Utc), 17, 1 },
+                    { 11, "Da, uz stan se dobija i podrumska ostava koja je uključena u cijenu.", new DateTime(2026, 3, 19, 11, 0, 0, 0, DateTimeKind.Utc), 19, 1 }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Payments",
+                columns: new[] { "Id", "Comment", "DateToPay", "IsPayed", "MonthNumber", "Name", "PaidAt", "PaymentStatus", "Price", "ReservationId", "StripePaymentIntentId", "WarningDateToPay", "YearNumber" },
+                values: new object[,]
+                {
+                    { 1, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1550.0, 1, null, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 2, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1550.0, 1, null, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 3, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1550.0, 1, null, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 4, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1450.0, 2, null, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 5, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1450.0, 2, null, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 6, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1450.0, 2, null, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 7, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1650.0, 3, null, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 8, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1650.0, 3, null, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 9, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1650.0, 3, null, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 10, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1800.0, 4, null, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 11, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1800.0, 4, null, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 12, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1800.0, 4, null, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 13, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1650.0, 5, null, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 14, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1650.0, 5, null, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 15, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1650.0, 5, null, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 16, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 2000.0, 6, null, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 17, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 2000.0, 6, null, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 18, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 2000.0, 6, null, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 19, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1200.0, 7, null, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 20, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1200.0, 7, null, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 21, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1200.0, 7, null, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 22, "Uplata evidentirana.", new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 12, "Mjesečna rata 12.2025", new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1650.0, 8, null, new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2025 },
+                    { 23, "Uplata evidentirana.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Mjesečna rata 01.2026", new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1650.0, 8, null, new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 24, "Uplata evidentirana.", new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Mjesečna rata 02.2026", new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 1650.0, 8, null, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 25, "Uplata za kratki boravak.", new DateTime(2026, 2, 10, 0, 0, 0, 0, DateTimeKind.Utc), true, 2, "Kratki boravak 02.2026", new DateTime(2026, 2, 9, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 420.0, 9, null, new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 26, "Uplata za kratki boravak.", new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc), true, 1, "Kratki boravak 01.2026", new DateTime(2026, 1, 4, 0, 0, 0, 0, DateTimeKind.Utc), "Paid", 380.0, 10, null, new DateTime(2026, 1, 8, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 27, "Čeka uplatu.", new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc), false, 3, "Mjesečna rata 03.2026 (NEPLAĆENO)", null, "Pending", 1550.0, 1, null, new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 },
+                    { 28, "Čeka uplatu.", new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc), false, 3, "Mjesečna rata 03.2026 (NEPLAĆENO)", null, "Pending", 2000.0, 6, null, new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc), 2026 }
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Answers_QuestionId",
+                table: "Answers",
+                column: "QuestionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Answers_UserId",
+                table: "Answers",
+                column: "UserId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_Appointments_PropertyId",
                 table: "Appointments",
@@ -632,14 +749,20 @@ namespace Rentify.Services.Migrations
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payments_PropertyId",
-                table: "Payments",
+                name: "IX_Favorites_PropertyId",
+                table: "Favorites",
                 column: "PropertyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payments_UserId",
+                name: "IX_Favorites_UserId_PropertyId",
+                table: "Favorites",
+                columns: new[] { "UserId", "PropertyId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Payments_ReservationId",
                 table: "Payments",
-                column: "UserId");
+                column: "ReservationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Properties_UserId",
@@ -650,6 +773,21 @@ namespace Rentify.Services.Migrations
                 name: "IX_PropertiesImage_PropertyId",
                 table: "PropertiesImage",
                 column: "PropertyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Questions_PropertyId",
+                table: "Questions",
+                column: "PropertyId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Questions_UserId",
+                table: "Questions",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ReservationHistories_ReservationId",
+                table: "ReservationHistories",
+                column: "ReservationId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Reservations_PropertyId",
@@ -692,7 +830,13 @@ namespace Rentify.Services.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Answers");
+
+            migrationBuilder.DropTable(
                 name: "Appointments");
+
+            migrationBuilder.DropTable(
+                name: "Favorites");
 
             migrationBuilder.DropTable(
                 name: "Payments");
@@ -701,7 +845,7 @@ namespace Rentify.Services.Migrations
                 name: "PropertiesImage");
 
             migrationBuilder.DropTable(
-                name: "Reservations");
+                name: "ReservationHistories");
 
             migrationBuilder.DropTable(
                 name: "Reviews");
@@ -713,10 +857,16 @@ namespace Rentify.Services.Migrations
                 name: "UserRoles");
 
             migrationBuilder.DropTable(
-                name: "Properties");
+                name: "Questions");
+
+            migrationBuilder.DropTable(
+                name: "Reservations");
 
             migrationBuilder.DropTable(
                 name: "Roles");
+
+            migrationBuilder.DropTable(
+                name: "Properties");
 
             migrationBuilder.DropTable(
                 name: "Users");

@@ -1,8 +1,9 @@
+using Rentify.Services.Interfaces;
 using Stripe;
 
 namespace Rentify.WebAPI.Services
 {
-    public class StripeService
+    public class StripeService : IStripeService
     {
         public async Task<PaymentIntent> CreatePaymentIntentAsync(
             double amount,
@@ -11,7 +12,7 @@ namespace Rentify.WebAPI.Services
         {
             var options = new PaymentIntentCreateOptions
             {
-                Amount = (long)(amount * 100), // 2 decimal currency
+                Amount = (long)(amount * 100),
                 Currency = currency,
                 AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions
                 {

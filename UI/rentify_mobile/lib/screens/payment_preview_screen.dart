@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_mobile/helper/stripe_payment_helper.dart';
+import 'package:rentify_mobile/providers/auth_provider.dart';
+import 'package:rentify_mobile/providers/device_token_provider.dart';
+import 'package:rentify_mobile/routes/app_routes.dart';
 
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
@@ -55,40 +58,69 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
     });
 
     try {
-      final stripeSuccess = await StripePaymentHelper.pay(
+      final stripeSuccess = await StripePaymentHelper.payPayment(
         context,
         paymentId: p.id,
+        userId: Session.userId!,
+        propertyId: p.reservation!.propertyId,
+        isMonthly: widget.isMonthly,
+        monthNumber: widget.isMonthly ? p.monthNumber : 0,
+        yearNumber: widget.isMonthly ? p.yearNumber : 0,
       );
 
       if (!stripeSuccess) {
+        if (!mounted) return;
         setState(() => _loading = false);
         return;
       }
 
-      final req = <String, dynamic>{
-        "userId": p.userId,
-        "propertyId": p.propertyId,
-        "price": p.price,
-        "name": p.name,
-        "comment": p.comment,
-        "isPayed": true,
-        "monthNumber": widget.isMonthly ? p.monthNumber : 0,
-        "yearNumber": widget.isMonthly ? p.yearNumber : 0,
-        "dateToPay": p.dateToPay?.toIso8601String(),
-        "warningDateToPay": p.warningDateToPay?.toIso8601String(),
-      };
+      await Future.delayed(const Duration(seconds: 4));
 
-      await _paymentProvider.update(p.id, req);
+      final refreshed = await _paymentProvider.getById(p.id);
 
       if (!mounted) return;
 
       setState(() => _loading = false);
 
-      await ConfirmDialogs.okConfirmation(
+      final status = (refreshed.paymentStatus ?? "").trim().toLowerCase();
+
+      if (status == "paid") {
+        await ConfirmDialogs.paymentSuccessDialog(
+          context,
+          message: "Plaćanje je uspješno evidentirano.",
+        );
+
+        if (!mounted) return;
+        Navigator.pop(context, true);
+        return;
+      }
+
+      if (status == "failed") {
+        await ConfirmDialogs.paymentFailedDialog(
+          context,
+          message: "Plaćanje nije uspješno završeno.",
+        );
+
+        if (!mounted) return;
+        Navigator.pop(context, true);
+        return;
+      }
+
+      if (status == "canceled") {
+        await ConfirmDialogs.paymentFailedDialog(
+          context,
+          message: "Plaćanje je otkazano.",
+        );
+
+        if (!mounted) return;
+        Navigator.pop(context, true);
+        return;
+      }
+
+      await ConfirmDialogs.paymentErrorDialog(
         context,
-        title: "Uspješno",
-        message: "Plaćanje je uspješno izvršeno.",
-        okText: "U redu",
+        message:
+            "Status plaćanja još nije potvrđen ili je došlo do greške na serveru. Provjerite ponovo za nekoliko sekundi.",
       );
 
       if (!mounted) return;
@@ -100,6 +132,12 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
         _loading = false;
         _error = e.toString();
       });
+
+      await ConfirmDialogs.paymentErrorDialog(
+        context,
+        message:
+            "Došlo je do greške pri provjeri statusa plaćanja. Pokušajte ponovo kasnije.",
+      );
     }
   }
 
@@ -115,9 +153,27 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
 
     return BaseMobileScreen(
       title: "Zahtjev za uplatu",
-      NameAndSurname: (Session.username ?? "").trim(),
+      NameAndSurname: Session.fullName!,
       userUsername: Session.username ?? "Nepoznato",
-      onLogout: () {},
+      userImageAsset: Session.userImage,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.pop(context),
+      ),
+      onLogout: () async {
+        await Session.odjava(
+          deviceTokenProvider: context.read<DeviceTokenProvider>(),
+          authProvider: context.read<AuthProvider>(),
+        );
+
+        if (!context.mounted) return;
+
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.login,
+          (route) => false,
+        );
+      },
       child: Container(
         color: const Color(0xFFF6F7FB),
         child: _loading

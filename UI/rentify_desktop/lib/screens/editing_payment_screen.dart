@@ -246,8 +246,9 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
 
     try {
       final req = <String, dynamic>{
-        "userId": widget.payment.userId,
-        "propertyId": widget.payment.propertyId,
+        // "userId": widget.payment.userId,
+        // "propertyId": widget.payment.propertyId,
+        "reservationId": widget.payment.reservation!.id,
         "price": widget.isMonthly
             ? (widget.payment.price)
             : (double.tryParse(_fields.text("amount").replaceAll(",", ".")) ??

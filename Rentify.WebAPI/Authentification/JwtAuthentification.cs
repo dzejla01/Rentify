@@ -11,14 +11,15 @@ namespace Rentify.WebAPI.Authentication
     {
         public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration)
         {
-            var jwtKey = configuration["Jwt:Key"];
-            var jwtIssuer = configuration["Jwt:Issuer"];
+            var jwtKey = configuration["JWT_SECRET"];
+            var jwtIssuer = configuration["JWT_ISSUER"];
+            var jwtAudience = configuration["JWT_AUDIENCE"];
 
             if (string.IsNullOrWhiteSpace(jwtKey))
-                throw new InvalidOperationException("Jwt:Key is not configured.");
+                throw new InvalidOperationException("JWT_SECRET nije postavljen.");
 
             if (string.IsNullOrWhiteSpace(jwtIssuer))
-                throw new InvalidOperationException("Jwt:Issuer is not configured.");
+                throw new InvalidOperationException("JWT_ISSUER nije postavljen.");
 
             services.AddAuthentication(options =>
             {
@@ -35,11 +36,13 @@ namespace Rentify.WebAPI.Authentication
                     ValidateIssuerSigningKey = true,
 
                     ValidIssuer = jwtIssuer,
-                    ValidAudience = jwtIssuer, 
+                    ValidAudience = jwtAudience,
 
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtKey)
-                    )
+                    ),
+
+                    ClockSkew = TimeSpan.Zero
                 };
             });
 

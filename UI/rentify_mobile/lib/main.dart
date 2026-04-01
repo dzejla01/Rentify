@@ -1,15 +1,19 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:rentify_mobile/providers/answer_provider.dart';
 import 'package:rentify_mobile/providers/appoitment_provider.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
+import 'package:rentify_mobile/providers/favorite_provider.dart';
 import 'package:rentify_mobile/providers/payment_provider.dart';
 import 'package:rentify_mobile/providers/property_image_provider.dart';
 import 'package:rentify_mobile/providers/property_provider.dart';
+import 'package:rentify_mobile/providers/question_provider.dart';
 import 'package:rentify_mobile/providers/reservation_provider.dart';
 import 'package:rentify_mobile/providers/review_provider.dart';
 import 'package:rentify_mobile/providers/user_provider.dart';
@@ -45,7 +49,9 @@ Future<void> _setupFirebaseMessagingHandlers() async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  Stripe.publishableKey = "pk_test_51T60TkCCmkU2IHDTQPvhA3RXU3tom6LLk1qksc8vFbV2fXDOHRHh3NI1o3poP8ruSCpeZuCKsca3XVPVgJoB6Tfd00RUDpuhgH";
+  await dotenv.load(fileName: ".env");
+
+  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY']!;
 
   await Stripe.instance.applySettings();
 
@@ -71,6 +77,9 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => ReviewProvider()),
         ChangeNotifierProvider(create: (_) => DeviceTokenProvider()),
         ChangeNotifierProvider(create: (_) => AppoitmentProvider()),
+        ChangeNotifierProvider(create: (_) => FavoriteProvider()),
+        ChangeNotifierProvider(create: (_) => QuestionProvider()),
+        ChangeNotifierProvider(create: (_) => AnswerProvider()),
       ],
       child: const RentifyApp(),
     ),

@@ -37,4 +37,11 @@ class DateHelper {
     final safeDay = day > lastDay ? lastDay : day;
     return DateTime(year, month, safeDay);
   }
+
+  static String toDateOnly(DateTime d) {
+    final x = DateTime(d.year, d.month, d.day);
+    return "${x.year.toString().padLeft(4, '0')}-"
+        "${x.month.toString().padLeft(2, '0')}-"
+        "${x.day.toString().padLeft(2, '0')}";
+  }
 }

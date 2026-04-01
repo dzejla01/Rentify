@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/providers/appointment_provider.dart';
 import 'package:rentify_desktop/providers/auth_provider.dart';
-import 'package:rentify_desktop/providers/image_provider.dart';
 import 'package:rentify_desktop/providers/payment_provider.dart';
 import 'package:rentify_desktop/providers/property_image_provider.dart';
 import 'package:rentify_desktop/providers/property_provider.dart';
@@ -12,8 +12,10 @@ import 'package:rentify_desktop/providers/user_provider.dart';
 import 'package:rentify_desktop/routes/app_routes.dart';
 import 'screens/login_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: ".env");
 
   runApp(
     MultiProvider(

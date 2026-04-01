@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:rentify_mobile/config/api_config.dart';
+import 'package:rentify_mobile/helper/http_helper.dart';
 import 'package:rentify_mobile/models/payment.dart';
-
-import '../utils/session.dart';
 import 'package:http/http.dart' as http;
 
 import 'base_provider.dart';
@@ -15,23 +14,19 @@ class PaymentProvider extends BaseProvider<Payment> {
     return Payment.fromJson(data);
   }
 
-  Future<String> createStripeIntent(int paymentId) async {
-  final url = "${ApiConfig.apiBase}/api/payment/$paymentId/create-intent";
+  Future<String> createNewIntent(Map<String, dynamic> request) async {
+  final url = "${ApiConfig.apiBase}/api/payment/create-new-intent";
 
-  final res = await http.post(
+  final response = await http.post(
     Uri.parse(url),
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer ${Session.token}",
-    },
+    headers: HttpHelper.getHeaders(),
+    body: jsonEncode(request)
   );
 
-  if (res.statusCode < 200 || res.statusCode > 299) {
-    throw Exception("API Error: ${res.statusCode} → ${res.body}");
-  }
+  HttpHelper.checkResponse(response);
 
-  final Map<String, dynamic> data = jsonDecode(res.body);
+  final data = jsonDecode(response.body);
 
-  return data["clientSecret"] as String;  
+  return data["clientSecret"] as String;
 }
 }

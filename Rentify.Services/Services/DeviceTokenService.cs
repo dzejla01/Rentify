@@ -18,7 +18,7 @@ namespace Rentify.Services.Services
         {
             var token = request.Token?.Trim();
             if (string.IsNullOrWhiteSpace(token))
-                throw new ArgumentException("Token is required.");
+                throw new ArgumentException("Token je obavezan");
 
             var existing = await _context.UserDeviceTokens
                 .FirstOrDefaultAsync(x => x.Token == token);
@@ -49,7 +49,7 @@ namespace Rentify.Services.Services
         {
             var token = request.Token?.Trim();
             if (string.IsNullOrWhiteSpace(token))
-                throw new ArgumentException("Token is required.");
+                throw new ArgumentException("Token je obavezan");
 
             var existing = await _context.UserDeviceTokens
                 .FirstOrDefaultAsync(x => x.UserId == userId && x.Token == token && x.IsActive);

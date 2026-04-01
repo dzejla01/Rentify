@@ -5,15 +5,15 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_mobile/helper/date_helper.dart';
-import 'package:rentify_mobile/routes/app_routes.dart';
+import 'package:rentify_mobile/helper/text_editing_controller_helper.dart';
 import 'package:rentify_mobile/providers/user_provider.dart';
-import 'package:rentify_mobile/helper/text_editing_controller_helper.dart'; 
-import 'package:rentify_mobile/validation/validation_model/validation_field_rule.dart'; 
-import 'package:rentify_mobile/validation/validation_model/validation_rules.dart'; 
-import 'package:rentify_mobile/validation/validation_use/universal_error_removal.dart'; 
-import 'package:rentify_mobile/validation/validation_use/universal_validator.dart'; 
+import 'package:rentify_mobile/routes/app_routes.dart';
+import 'package:rentify_mobile/validation/validation_model/validation_field_rule.dart';
+import 'package:rentify_mobile/validation/validation_model/validation_rules.dart';
+import 'package:rentify_mobile/validation/validation_use/universal_error_removal.dart';
+import 'package:rentify_mobile/validation/validation_use/universal_validator.dart';
 
-// upload slike (ako ti je drugačije, preimenuj)
+// upload slike
 import 'package:rentify_mobile/providers/image_provider.dart' as img_app;
 
 class RegisterScreen extends StatefulWidget {
@@ -28,17 +28,13 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  late UserProvider _userProvider;
+  late final UserProvider _userProvider;
+  late final Fields fields;
 
-  late Fields fields;
-
-  // errors po polju
   final Map<String, String?> fieldErrors = {};
 
-  // UI state
   DateTime? _dob;
   File? _pickedImage;
-
   bool _submitting = false;
 
   @override
@@ -57,49 +53,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'confirmPassword',
     ]);
 
-    // auto-remove error na unos
-    ErrorAutoRemoval.removeErrorOnTextField(
-      field: 'firstName',
-      fieldErrors: fieldErrors,
-      controller: fields.controller('firstName'),
-      setState: () => setState(() {}),
-    );
-    ErrorAutoRemoval.removeErrorOnTextField(
-      field: 'lastName',
-      fieldErrors: fieldErrors,
-      controller: fields.controller('lastName'),
-      setState: () => setState(() {}),
-    );
-    ErrorAutoRemoval.removeErrorOnTextField(
-      field: 'username',
-      fieldErrors: fieldErrors,
-      controller: fields.controller('username'),
-      setState: () => setState(() {}),
-    );
-    ErrorAutoRemoval.removeErrorOnTextField(
-      field: 'email',
-      fieldErrors: fieldErrors,
-      controller: fields.controller('email'),
-      setState: () => setState(() {}),
-    );
-    ErrorAutoRemoval.removeErrorOnTextField(
-      field: 'phoneNumber',
-      fieldErrors: fieldErrors,
-      controller: fields.controller('phoneNumber'),
-      setState: () => setState(() {}),
-    );
-    ErrorAutoRemoval.removeErrorOnTextField(
-      field: 'password',
-      fieldErrors: fieldErrors,
-      controller: fields.controller('password'),
-      setState: () => setState(() {}),
-    );
-    ErrorAutoRemoval.removeErrorOnTextField(
-      field: 'confirmPassword',
-      fieldErrors: fieldErrors,
-      controller: fields.controller('confirmPassword'),
-      setState: () => setState(() {}),
-    );
+    _bindErrorAutoRemoval();
+  }
+
+  void _bindErrorAutoRemoval() {
+    for (final field in [
+      'firstName',
+      'lastName',
+      'username',
+      'email',
+      'phoneNumber',
+      'password',
+      'confirmPassword',
+    ]) {
+      ErrorAutoRemoval.removeErrorOnTextField(
+        field: field,
+        fieldErrors: fieldErrors,
+        controller: fields.controller(field),
+        setState: () {
+          if (mounted) setState(() {});
+        },
+      );
+    }
   }
 
   @override
@@ -238,9 +213,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             errorText: fieldErrors['birthDate'],
                           ),
 
-                          const SizedBox(height: 12),
-                          _infoNote(),
-
                           const SizedBox(height: 10),
                           _backToLogin(),
                         ],
@@ -250,7 +222,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
 
-              // Sticky button
               Positioned(
                 left: 0,
                 right: 0,
@@ -306,10 +277,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-
-  // --------------------
-  // UI HELPERS
-  // --------------------
 
   Widget _header() {
     return Column(
@@ -446,7 +413,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
               color: const Color(0xFFF7F7F7),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: (errorText != null) ? const Color(0xFFE53935) : const Color(0xFFE9E9E9),
+                color: (errorText != null)
+                    ? const Color(0xFFE53935)
+                    : const Color(0xFFE9E9E9),
               ),
             ),
             child: Row(
@@ -493,34 +462,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ],
       ],
-    );
-  }
-
-  Widget _infoNote() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF7F7F7),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE9E9E9)),
-      ),
-      child: const Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.info_outline, size: 18, color: Color(0xFF7A7A7A)),
-          SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              "Registracijom preko aplikacije: IsActive = true i IsVlasnik = true.",
-              style: TextStyle(
-                color: Color(0xFF6E6E6E),
-                fontWeight: FontWeight.w600,
-                height: 1.35,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -571,7 +512,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(
-            color: (errorText != null) ? const Color(0xFFE53935) : const Color(0xFFE9E9E9),
+            color: (errorText != null)
+                ? const Color(0xFFE53935)
+                : const Color(0xFFE9E9E9),
           ),
         ),
         focusedBorder: OutlineInputBorder(
@@ -581,10 +524,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
     );
   }
-
-  // --------------------
-  // ACTIONS
-  // --------------------
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
@@ -613,10 +552,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     setState(() {
       _dob = picked;
-      // ukloni error za birthDate ako postoji
-      if (fieldErrors['birthDate'] != null) {
-        fieldErrors.remove('birthDate');
-      }
+      fieldErrors.remove('birthDate');
     });
   }
 
@@ -643,33 +579,49 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _removeImage() => setState(() => _pickedImage = null);
 
   Future<void> _submit() async {
-    // očisti stare greške
     setState(() => fieldErrors.clear());
 
-    // složi pravila (koristimo tvoja Rules + par custom FieldRule)
     final rules = <FieldRule>[
-      Rules.requiredText('firstName', fields.text('firstName'), 'Ime je obavezno.'),
-      Rules.requiredText('lastName', fields.text('lastName'), 'Prezime je obavezno.'),
-      Rules.requiredText('username', fields.text('username'), 'Username je obavezan.'),
-      Rules.minLength('username', fields.text('username'), 3, 'Username mora imati bar 3 karaktera.'),
+      Rules.requiredText(
+        'firstName',
+        fields.text('firstName'),
+        'Ime je obavezno.',
+      ),
+      Rules.minLength(
+        'firstName',
+        fields.text('firstName'),
+        2,
+        'Ime mora imati najmanje 2 karaktera.',
+      ),
 
-      Rules.requiredText('email', fields.text('email'), 'Email je obavezan.'),
-      FieldRule('email', () {
-        final s = fields.text('email').trim();
-        final ok = RegExp(r"^[^\s@]+@[^\s@]+\.[^\s@]+$").hasMatch(s);
-        return ok ? null : 'Email nije ispravan.';
-      }),
+      Rules.requiredText(
+        'lastName',
+        fields.text('lastName'),
+        'Prezime je obavezno.',
+      ),
+      Rules.minLength(
+        'lastName',
+        fields.text('lastName'),
+        2,
+        'Prezime mora imati najmanje 2 karaktera.',
+      ),
 
-      Rules.requiredText('phoneNumber', fields.text('phoneNumber'), 'Telefon je obavezan.'),
-      FieldRule('phoneNumber', () {
-        final s = fields.text('phoneNumber').trim();
-        return s.length >= 6 ? null : 'Telefon nije ispravan.';
-      }),
+      Rules.username('username', fields.text('username')),
+      Rules.email('email', fields.text('email')),
+      Rules.phone('phoneNumber', fields.text('phoneNumber'), required: true),
 
-      Rules.requiredText('password', fields.text('password'), 'Lozinka je obavezna.'),
-      Rules.minLength('password', fields.text('password'), 6, 'Lozinka mora imati bar 6 karaktera.'),
+      Rules.requiredText(
+        'password',
+        fields.text('password'),
+        'Lozinka je obavezna.',
+      ),
+      Rules.strongPassword('password', fields.text('password')),
 
-      Rules.requiredText('confirmPassword', fields.text('confirmPassword'), 'Potvrda lozinke je obavezna.'),
+      Rules.requiredText(
+        'confirmPassword',
+        fields.text('confirmPassword'),
+        'Potvrda lozinke je obavezna.',
+      ),
       FieldRule('confirmPassword', () {
         return fields.text('confirmPassword') == fields.text('password')
             ? null
@@ -714,7 +666,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'isActive': true,
         'isVlasnik': false,
         'IsLoggingFirstTime': true,
-
         if (uploadedImageName != null) 'userImage': uploadedImageName,
       };
 

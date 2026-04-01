@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/providers/auth_provider.dart';
+import 'package:rentify_mobile/providers/device_token_provider.dart';
+import 'package:rentify_mobile/routes/app_routes.dart';
 
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
@@ -85,9 +88,27 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   Widget build(BuildContext context) {
     return BaseMobileScreen(
       title: "Najamnina",
-      NameAndSurname: (Session.username ?? "").trim(),
+      NameAndSurname: Session.fullName!,
       userUsername: Session.username ?? "Nepoznato",
-      onLogout: () {},
+      userImageAsset: Session.userImage,
+      leading: IconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () => Navigator.pop(context),
+      ),
+      onLogout: () async {
+  await Session.odjava(
+    deviceTokenProvider: context.read<DeviceTokenProvider>(),
+    authProvider: context.read<AuthProvider>(),
+  );
+
+  if (!context.mounted) return;
+
+  Navigator.pushNamedAndRemoveUntil(
+    context,
+    AppRoutes.login,
+    (route) => false,
+  );
+},
       child: Container(
         color: const Color(0xFFF6F7FB),
         child: Column(

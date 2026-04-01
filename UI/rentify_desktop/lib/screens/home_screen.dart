@@ -756,6 +756,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pushNamed(context, AppRoutes.appointment);
               },
             ),
+            _dashboardCard(
+              icon: Icons.question_answer_rounded,
+              title: 'Pitanja',
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.question);
+              },
+            ),
           ],
         ),
       ),

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/helper/date_helper.dart';
-import 'package:rentify_desktop/helper/text_editing_controller_helper.dart';
 import 'package:rentify_desktop/models/payment.dart';
 import 'package:rentify_desktop/models/property.dart';
+import 'package:rentify_desktop/models/reservation.dart';
 import 'package:rentify_desktop/models/search_result.dart';
 import 'package:rentify_desktop/models/user.dart';
 import 'package:rentify_desktop/providers/payment_provider.dart';
@@ -16,11 +16,13 @@ import 'package:rentify_desktop/helper/univerzal_pagging_helper.dart';
 class PaymentListScreen extends StatefulWidget {
   final User user;
   final Property property;
+  final Reservation reservation;
 
   const PaymentListScreen({
     super.key,
     required this.user,
     required this.property,
+    required this.reservation,
   });
 
   @override
@@ -237,6 +239,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                                 MaterialPageRoute(
                                   builder: (_) => PaymentAddingScreen(
                                     user: widget.user,
+                                    reservation: widget.reservation,
                                     property: widget.property,
                                     billMonth: next.$1,
                                     billYear: next.$2,
@@ -425,3 +428,4 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     );
   }
 }
+

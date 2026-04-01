@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -7,10 +6,16 @@ import 'package:rentify_mobile/helper/date_helper.dart';
 import 'package:rentify_mobile/helper/image_helper.dart';
 import 'package:rentify_mobile/helper/text_editing_controller_helper.dart';
 import 'package:rentify_mobile/models/user.dart';
+import 'package:rentify_mobile/providers/auth_provider.dart';
+import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/providers/image_provider.dart';
 import 'package:rentify_mobile/providers/user_provider.dart';
+import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
+import 'package:rentify_mobile/validation/validation_model/validation_rules.dart';
+import 'package:rentify_mobile/validation/validation_use/universal_error_removal.dart';
+import 'package:rentify_mobile/validation/validation_use/universal_validator.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -23,8 +28,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const Color rentifyGreenDark = Color(0xFF5F9F3B);
 
   late final UserProvider _userProvider;
-
-  final _formKey = GlobalKey<FormState>();
   late final Fields fields;
 
   User? _user;
@@ -34,8 +37,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   File? _pickedImage;
   bool _isImageChanged = false;
 
-  // snapshot inicijalnih vrijednosti (za hasChanges)
   Map<String, String> _initial = {};
+  final Map<String, String?> _fieldErrors = {};
 
   @override
   void initState() {
@@ -51,7 +54,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       'birthDate',
     ]);
 
+    _bindValidationAutoRemoval();
     _loadUser();
+  }
+
+  void _bindValidationAutoRemoval() {
+    for (final field in [
+      'firstName',
+      'lastName',
+      'email',
+      'username',
+      'phoneNumber',
+      'birthDate',
+    ]) {
+      ErrorAutoRemoval.removeErrorOnTextField(
+        field: field,
+        fieldErrors: _fieldErrors,
+        controller: fields.controller(field),
+        setState: () {
+          if (mounted) setState(() {});
+        },
+      );
+    }
   }
 
   @override
@@ -72,7 +96,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       final u = await _userProvider.getById(userId);
 
-      // popuni polja
       fields.setText('firstName', u.firstName);
       fields.setText('lastName', u.lastName);
       fields.setText('email', u.email);
@@ -88,8 +111,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _user = u;
       _pickedImage = null;
       _isImageChanged = false;
-
-      // snapshot za provjeru promjena
+      _fieldErrors.clear();
       _initial = Map<String, String>.from(fields.values());
 
       if (!mounted) return;
@@ -113,6 +135,52 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return false;
   }
 
+  bool _validateForm() {
+    _fieldErrors.clear();
+
+    final isValid = ValidationEngine.validate([
+      Rules.requiredText(
+        'firstName',
+        fields.text('firstName'),
+        'Ime je obavezno.',
+      ),
+      Rules.minLength(
+        'firstName',
+        fields.text('firstName'),
+        2,
+        'Ime mora imati najmanje 2 karaktera.',
+      ),
+      Rules.requiredText(
+        'lastName',
+        fields.text('lastName'),
+        'Prezime je obavezno.',
+      ),
+      Rules.minLength(
+        'lastName',
+        fields.text('lastName'),
+        2,
+        'Prezime mora imati najmanje 2 karaktera.',
+      ),
+      Rules.email('email', fields.text('email')),
+      Rules.username('username', fields.text('username')),
+      Rules.phone(
+        'phoneNumber',
+        fields.text('phoneNumber'),
+        required: true,
+      ),
+      Rules.requiredText(
+        'birthDate',
+        fields.text('birthDate'),
+        'Datum rođenja je obavezan.',
+      ),
+    ], (field, message) {
+      _fieldErrors[field] = message;
+    });
+
+    setState(() {});
+    return isValid;
+  }
+
   Future<void> _pickImage() async {
     final picker = ImagePicker();
     final x = await picker.pickImage(
@@ -128,14 +196,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _save() async {
-    final ok = _formKey.currentState?.validate() ?? false;
+    final ok = _validateForm();
     if (!ok) return;
 
     final userId = Session.userId;
     if (userId == null) return;
 
     try {
-      // stara slika (da je možemo obrisati nakon uspješnog save-a)
       final oldImg = _user?.userImage;
       String? finalImage = oldImg;
 
@@ -143,7 +210,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         finalImage = null;
       }
 
-      // ✅ upload nove slike (ako je odabrana)
       if (_pickedImage != null) {
         final uploadedFileName = await ImageAppProvider.upload(
           file: _pickedImage!,
@@ -152,23 +218,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
         finalImage = uploadedFileName;
       }
 
+      final firstName = fields.text("firstName");
+      final lastName = fields.text("lastName");
+      final username = fields.text("username");
+
       await _userProvider.update(userId, {
-        'firstName': fields.text("firstName"),
-        'lastName': fields.text("lastName"),
+        'firstName': firstName,
+        'lastName': lastName,
         'email': fields.text("email"),
-        'username': fields.text("username"),
+        'username': username,
         'phoneNumber': fields.text("phoneNumber"),
         'dateOfBirth': DateHelper.toIsoFromUi(fields.text("birthDate")),
         'userImage': finalImage,
-
-        // ako API traži ova polja (kao na desktopu)
         'isActive': _user?.isActive ?? true,
+        'IsLoggingFirstTime': false,
         'isVlasnik': _user?.isVlasnik ?? false,
         'createdAt': _user?.createdAt.toIso8601String(),
         'lastLoginAt': _user?.lastLoginAt?.toIso8601String(),
       });
 
-      // ✅ obriši staru sliku (samo ako smo uploadali novu)
       if (_pickedImage != null &&
           oldImg != null &&
           oldImg.trim().isNotEmpty &&
@@ -176,13 +244,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         await ImageAppProvider.delete(folder: "users", fileName: oldImg);
       }
 
+      Session.fullName = "$firstName $lastName".trim();
+      Session.username = username;
+      Session.userImage = finalImage;
+
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Profil je uspješno sačuvan.")),
       );
 
-      await _loadUser(); // refresh + reset initial values
+      await _loadUser();
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(
@@ -195,84 +267,93 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return BaseMobileScreen(
       title: "Profil",
-      NameAndSurname: "${_user?.firstName ?? ""} ${_user?.lastName ?? ""}"
-          .trim(),
+      NameAndSurname: Session.fullName ?? "Nepoznato",
       userUsername: Session.username ?? "Nepoznato",
-      onLogout: () {
-        Session.odjava();
-        // ti već imaš logout flow – ostavi svoj kako ti je
-      },
+      userImageAsset: Session.userImage,
+      onLogout: () async {
+  await Session.odjava(
+    deviceTokenProvider: context.read<DeviceTokenProvider>(),
+    authProvider: context.read<AuthProvider>(),
+  );
+
+  if (!context.mounted) return;
+
+  Navigator.pushNamedAndRemoveUntil(
+    context,
+    AppRoutes.login,
+    (route) => false,
+  );
+},
       child: Container(
         color: const Color(0xFFF6F7FB),
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : (_error != null)
-            ? _ErrorState(message: _error!, onRetry: _loadUser)
-            : _user == null
-            ? _ErrorState(message: "Korisnik nije učitan.", onRetry: _loadUser)
-            : Column(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                      children: [
-                        _HeaderCard(
-                          user: _user!,
-                          pickedImage: _pickedImage,
-                          onChangeImage: _pickImage,
-                        ),
-                        const SizedBox(height: 12),
-                        _FormCard(
-                          formKey: _formKey,
-                          fields: fields,
-                          onAnyChanged: () => setState(() {}),
-                        ),
-                        const SizedBox(height: 14),
-                      ],
-                    ),
-                  ),
-
-                  // sticky save
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.06),
-                          blurRadius: 18,
-                          offset: const Offset(0, -8),
-                        ),
-                      ],
-                    ),
-                    child: SizedBox(
-                      height: 48,
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _hasChanges() ? _save : null,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: rentifyGreenDark,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                ? _ErrorState(message: _error!, onRetry: _loadUser)
+                : _user == null
+                    ? _ErrorState(
+                        message: "Korisnik nije učitan.",
+                        onRetry: _loadUser,
+                      )
+                    : Column(
+                        children: [
+                          Expanded(
+                            child: ListView(
+                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                              children: [
+                                _HeaderCard(
+                                  user: _user!,
+                                  pickedImage: _pickedImage,
+                                  onChangeImage: _pickImage,
+                                ),
+                                const SizedBox(height: 12),
+                                _FormCard(
+                                  fields: fields,
+                                  fieldErrors: _fieldErrors,
+                                  onAnyChanged: () => setState(() {}),
+                                ),
+                                const SizedBox(height: 14),
+                              ],
+                            ),
                           ),
-                        ),
-                        child: const Text(
-                          "Sačuvaj",
-                          style: TextStyle(fontWeight: FontWeight.w900),
-                        ),
+                          Container(
+                            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.06),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, -8),
+                                ),
+                              ],
+                            ),
+                            child: SizedBox(
+                              height: 48,
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _hasChanges() ? _save : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: rentifyGreenDark,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "Sačuvaj",
+                                  style: TextStyle(fontWeight: FontWeight.w900),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
-                  ),
-                ],
-              ),
       ),
     );
   }
 }
-
-/// ---------------- UI ----------------
 
 class _HeaderCard extends StatelessWidget {
   const _HeaderCard({
@@ -291,19 +372,19 @@ class _HeaderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     Widget avatar;
 
-if (pickedImage != null) {
-  avatar = Image.file(
-    pickedImage!,
-    fit: BoxFit.cover,
-  );
-} else {
-  avatar = Image.network(
-    ImageHelper.safeUserImageUrl(user.userImage),
-    fit: BoxFit.cover,
-    errorBuilder: (_, __, ___) =>
-        ImageHelper.userPlaceholder(user.username),
-  );
-}
+    if (pickedImage != null) {
+      avatar = Image.file(
+        pickedImage!,
+        fit: BoxFit.cover,
+      );
+    } else {
+      avatar = Image.network(
+        ImageHelper.safeUserImageUrl(user.userImage),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) =>
+            ImageHelper.userPlaceholder(user.username),
+      );
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -380,31 +461,16 @@ if (pickedImage != null) {
 
 class _FormCard extends StatelessWidget {
   const _FormCard({
-    required this.formKey,
     required this.fields,
+    required this.fieldErrors,
     required this.onAnyChanged,
   });
 
-  final GlobalKey<FormState> formKey;
   final Fields fields;
+  final Map<String, String?> fieldErrors;
   final VoidCallback onAnyChanged;
 
   static const Color rentifyGreenDark = Color(0xFF5F9F3B);
-
-  String? _req(String? v, String msg) =>
-      (v == null || v.trim().isEmpty) ? msg : null;
-
-  String? _email(String? v) {
-    final value = (v ?? '').trim();
-    final regex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
-    return regex.hasMatch(value) ? null : "Neispravan email.";
-  }
-
-  String? _username(String? v) {
-    final value = (v ?? '').trim();
-    final regex = RegExp(r'^[a-zA-Z0-9._-]{3,20}$');
-    return regex.hasMatch(value) ? null : "Username 3–20 (slova/brojevi/._-).";
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -415,72 +481,69 @@ class _FormCard extends StatelessWidget {
         border: Border.all(color: Colors.black.withOpacity(0.05)),
       ),
       padding: const EdgeInsets.all(14),
-      child: Form(
-        key: formKey,
-        autovalidateMode: AutovalidateMode.disabled,
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _field(
-                    label: "Ime",
-                    controller: fields.controller("firstName"),
-                    validator: (v) => _req(v, "Ime je obavezno."),
-                    onChanged: (_) => onAnyChanged(),
-                  ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _field(
+                  label: "Ime",
+                  controller: fields.controller("firstName"),
+                  errorText: fieldErrors["firstName"],
+                  onChanged: (_) => onAnyChanged(),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _field(
-                    label: "Prezime",
-                    controller: fields.controller("lastName"),
-                    validator: (v) => _req(v, "Prezime je obavezno."),
-                    onChanged: (_) => onAnyChanged(),
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _field(
+                  label: "Prezime",
+                  controller: fields.controller("lastName"),
+                  errorText: fieldErrors["lastName"],
+                  onChanged: (_) => onAnyChanged(),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _field(
-                    label: "Email",
-                    controller: fields.controller("email"),
-                    keyboardType: TextInputType.emailAddress,
-                    validator: _email,
-                    onChanged: (_) => onAnyChanged(),
-                  ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _field(
+                  label: "Email",
+                  controller: fields.controller("email"),
+                  keyboardType: TextInputType.emailAddress,
+                  errorText: fieldErrors["email"],
+                  onChanged: (_) => onAnyChanged(),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _field(
-                    label: "Username",
-                    controller: fields.controller("username"),
-                    validator: _username,
-                    onChanged: (_) => onAnyChanged(),
-                  ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _field(
+                  label: "Username",
+                  controller: fields.controller("username"),
+                  errorText: fieldErrors["username"],
+                  onChanged: (_) => onAnyChanged(),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _dateField(
-              context: context,
-              label: "Datum rođenja",
-              controller: fields.controller("birthDate"),
-              onAnyChanged: onAnyChanged,
-            ),
-            const SizedBox(height: 12),
-            _field(
-              label: "Telefon",
-              controller: fields.controller("phoneNumber"),
-              keyboardType: TextInputType.phone,
-              validator: (v) => _req(v, "Telefon je obavezan."),
-              onChanged: (_) => onAnyChanged(),
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _dateField(
+            context: context,
+            label: "Datum rođenja",
+            controller: fields.controller("birthDate"),
+            errorText: fieldErrors["birthDate"],
+            onAnyChanged: onAnyChanged,
+          ),
+          const SizedBox(height: 12),
+          _field(
+            label: "Telefon",
+            controller: fields.controller("phoneNumber"),
+            keyboardType: TextInputType.phone,
+            errorText: fieldErrors["phoneNumber"],
+            onChanged: (_) => onAnyChanged(),
+          ),
+        ],
       ),
     );
   }
@@ -489,14 +552,15 @@ class _FormCard extends StatelessWidget {
     required BuildContext context,
     required String label,
     required TextEditingController controller,
+    required String? errorText,
     required VoidCallback onAnyChanged,
   }) {
-    return TextFormField(
+    return TextField(
       controller: controller,
       readOnly: true,
-      validator: (v) => _req(v, "Datum rođenja je obavezan."),
       decoration: InputDecoration(
         labelText: label,
+        errorText: errorText,
         filled: true,
         fillColor: const Color(0xFFF7F7F7),
         suffixIcon: const Icon(
@@ -527,17 +591,17 @@ class _FormCard extends StatelessWidget {
   Widget _field({
     required String label,
     required TextEditingController controller,
+    String? errorText,
     TextInputType? keyboardType,
-    String? Function(String?)? validator,
     void Function(String)? onChanged,
   }) {
-    return TextFormField(
+    return TextField(
       controller: controller,
       keyboardType: keyboardType,
-      validator: validator,
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
+        errorText: errorText,
         filled: true,
         fillColor: const Color(0xFFF7F7F7),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

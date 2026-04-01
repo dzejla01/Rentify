@@ -1,9 +1,12 @@
-class ApiConfig {
-  static const String apiBase = "http://localhost:5002";
-  static const String imagesUsers = "$apiBase/images/users";
-  static const String imagesProperties = "$apiBase/images/properties";
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-  static const Map<String, String> imageFolders = {
+class ApiConfig {
+  static String apiBase = dotenv.env['API_DESKTOP_LOCAL']!;
+  //static String apiBase = dotenv.env['API_DESKTOP_DOCKER']!; -> Postava za docker
+  static  String imagesUsers = "$apiBase/images/users";
+  static  String imagesProperties = "$apiBase/images/properties";
+
+  static  Map<String, String> imageFolders = {
     'users': imagesUsers,
     'properties': imagesProperties,
   };

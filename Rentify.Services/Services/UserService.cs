@@ -9,6 +9,7 @@ using Rentify.Model.ResponseObject;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
 using Rentify.Services.Database;
+using Rentify.Services.Exceptions;
 using Rentify.Services.Helpers;
 using Rentify.Services.Interfaces;
 using Rentify.Services.Services;
@@ -118,11 +119,14 @@ namespace Rentify.Services
                     .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(x => x.Username == request.Username);
 
-            if (user == null || !user.IsActive)
-                throw new UnauthorizedAccessException("Pogrešan username ili password.");
+            if (user == null)
+                throw new UserException("Pogrešan username ili password");
+
+            if(!user.IsActive)
+                throw new UserException("Korisnik je neaktivan, kontaktirajte admina");
 
             if (!UserHelper.VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
-                throw new UnauthorizedAccessException("Pogrešan username ili password.");
+                throw new UserException("Pogrešan username ili password.");
 
             var token = UserHelper.CreateJwt(user, _configuration);
 
@@ -130,6 +134,8 @@ namespace Rentify.Services
             {
                 UserId = user.Id,
                 UserName = request.Username,
+                FullName = user.FirstName + " " + user.LastName,
+                UserImage = user.UserImage,
                 Token = token,
                 Roles = user.UserRoles
                     .Select(ur => ur.Role.Name)
@@ -149,7 +155,7 @@ namespace Rentify.Services
                 .FirstOrDefaultAsync(x => x.Email == email);
 
             if (user == null)
-                throw new Exception("Email nije povezan ni sa jednim nalogom.");
+                throw new NotFoundException("Email nije povezan ni sa jednim nalogom.");
 
             var newPassword = GenerateRandomPassword();
 

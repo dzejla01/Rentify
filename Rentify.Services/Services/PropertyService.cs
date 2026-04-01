@@ -5,6 +5,7 @@ using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
 using Rentify.Services.Database;
+using Rentify.Services.Exceptions;
 using Rentify.Services.Interfaces;
 using Rentify.Services.Recommendations;
 using System;
@@ -77,7 +78,7 @@ namespace Rentify.Services.Services
         public async Task<List<PropertyResponse>> GetRecommendedPropertiesAsync(int userId, int take = 5)
         {
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == userId);
-            if (user == null) throw new Exception("Korisnik nije pronađen.");
+            if (user == null) throw new NotFoundException("Korisnik nije pronađen.");
 
             var reservedPropertyIds = await _context.Reservations
                 .Where(r => r.UserId == userId)

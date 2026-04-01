@@ -8,18 +8,49 @@ using RabbitMQ.Client;
 using Rentify.Services;
 using Rentify.Services.Interfaces;
 using Rentify.Services.Services;
+using Rentify.Services.Exceptions;
 using Rentify.WebAPI.Authentication;
 using Rentify.WebAPI.Configuration;
 using Rentify.WebAPI.Services;
 using Stripe;
 using DotNetEnv;
+using Microsoft.AspNetCore.Diagnostics;
 
-Env.Load(Path.Combine(Directory.GetCurrentDirectory(), "..", ".env"));
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", ".env");
+if (System.IO.File.Exists(envPath))
+{
+    Env.Load(envPath);
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
+string GetRequiredEnv(string key)
+{
+    var value = Environment.GetEnvironmentVariable(key);
+    if (string.IsNullOrWhiteSpace(value))
+        throw new InvalidOperationException($"Missing env var: {key}");
+    return value;
+}
+
+string? GetOptionalEnv(string key) => Environment.GetEnvironmentVariable(key);
+
+int GetIntEnv(string key, int defaultValue)
+{
+    var raw = Environment.GetEnvironmentVariable(key);
+    return int.TryParse(raw, out var value) ? value : defaultValue;
+}
+
+bool GetBoolEnv(string key, bool defaultValue = false)
+{
+    var raw = Environment.GetEnvironmentVariable(key);
+    return bool.TryParse(raw, out var value) ? value : defaultValue;
+}
+
+var connectionString = GetRequiredEnv("CONNECTION_STRING_LOCAL");
+// var connectionString = GetRequiredEnv("CONNECTION_STRING_DOCKER"); -> Docker
+
 builder.Services.AddDbContext<RentifyDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
+    options.UseNpgsql(connectionString)
 );
 
 builder.Services.AddControllers();
@@ -44,7 +75,11 @@ builder.Services.AddSwaggerGen(c =>
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
             },
             Array.Empty<string>()
         }
@@ -52,52 +87,51 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 TypeAdapterConfig.GlobalSettings.Default
-            .IgnoreNullValues(true)      
-            .PreserveReference(true)     
-            .ShallowCopyForSameType(true);
+    .IgnoreNullValues(true)
+    .PreserveReference(true)
+    .ShallowCopyForSameType(true);
 
 builder.Services.AddSingleton(TypeAdapterConfig.GlobalSettings);
 builder.Services.AddScoped<IMapper, ServiceMapper>();
+
+// SERVICES
 builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IPropertyService,PropertyService>();
+builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
-builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IReservationService, ReservationService>();
 builder.Services.AddScoped<IReviewService, Rentify.Services.Services.ReviewService>();
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<IPropertyImageService, PropertyImageService>();
 builder.Services.AddScoped<IDeviceTokenService, DeviceTokenService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IQuestionService, QuestionService>();
+builder.Services.AddScoped<IAnswerService, AnswerService>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<PushNotificationService>();
-builder.Services.AddScoped<StripeService>();
 
-
-var stripeSecretKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY");
-
-if (string.IsNullOrEmpty(stripeSecretKey))
-{
-    throw new Exception("Stripe secret key nije pronađen u .env fajlu!");
-}
+// STRIPE
+var stripeSecretKey = GetRequiredEnv("STRIPE_SECRET_KEY");
+var stripeWebhookSecret = GetRequiredEnv("STRIPE_WEBHOOK_SECRET");
 
 StripeConfiguration.ApiKey = stripeSecretKey;
+
+builder.Services.AddSingleton(new StripeSettings
+{
+    SecretKey = stripeSecretKey,
+    WebhookSecret = stripeWebhookSecret
+});
+
+builder.Services.AddScoped<IStripeService, StripeService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 
 builder.Services.AddSingleton<IConnection>(_ =>
 {
-    var host = Environment.GetEnvironmentVariable("RABBITMQ_HOST");
-    var portRaw = Environment.GetEnvironmentVariable("RABBITMQ_PORT");
-    var user = Environment.GetEnvironmentVariable("RABBITMQ_USER"); 
-    var pass = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD");
-    var vhost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST") ?? "/";
-
-    if (string.IsNullOrWhiteSpace(host))
-        throw new InvalidOperationException("Missing env var: RABBITMQ_HOST");
-    if (string.IsNullOrWhiteSpace(portRaw) || !int.TryParse(portRaw, out var port))
-        throw new InvalidOperationException("Missing/invalid env var: RABBITMQ_PORT");
-    if (string.IsNullOrWhiteSpace(user))
-        throw new InvalidOperationException("Missing env var: RABBITMQ_USER");
-    if (string.IsNullOrWhiteSpace(pass))
-        throw new InvalidOperationException("Missing env var: RABBITMQ_PASSWORD");
+    var host = GetRequiredEnv("RABBITMQ_HOST");
+    var port = GetIntEnv("RABBITMQ_PORT", 5672);
+    var user = GetRequiredEnv("RABBITMQ_USER");
+    var pass = GetRequiredEnv("RABBITMQ_PASSWORD");
+    var vhost = GetOptionalEnv("RABBITMQ_VIRTUALHOST") ?? "/";
 
     var factory = new ConnectionFactory
     {
@@ -112,18 +146,68 @@ builder.Services.AddSingleton<IConnection>(_ =>
 });
 
 var firebasePath =
-    builder.Configuration["FIREBASE_CREDENTIALS_PATH_DOCKER"] 
-    ?? builder.Configuration["Firebase:ServiceAccountPath"]; 
+    GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_LOCAL") ??
+    GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_DOCKER");
+
+if (string.IsNullOrWhiteSpace(firebasePath))
+    throw new Exception("Firebase credentials path nije definisan!");
 
 FirebaseApp.Create(new AppOptions
 {
     Credential = GoogleCredential.FromFile(firebasePath)
 });
 
+// AUTH
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        context.Response.ContentType = "application/json";
+
+        var error = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+        switch (error)
+        {
+            case UserException ex:
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+                break;
+
+            case ArgumentException ex:
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+                break;
+
+            case InvalidOperationException ex:
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+                break;
+
+            case ForbiddenException ex:
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+                break;
+
+            case NotFoundException ex:
+                context.Response.StatusCode = StatusCodes.Status404NotFound;
+                await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+                break;
+
+            default:
+                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                await context.Response.WriteAsJsonAsync(new
+                {
+                    message = "Greska prilikom komunikacije sa serverom"
+                });
+                break;
+        }
+    });
+});
 
 if (app.Environment.IsDevelopment())
 {
@@ -131,6 +215,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// MIGRATIONS
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<RentifyDbContext>();
@@ -143,4 +228,5 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
 app.Run();

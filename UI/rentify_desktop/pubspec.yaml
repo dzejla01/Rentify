@@ -46,6 +46,7 @@ dependencies:
   pdf: ^3.10.8
   file_picker: ^8.0.0
   open_filex: ^4.4.0
+  flutter_dotenv: ^6.0.0
 
 dev_dependencies:
   flutter_test:
@@ -73,6 +74,7 @@ flutter:
 
   assets:
     - assets/images/
+    - .env
 
   # To add assets to your application, add an assets section, like this:
   # assets:

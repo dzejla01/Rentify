@@ -131,11 +131,6 @@ class _ReservationScreenState extends State<ReservationScreen> {
   title: "Brisanje rezervacije",
   question:
       "Da li ste sigurni da želite obrisati rezervaciju #${r.id}?\n\n"
-      "Ovom radnjom će se trajno obrisati:\n"
-      "• Sve rezervacije vezane za ovu nekretninu\n"
-      "• Sva plaćanja povezana s rezervacijom\n"
-      "• Svi termini (appointments)\n"
-      "• Sve recenzije korisnika za ovu nekretninu\n\n"
       "Nakon brisanja podaci se NE mogu vratiti.",
   yesText: "Trajno obriši",
   noText: "Odustani",
@@ -144,7 +139,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
   if (!ok) return;
 
   try {
-    await context.read<ReservationProvider>().deleteAll(r.id);
+    await context.read<ReservationProvider>().delete(r.id);
     await _load();
 
     if (!mounted) return;

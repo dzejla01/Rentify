@@ -18,6 +18,10 @@ public class RentifyDbContext : DbContext
     public DbSet<Reservation> Reservations { get; set; }
     public DbSet<Review> Reviews { get; set; }
     public DbSet<UserDeviceToken> UserDeviceTokens { get; set; }
+    public DbSet<Question> Questions { get; set; }
+    public DbSet<Answer> Answers { get; set; }
+    public DbSet<ReservationHistory> ReservationHistories { get; set; }
+    public DbSet<Favorite> Favorites { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -32,6 +36,52 @@ public class RentifyDbContext : DbContext
 
         modelBuilder.Entity<UserDeviceToken>()
             .HasIndex(x => new { x.UserId, x.IsActive });
+
+        modelBuilder.Entity<Question>()
+                .HasOne(q => q.User)
+                .WithMany()
+                .HasForeignKey(q => q.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Question>()
+            .HasOne(q => q.Property)
+            .WithMany()
+            .HasForeignKey(q => q.PropertyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Answer>()
+            .HasOne(a => a.Question)
+            .WithMany(q => q.Answers)
+            .HasForeignKey(a => a.QuestionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Answer>()
+            .HasOne(a => a.User)
+            .WithMany()
+            .HasForeignKey(a => a.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<ReservationHistory>()
+            .HasOne(rh => rh.Reservation)
+            .WithMany()
+            .HasForeignKey(rh => rh.ReservationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Favorite>()
+            .HasOne(f => f.User)
+            .WithMany()
+            .HasForeignKey(f => f.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Favorite>()
+            .HasOne(f => f.Property)
+            .WithMany()
+            .HasForeignKey(f => f.PropertyId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<Favorite>()
+            .HasIndex(f => new { f.UserId, f.PropertyId })
+            .IsUnique();
 
         SeedData.Seed(modelBuilder);
 

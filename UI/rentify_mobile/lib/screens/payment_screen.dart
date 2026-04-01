@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/providers/auth_provider.dart';
+import 'package:rentify_mobile/providers/device_token_provider.dart';
+import 'package:rentify_mobile/routes/app_routes.dart';
 
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/screens/payment_list_screen.dart';
@@ -154,7 +157,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final Map<int, Payment?> lastMap = {};
       for (final r in reservations) {
         final pid = r.propertyId;
-        final list = payments.where((p) => p.propertyId == pid).toList();
+        final list = payments.where((p) => p.reservation!.propertyId == pid).toList();
         list.sort((a, b) => b.id.compareTo(a.id));
         lastMap[pid] = list.isNotEmpty ? list.first : null;
       }
@@ -180,11 +183,23 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
     return BaseMobileScreen(
       title: "Plaćanja",
-      NameAndSurname: (Session.username ?? "").trim(),
+      NameAndSurname: Session.fullName!,
       userUsername: Session.username ?? "Nepoznato",
-      onLogout: () {
-        Session.odjava();
-      },
+      userImageAsset: Session.userImage,
+      onLogout: () async {
+  await Session.odjava(
+    deviceTokenProvider: context.read<DeviceTokenProvider>(),
+    authProvider: context.read<AuthProvider>(),
+  );
+
+  if (!context.mounted) return;
+
+  Navigator.pushNamedAndRemoveUntil(
+    context,
+    AppRoutes.login,
+    (route) => false,
+  );
+},
       child: Container(
         color: const Color(0xFFF6F7FB),
         child: Column(

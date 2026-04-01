@@ -13,13 +13,17 @@ namespace Rentify.Services.Database
         [Key]
         public int Id { get; set; }
 
-        [ForeignKey(nameof(UserId))]
-        public int UserId { get; set; }
-        public User? User { get; set; }
+        //[ForeignKey(nameof(UserId))]
+        //public int UserId { get; set; }
+        //public User? User { get; set; }
 
-        [ForeignKey(nameof(PropertyId))]
-        public int PropertyId { get; set; }
-        public Property? Property { get; set; }
+        //[ForeignKey(nameof(PropertyId))]
+        //public int PropertyId { get; set; }
+        //public Property? Property { get; set; }
+
+        [ForeignKey(nameof(ReservationId))]
+        public int ReservationId { get; set; }
+        public Reservation? Reservation { get; set; }
         public string Name {get; set;}
         public string Comment {get; set;}
         public double Price { get; set; }

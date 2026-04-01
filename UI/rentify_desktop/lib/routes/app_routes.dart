@@ -6,6 +6,7 @@ import 'package:rentify_desktop/screens/login_screen.dart';
 import 'package:rentify_desktop/screens/payment_screen.dart';
 import 'package:rentify_desktop/screens/property_detail_or_add_screen.dart';
 import 'package:rentify_desktop/screens/property_screen.dart';
+import 'package:rentify_desktop/screens/question_screen.dart';
 import 'package:rentify_desktop/screens/report_screen.dart';
 import 'package:rentify_desktop/screens/reservation_screen.dart';
 import 'package:rentify_desktop/screens/review_screen.dart';
@@ -20,6 +21,7 @@ class AppRoutes {
   static const String propertyDetails = '/propertyDetails';
   static const String login = '/login';
   static const String appointment = '/appointment';
+  static const String question = '/question';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -46,6 +48,9 @@ class AppRoutes {
       
       case appointment:
         return MaterialPageRoute(builder: (_) => const AppointmentScreen());
+
+      case question:
+        return MaterialPageRoute(builder: (_) => const QuestionsScreen());
 
       case propertyDetails:
         final args = settings.arguments as Map<String, dynamic>?;

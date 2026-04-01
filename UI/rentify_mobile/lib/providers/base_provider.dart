@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:rentify_mobile/config/api_config.dart';
+import 'package:rentify_mobile/helper/http_helper.dart';
 import 'package:rentify_mobile/models/search_result.dart';
 import '../utils/session.dart';
 
@@ -21,10 +22,10 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     final response = await http.get(
       Uri.parse(url),
-      headers: _headers(),
+      headers: HttpHelper.getHeaders(),
     );
 
-    _checkResponse(response);
+    HttpHelper.checkResponse(response);
 
     final json = jsonDecode(response.body);
     final result = SearchResult<T>();
@@ -53,10 +54,10 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     final response = await http.get(
       Uri.parse(url),
-      headers: _headers(),
+      headers: HttpHelper.getHeaders(),
     );
 
-    _checkResponse(response);
+    HttpHelper.checkResponse(response);
 
     return fromJson(jsonDecode(response.body));
   }
@@ -67,11 +68,11 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     final response = await http.post(
       Uri.parse(url),
-      headers: _headers(),
+      headers: HttpHelper.getHeaders(),
       body: jsonEncode(request),
     );
 
-    _checkResponse(response);
+    HttpHelper.checkResponse(response);
 
     return fromJson(jsonDecode(response.body));
   }
@@ -82,11 +83,11 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     final response = await http.put(
       Uri.parse(url),
-      headers: _headers(),
+      headers: HttpHelper.getHeaders(),
       body: jsonEncode(request),
     );
 
-    _checkResponse(response);
+    HttpHelper.checkResponse(response);
 
     return fromJson(jsonDecode(response.body));
   }
@@ -97,23 +98,15 @@ abstract class BaseProvider<T> with ChangeNotifier {
 
     final response = await http.delete(
       Uri.parse(url),
-      headers: _headers(),
+      headers: HttpHelper.getHeaders(),
     );
 
-    _checkResponse(response);
+    HttpHelper.checkResponse(response);
     return true;
   }
 
   // Parse JSON into model
   T fromJson(dynamic data);
-
-  // JWT headers
-  Map<String, String> _headers() {
-    return {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer ${Session.token}",
-    };
-  }
 
   // Query builder
   String _buildQuery(Map<String, dynamic> params) {
@@ -121,16 +114,5 @@ abstract class BaseProvider<T> with ChangeNotifier {
         .map((e) =>
             "${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value.toString())}")
         .join("&");
-  }
-
-  // Error handler
-  void _checkResponse(http.Response response) {
-    if (response.statusCode == 401) {
-      throw Exception("Unauthorized");
-    }
-
-    if (response.statusCode < 200 || response.statusCode > 299) {
-      throw Exception("API Error: ${response.statusCode} → ${response.body}");
-    }
   }
 }

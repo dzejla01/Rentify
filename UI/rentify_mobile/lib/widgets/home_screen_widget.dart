@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rentify_mobile/dialogs/property_filter_dialog.dart';
 import 'package:rentify_mobile/helper/univerzal_pagging_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/property_images.dart';
-import 'package:rentify_mobile/models/search_result.dart';
 import 'package:rentify_mobile/providers/property_image_provider.dart';
 import 'package:rentify_mobile/screens/property_details_screen.dart';
 import 'package:rentify_mobile/widgets/swipe_widget.dart';

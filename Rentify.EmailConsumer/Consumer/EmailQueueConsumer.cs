@@ -47,7 +47,7 @@ public class EmailQueueConsumer
 
                 var message =
                     JsonSerializer.Deserialize<ResetPasswordEmailMessage>(json)
-                    ?? throw new Exception("Nevalidna poruka");
+                    ?? throw new InvalidOperationException("Nevalidna poruka");
 
                 await _emailSender.SendResetPasswordEmailAsync(
                     message.To,

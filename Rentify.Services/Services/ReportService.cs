@@ -23,14 +23,13 @@ namespace Rentify.Services.Services
             if (search.OwnerId <= 0)
                 throw new ArgumentException("OwnerId je obavezan.", nameof(search.OwnerId));
 
-            // samo plaćeni payments + samo ownerove nekretnine
             var baseQ = _context.Payments
                 .AsNoTracking()
-                .Include(p => p.Property)
+                .Include(p => p.Reservation)
+                  .ThenInclude(p => p.Property)
                 .Where(p => p.IsPayed == true)
-                .Where(p => p.Property != null && p.Property.UserId == search.OwnerId);
+                .Where(p => p.Reservation.Property != null && p.Reservation.Property.UserId == search.OwnerId);
 
-            // trend: po Year/Month iz paymenta
             var monthly = await baseQ
                 .GroupBy(p => new { p.YearNumber, p.MonthNumber })
                 .Select(g => new MonthlyIncomeDto
@@ -43,7 +42,6 @@ namespace Rentify.Services.Services
                 .ThenBy(x => x.Month)
                 .ToListAsync();
 
-            // desno: po nekretnini za odabrani mjesec
             var byProperty = new List<PropertyIncomeDto>();
 
             if (search.Year.HasValue && search.Month.HasValue)
@@ -53,7 +51,7 @@ namespace Rentify.Services.Services
 
                 byProperty = await baseQ
                     .Where(p => p.YearNumber == y && p.MonthNumber == m)
-                    .GroupBy(p => new { p.PropertyId, p.Property!.Name })
+                    .GroupBy(p => new { p.Reservation.PropertyId, p.Reservation.Property!.Name })
                     .Select(g => new PropertyIncomeDto
                     {
                         PropertyId = g.Key.PropertyId,

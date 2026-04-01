@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:rentify_mobile/config/api_config.dart';
+import 'package:rentify_mobile/helper/http_helper.dart';
 import 'package:rentify_mobile/utils/session.dart';
 
 class DeviceTokenProvider extends ChangeNotifier {
@@ -21,33 +22,14 @@ class DeviceTokenProvider extends ChangeNotifier {
 
   final response = await http.post(
     url,
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": "Bearer $jwt",
-    },
+    headers: HttpHelper.getHeaders(),
     body: jsonEncode({
       "token": fcm,
       "platform": platform,
     }),
   );
 
-  // 🔎 Provjera statusa
-  if (response.statusCode >= 200 && response.statusCode < 300) {
-    if (response.body.isNotEmpty) {
-      final data = jsonDecode(response.body);
-      debugPrint("FCM REGISTER SUCCESS: $data");
-      return data;
-    }
-
-    debugPrint("FCM REGISTER SUCCESS (no body)");
-    return null;
-  } else {
-    debugPrint(
-        "FCM REGISTER ERROR: ${response.statusCode} → ${response.body}");
-    throw Exception(
-        "FCM register failed (${response.statusCode}): ${response.body}");
-  }
+  HttpHelper.checkResponse(response);
 }
 
   Future<void> unregisterFcmToken() async {
@@ -61,15 +43,10 @@ class DeviceTokenProvider extends ChangeNotifier {
 
     await http.post(
       url,
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": "Bearer $jwt",
-      },
+      headers: HttpHelper.getHeaders(),
       body: jsonEncode({"token": fcm}),
     );
 
-    // lokalno očisti
     Session.fcmToken = null;
   }
 
@@ -85,11 +62,7 @@ class DeviceTokenProvider extends ChangeNotifier {
       try {
         await http.post(
           url,
-          headers: {
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "Authorization": "Bearer $jwt",
-          },
+          headers: HttpHelper.getHeaders(),
           body: jsonEncode({
             "token": newToken,
             "platform": platform,

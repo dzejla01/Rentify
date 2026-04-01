@@ -1,12 +1,15 @@
-﻿using System;
-using System.Linq;
+﻿using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
-using MapsterMapper;
-using Rentify.Model.SearchObjects;
+using Microsoft.Extensions.Options;
+using Rentify.EmailConsumer.Configuration;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
+using Rentify.Model.SearchObjects;
 using Rentify.Services.Database;
+using Rentify.Services.Exceptions;
 using Rentify.Services.Interfaces;
+using System;
+using System.Linq;
 
 namespace Rentify.Services.Services
 {
@@ -16,16 +19,22 @@ namespace Rentify.Services.Services
     {
         private readonly IDeviceTokenService _deviceTokenService;
         private readonly PushNotificationService _pushService;
+        private readonly IStripeService _stripeService;
+        private readonly AppConfig _config;
 
         public PaymentService(
             RentifyDbContext context,
             IMapper mapper,
             IDeviceTokenService deviceTokenService,
-            PushNotificationService pushService
+            PushNotificationService pushService,
+            IStripeService stripeService,
+            IOptions<AppConfig> config
         ) : base(context, mapper)
         {
             _deviceTokenService = deviceTokenService;
             _pushService = pushService;
+            _stripeService = stripeService;
+            _config = config.Value;
         }
 
         protected override IQueryable<Payment> ApplyFilter(IQueryable<Payment> query, PaymentSearchObject search)
@@ -37,21 +46,21 @@ namespace Rentify.Services.Services
                 query = query.Where(x =>
                     x.Name.ToLower().Contains(fts)
                     ||
-                    (x.MonthNumber.ToString().PadLeft(2, '0') + "." + x.YearNumber.ToString())
-                        .Contains(fts)
+                    (x.MonthNumber.ToString().PadLeft(2, '0') + "." + x.YearNumber.ToString()).Contains(fts)
                     ||
-                    ("uplaćeno".Contains(search.FTS.ToLower()) && x.IsPayed == true)
+                    ("uplaćeno".Contains(fts) && x.IsPayed == true)
                     ||
-                    ("na čekanju".Contains(search.FTS.ToLower()) && x.IsPayed == false)
+                    ("na čekanju".Contains(fts) && x.IsPayed == false)
+                    ||
+                    ((x.PaymentStatus ?? "").ToLower().Contains(fts))
                 );
             }
 
-
             if (search.UserId.HasValue)
-                query = query.Where(x => x.UserId == search.UserId.Value);
+                query = query.Where(x => x.Reservation.UserId == search.UserId.Value);
 
             if (search.PropertyId.HasValue)
-                query = query.Where(x => x.PropertyId == search.PropertyId.Value);
+                query = query.Where(x => x.Reservation.PropertyId == search.PropertyId.Value);
 
             if (search.IsPayed.HasValue)
                 query = query.Where(x => x.IsPayed == search.IsPayed.Value);
@@ -67,15 +76,8 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Payment> AddInclude(IQueryable<Payment> query, PaymentSearchObject search)
         {
-            if (search.IncludeUser.HasValue)
-            {
-                query = query.Include(p => p.User);
-            }
+            query = query.Include(r => r.Reservation);
 
-            if (search.IncludeProperty.HasValue)
-            {
-                query = query.Include(p => p.Property);
-            }
             return base.AddInclude(query, search);
         }
 
@@ -83,10 +85,17 @@ namespace Rentify.Services.Services
         {
             if (entity.IsPayed == false)
             {
+                var reservationUserId = await _context.Reservations
+                    .Where(x => x.Id == entity.ReservationId)
+                    .Select(x => x.UserId)
+                    .FirstOrDefaultAsync();
+
+                if (reservationUserId == 0)
+                    return;
+
                 try
                 {
-                    var tokens = await _deviceTokenService
-                        .GetActiveTokensAsync(entity.UserId);
+                    var tokens = await _deviceTokenService.GetActiveTokensAsync(reservationUserId);
 
                     await _pushService.SendToTokensAsync(
                         tokens,
@@ -106,7 +115,102 @@ namespace Rentify.Services.Services
             }
         }
 
-        
+        public async Task<object> CreateNewPaymentIntentAsync(CreatePaymentIntentRequest req)
+        {
+            var payment = await _context.Payments
+    .Include(x => x.Reservation)
+    .FirstOrDefaultAsync(x => x.Id == req.PaymentId);
 
+            if (payment == null)
+                throw new NotFoundException("Payment nije pronađen.");
+
+            if (payment.Reservation == null)
+                throw new NotFoundException("Reservation nije pronađena za ovaj payment.");
+
+            if (payment.Reservation.UserId != req.UserId)
+                throw new ArgumentException("Payment ne pripada korisniku.");
+
+            var metadata = new Dictionary<string, string>
+            {
+                ["paymentId"] = payment.Id.ToString(),
+                ["userId"] = payment.Reservation.UserId.ToString(),
+                ["propertyId"] = payment.Reservation.PropertyId.ToString()
+            };
+
+            var intent = await _stripeService.CreatePaymentIntentAsync(
+                payment.Price,
+                _config.PaymentCurrency,
+                metadata
+            );
+
+            payment.StripePaymentIntentId = intent.Id;
+            payment.PaymentStatus = "Processing";
+
+            await _context.SaveChangesAsync();
+
+            return new
+            {
+                clientSecret = intent.ClientSecret,
+                intentId = intent.Id,
+                paymentId = payment.Id,
+                amount = payment.Price
+            };
+        }
+
+        public async Task HandlePaymentIntentSucceededAsync(string paymentIntentId, IDictionary<string, string> metadata)
+        {
+            if (!metadata.TryGetValue("paymentId", out var paymentIdString))
+                return;
+
+            if (!int.TryParse(paymentIdString, out var paymentId))
+                return;
+
+            var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == paymentId);
+            if (payment == null || payment.PaymentStatus == "Paid")
+                return;
+
+            payment.IsPayed = true;
+            payment.PaymentStatus = "Paid";
+            payment.PaidAt = DateTime.UtcNow;
+            payment.StripePaymentIntentId = paymentIntentId;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task HandlePaymentIntentFailedAsync(string paymentIntentId, IDictionary<string, string> metadata)
+        {
+            if (!metadata.TryGetValue("paymentId", out var paymentIdString))
+                return;
+
+            if (!int.TryParse(paymentIdString, out var paymentId))
+                return;
+
+            var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == paymentId);
+            if (payment == null || payment.PaymentStatus == "Paid")
+                return;
+
+            payment.PaymentStatus = "Failed";
+            payment.StripePaymentIntentId = paymentIntentId;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task HandlePaymentIntentCanceledAsync(string paymentIntentId, IDictionary<string, string> metadata)
+        {
+            if (!metadata.TryGetValue("paymentId", out var paymentIdString))
+                return;
+
+            if (!int.TryParse(paymentIdString, out var paymentId))
+                return;
+
+            var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == paymentId);
+            if (payment == null || payment.PaymentStatus == "Paid")
+                return;
+
+            payment.PaymentStatus = "Canceled";
+            payment.StripePaymentIntentId = paymentIntentId;
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

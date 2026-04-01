@@ -8,18 +8,15 @@ part of 'payment.dart';
 
 Payment _$PaymentFromJson(Map<String, dynamic> json) => Payment(
   id: (json['id'] as num).toInt(),
-  userId: (json['userId'] as num).toInt(),
-  user: json['user'] == null
+  reservationId: (json['reservationId'] as num).toInt(),
+  reservation: json['reservation'] == null
       ? null
-      : User.fromJson(json['user'] as Map<String, dynamic>),
-  propertyId: (json['propertyId'] as num).toInt(),
-  property: json['property'] == null
-      ? null
-      : Property.fromJson(json['property'] as Map<String, dynamic>),
+      : Reservation.fromJson(json['reservation'] as Map<String, dynamic>),
   name: json['name'] as String,
   comment: json['comment'] as String,
   price: (json['price'] as num).toDouble(),
   isPayed: json['isPayed'] as bool,
+  paymentStatus: json['paymentStatus'] as String,
   monthNumber: (json['monthNumber'] as num).toInt(),
   yearNumber: (json['yearNumber'] as num).toInt(),
   dateToPay: json['dateToPay'] == null
@@ -32,16 +29,15 @@ Payment _$PaymentFromJson(Map<String, dynamic> json) => Payment(
 
 Map<String, dynamic> _$PaymentToJson(Payment instance) => <String, dynamic>{
   'id': instance.id,
-  'userId': instance.userId,
-  'user': instance.user,
-  'propertyId': instance.propertyId,
-  'property': instance.property,
+  'reservationId': instance.reservationId,
+  'reservation': instance.reservation,
   'name': instance.name,
   'comment': instance.comment,
   'price': instance.price,
   'monthNumber': instance.monthNumber,
   'yearNumber': instance.yearNumber,
   'isPayed': instance.isPayed,
+  'paymentStatus': instance.paymentStatus,
   'dateToPay': instance.dateToPay?.toIso8601String(),
   'warningDateToPay': instance.warningDateToPay?.toIso8601String(),
 };

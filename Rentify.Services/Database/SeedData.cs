@@ -729,19 +729,154 @@ public static class SeedData
             }
         );
 
+
+
+        //// ================= PAYMENTS =================
+        //// Fokus: puno plaćenih (IsPayed = true) za 12/2025, 01/2026, 02/2026
+        //// za više nekretnina oba vlasnika.
+        //var payments = new List<Payment>();
+        //int payId = 1;
+
+        //void AddMonthlyPayment(int userId, int propertyId, decimal price, int year, int month)
+        //{
+        //    payments.Add(new Payment
+        //    {
+        //        Id = payId++,
+        //        UserId = userId,
+        //        PropertyId = propertyId,
+        //        Name = $"Mjesečna rata {month:D2}.{year}",
+        //        Comment = "Uplata evidentirana.",
+        //        Price = (double)price,
+        //        IsPayed = true,
+        //        MonthNumber = month,
+        //        YearNumber = year,
+        //        DateToPay = new DateTime(year, month, 5, 0, 0, 0, DateTimeKind.Utc),
+        //        WarningDateToPay = new DateTime(year, month, 12, 0, 0, 0, DateTimeKind.Utc),
+        //    });
+        //}
+
+        //// Ovi parovi daju raznolikost (više usera, više property-a, oba vlasnika)
+        //// Owner1 property-i: 1,2,4,10,12,16,18,24,28,30
+        //// Owner2 property-i: 3,7,9,13,15,17,19,21,23,29
+        //var monthlyPairs = new (int userId, int propertyId, decimal price)[]
+        //{
+        //    (4, 1, 1550),   // owner1
+        //    (5, 2, 1450),
+        //    (7, 4, 1800),
+        //    (9, 10, 2000),
+        //    (5, 12, 1750),
+        //    (10, 16, 1200),
+        //    (8, 18, 950),
+        //    (6, 24, 1750),
+        //    (7, 28, 1850),
+        //    (4, 30, 1700),
+
+        //    (6, 3, 1650),   // owner2
+        //    (8, 7, 1100),
+        //    (8, 9, 1650),
+        //    (10, 13, 1550),
+        //    (9, 15, 1600),
+        //    (2, 17, 1500),
+        //    (4, 19, 1300),
+        //    (7, 21, 1350),
+        //    (2, 23, 1650),
+        //    (10, 29, 1200),
+        //};
+
+        //// 12/2025, 01/2026, 02/2026
+        //foreach (var (u, p, price) in monthlyPairs)
+        //{
+        //    AddMonthlyPayment(u, p, price, 2025, 12);
+        //    AddMonthlyPayment(u, p, price, 2026, 1);
+        //    AddMonthlyPayment(u, p, price, 2026, 2);
+        //}
+
+        //// malo “kratkih boravaka” (također IsPayed=true) za dodatni promet i raznolikost
+        //payments.Add(new Payment
+        //{
+        //    Id = payId++,
+        //    UserId = 5,
+        //    PropertyId = 8,
+        //    Name = "Kratki boravak 12.2025",
+        //    Comment = "Uplata za kratki boravak.",
+        //    Price = 420,
+        //    IsPayed = true,
+        //    MonthNumber = 12,
+        //    YearNumber = 2025,
+        //    DateToPay = new DateTime(2025, 12, 18, 0, 0, 0, DateTimeKind.Utc),
+        //    WarningDateToPay = new DateTime(2025, 12, 22, 0, 0, 0, DateTimeKind.Utc),
+        //});
+
+        //payments.Add(new Payment
+        //{
+        //    Id = payId++,
+        //    UserId = 6,
+        //    PropertyId = 14,
+        //    Name = "Kratki boravak 01.2026",
+        //    Comment = "Uplata za kratki boravak.",
+        //    Price = 380,
+        //    IsPayed = true,
+        //    MonthNumber = 1,
+        //    YearNumber = 2026,
+        //    DateToPay = new DateTime(2026, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+        //    WarningDateToPay = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+        //});
+
+        //payments.Add(new Payment
+        //{
+        //    Id = payId++,
+        //    UserId = 9,
+        //    PropertyId = 25,
+        //    Name = "Kratki boravak 02.2026",
+        //    Comment = "Uplata za kratki boravak.",
+        //    Price = 510,
+        //    IsPayed = true,
+        //    MonthNumber = 2,
+        //    YearNumber = 2026,
+        //    DateToPay = new DateTime(2026, 2, 8, 0, 0, 0, DateTimeKind.Utc),
+        //    WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, DateTimeKind.Utc),
+        //});
+
+        //// Par neplaćenih za 03/2026 (da vidiš da izvještaj neće računati)
+        //payments.Add(new Payment
+        //{
+        //    Id = payId++,
+        //    UserId = 4,
+        //    PropertyId = 1,
+        //    Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
+        //    Comment = "Čeka uplatu.",
+        //    Price = 1550,
+        //    IsPayed = false,
+        //    MonthNumber = 3,
+        //    YearNumber = 2026,
+        //    DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
+        //    WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, DateTimeKind.Utc),
+        //});
+
+        //payments.Add(new Payment
+        //{
+        //    Id = payId++,
+        //    UserId = 10,
+        //    PropertyId = 23,
+        //    Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
+        //    Comment = "Čeka uplatu.",
+        //    Price = 1650,
+        //    IsPayed = false,
+        //    MonthNumber = 3,
+        //    YearNumber = 2026,
+        //    DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
+        //    WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, DateTimeKind.Utc),
+        //});
         // ================= PAYMENTS =================
-        // Fokus: puno plaćenih (IsPayed = true) za 12/2025, 01/2026, 02/2026
-        // za više nekretnina oba vlasnika.
         var payments = new List<Payment>();
         int payId = 1;
 
-        void AddMonthlyPayment(int userId, int propertyId, decimal price, int year, int month)
+        void AddMonthlyPayment(int reservationId, decimal price, int year, int month)
         {
             payments.Add(new Payment
             {
                 Id = payId++,
-                UserId = userId,
-                PropertyId = propertyId,
+                ReservationId = reservationId,
                 Name = $"Mjesečna rata {month:D2}.{year}",
                 Comment = "Uplata evidentirana.",
                 Price = (double)price,
@@ -750,97 +885,75 @@ public static class SeedData
                 YearNumber = year,
                 DateToPay = new DateTime(year, month, 5, 0, 0, 0, DateTimeKind.Utc),
                 WarningDateToPay = new DateTime(year, month, 12, 0, 0, 0, DateTimeKind.Utc),
+                PaidAt = new DateTime(year, month, 3, 0, 0, 0, DateTimeKind.Utc),
+                PaymentStatus = "Paid"
             });
         }
 
-        // Ovi parovi daju raznolikost (više usera, više property-a, oba vlasnika)
-        // Owner1 property-i: 1,2,4,10,12,16,18,24,28,30
-        // Owner2 property-i: 3,7,9,13,15,17,19,21,23,29
-        var monthlyPairs = new (int userId, int propertyId, decimal price)[]
+        // ================= MJESEČNE REZERVACIJE =================
+        // (Id, cijena)
+        var monthlyReservations = new (int reservationId, decimal price)[]
         {
-            (4, 1, 1550),   // owner1
-            (5, 2, 1450),
-            (7, 4, 1800),
-            (9, 10, 2000),
-            (5, 12, 1750),
-            (10, 16, 1200),
-            (8, 18, 950),
-            (6, 24, 1750),
-            (7, 28, 1850),
-            (4, 30, 1700),
-
-            (6, 3, 1650),   // owner2
-            (8, 7, 1100),
-            (8, 9, 1650),
-            (10, 13, 1550),
-            (9, 15, 1600),
-            (2, 17, 1500),
-            (4, 19, 1300),
-            (7, 21, 1350),
-            (2, 23, 1650),
-            (10, 29, 1200),
+    (1, 1550),
+    (2, 1450),
+    (3, 1650),
+    (4, 1800),
+    (5, 1650),
+    (6, 2000),
+    (7, 1200),
+    (8, 1650),
         };
 
         // 12/2025, 01/2026, 02/2026
-        foreach (var (u, p, price) in monthlyPairs)
+        foreach (var (reservationId, price) in monthlyReservations)
         {
-            AddMonthlyPayment(u, p, price, 2025, 12);
-            AddMonthlyPayment(u, p, price, 2026, 1);
-            AddMonthlyPayment(u, p, price, 2026, 2);
+            AddMonthlyPayment(reservationId, price, 2025, 12);
+            AddMonthlyPayment(reservationId, price, 2026, 1);
+            AddMonthlyPayment(reservationId, price, 2026, 2);
         }
 
-        // malo “kratkih boravaka” (također IsPayed=true) za dodatni promet i raznolikost
+        // ================= KRATKI BORAVCI =================
+
+        // Reservation 9
         payments.Add(new Payment
         {
             Id = payId++,
-            UserId = 5,
-            PropertyId = 8,
-            Name = "Kratki boravak 12.2025",
+            ReservationId = 9,
+            Name = "Kratki boravak 02.2026",
             Comment = "Uplata za kratki boravak.",
             Price = 420,
             IsPayed = true,
-            MonthNumber = 12,
-            YearNumber = 2025,
-            DateToPay = new DateTime(2025, 12, 18, 0, 0, 0, DateTimeKind.Utc),
-            WarningDateToPay = new DateTime(2025, 12, 22, 0, 0, 0, DateTimeKind.Utc),
+            MonthNumber = 2,
+            YearNumber = 2026,
+            DateToPay = new DateTime(2026, 2, 10, 0, 0, 0, DateTimeKind.Utc),
+            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, DateTimeKind.Utc),
+            PaidAt = new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc),
+            PaymentStatus = "Paid"
         });
 
+        // Reservation 10
         payments.Add(new Payment
         {
             Id = payId++,
-            UserId = 6,
-            PropertyId = 14,
+            ReservationId = 10,
             Name = "Kratki boravak 01.2026",
             Comment = "Uplata za kratki boravak.",
             Price = 380,
             IsPayed = true,
             MonthNumber = 1,
             YearNumber = 2026,
-            DateToPay = new DateTime(2026, 1, 12, 0, 0, 0, DateTimeKind.Utc),
-            WarningDateToPay = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc),
+            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc),
+            WarningDateToPay = new DateTime(2026, 1, 8, 0, 0, 0, DateTimeKind.Utc),
+            PaidAt = new DateTime(2026, 1, 4, 0, 0, 0, DateTimeKind.Utc),
+            PaymentStatus = "Paid"
         });
+
+        // ================= NEPLAĆENI PRIMJERI =================
 
         payments.Add(new Payment
         {
             Id = payId++,
-            UserId = 9,
-            PropertyId = 25,
-            Name = "Kratki boravak 02.2026",
-            Comment = "Uplata za kratki boravak.",
-            Price = 510,
-            IsPayed = true,
-            MonthNumber = 2,
-            YearNumber = 2026,
-            DateToPay = new DateTime(2026, 2, 8, 0, 0, 0, DateTimeKind.Utc),
-            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, DateTimeKind.Utc),
-        });
-
-        // Par neplaćenih za 03/2026 (da vidiš da izvještaj neće računati)
-        payments.Add(new Payment
-        {
-            Id = payId++,
-            UserId = 4,
-            PropertyId = 1,
+            ReservationId = 1,
             Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
             Comment = "Čeka uplatu.",
             Price = 1550,
@@ -849,21 +962,22 @@ public static class SeedData
             YearNumber = 2026,
             DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, DateTimeKind.Utc),
+            PaymentStatus = "Pending"
         });
 
         payments.Add(new Payment
         {
             Id = payId++,
-            UserId = 10,
-            PropertyId = 23,
+            ReservationId = 6,
             Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
             Comment = "Čeka uplatu.",
-            Price = 1650,
+            Price = 2000,
             IsPayed = false,
             MonthNumber = 3,
             YearNumber = 2026,
             DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, DateTimeKind.Utc),
+            PaymentStatus = "Pending"
         });
 
         modelBuilder.Entity<Payment>().HasData(payments);
@@ -913,6 +1027,43 @@ modelBuilder.Entity<Review>().HasData(
     // par “strožijih” ocjena da izgleda realnije
     new Review { Id = 24, UserId = 5,  PropertyId = 1,  StarRate = 2, Comment = "Lokacija dobra, ali higijena može bolje." },
     new Review { Id = 25, UserId = 8,  PropertyId = 10, StarRate = 3, Comment = "Sve ok, ali parkiranje je bilo problem." }
+);
+
+        modelBuilder.Entity<Question>().HasData(
+    new Question { Id = 1, UserId = 2, PropertyId = 1, Content = "Da li su režije uključene u cijenu najma?", CreatedAt = new DateTime(2026, 3, 1, 10, 15, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 2, UserId = 4, PropertyId = 2, Content = "Da li je dozvoljeno držanje kućnih ljubimaca?", CreatedAt = new DateTime(2026, 3, 2, 11, 20, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 3, UserId = 5, PropertyId = 3, Content = "Koliki je depozit za ovu nekretninu?", CreatedAt = new DateTime(2026, 3, 3, 9, 45, 0, DateTimeKind.Utc), IsAnswered = false },
+    new Question { Id = 4, UserId = 6, PropertyId = 4, Content = "Da li stan ima parking mjesto?", CreatedAt = new DateTime(2026, 3, 4, 14, 10, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 5, UserId = 7, PropertyId = 5, Content = "Da li je internet uključen u cijenu?", CreatedAt = new DateTime(2026, 3, 5, 16, 0, 0, DateTimeKind.Utc), IsAnswered = false },
+    new Question { Id = 6, UserId = 8, PropertyId = 6, Content = "Može li se nekretnina iznajmiti samo na mjesec dana?", CreatedAt = new DateTime(2026, 3, 6, 12, 30, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 7, UserId = 9, PropertyId = 7, Content = "Koji je minimalan period najma?", CreatedAt = new DateTime(2026, 3, 7, 8, 50, 0, DateTimeKind.Utc), IsAnswered = false },
+    new Question { Id = 8, UserId = 10, PropertyId = 8, Content = "Da li je grijanje centralno ili etažno?", CreatedAt = new DateTime(2026, 3, 8, 13, 15, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 9, UserId = 2, PropertyId = 9, Content = "Postoji li mogućnost razgledanja uživo vikendom?", CreatedAt = new DateTime(2026, 3, 9, 10, 40, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 10, UserId = 4, PropertyId = 10, Content = "Da li su dozvoljene manje adaptacije u stanu?", CreatedAt = new DateTime(2026, 3, 10, 15, 25, 0, DateTimeKind.Utc), IsAnswered = false },
+    new Question { Id = 11, UserId = 5, PropertyId = 1, Content = "Ima li zgrada lift?", CreatedAt = new DateTime(2026, 3, 11, 9, 5, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 12, UserId = 6, PropertyId = 2, Content = "Da li je stan odmah useljiv?", CreatedAt = new DateTime(2026, 3, 12, 17, 35, 0, DateTimeKind.Utc), IsAnswered = false },
+    new Question { Id = 13, UserId = 7, PropertyId = 3, Content = "Koliko iznose prosječne mjesečne režije?", CreatedAt = new DateTime(2026, 3, 13, 11, 55, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 14, UserId = 8, PropertyId = 4, Content = "Da li nekretnina ima balkon?", CreatedAt = new DateTime(2026, 3, 14, 14, 45, 0, DateTimeKind.Utc), IsAnswered = false },
+    new Question { Id = 15, UserId = 9, PropertyId = 5, Content = "Da li je moguće platiti depozit u dvije rate?", CreatedAt = new DateTime(2026, 3, 15, 10, 10, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 16, UserId = 10, PropertyId = 6, Content = "Da li su studenti poželjni kao zakupci?", CreatedAt = new DateTime(2026, 3, 16, 13, 20, 0, DateTimeKind.Utc), IsAnswered = false },
+    new Question { Id = 17, UserId = 2, PropertyId = 7, Content = "Da li kuhinja dolazi sa svim aparatima?", CreatedAt = new DateTime(2026, 3, 17, 16, 40, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 18, UserId = 4, PropertyId = 8, Content = "Može li se rezervisati termin razgledanja za sutra?", CreatedAt = new DateTime(2026, 3, 18, 12, 5, 0, DateTimeKind.Utc), IsAnswered = false },
+    new Question { Id = 19, UserId = 5, PropertyId = 9, Content = "Da li se uz stan dobija i podrumska ostava?", CreatedAt = new DateTime(2026, 3, 19, 9, 30, 0, DateTimeKind.Utc), IsAnswered = true },
+    new Question { Id = 20, UserId = 6, PropertyId = 10, Content = "Koliko je udaljena najbliža autobuska stanica?", CreatedAt = new DateTime(2026, 3, 20, 18, 10, 0, DateTimeKind.Utc), IsAnswered = false }
+);
+
+        modelBuilder.Entity<Answer>().HasData(
+    new Answer { Id = 1, QuestionId = 1, UserId = 1, Content = "Režije nisu uključene u cijenu i plaćaju se odvojeno svaki mjesec.", CreatedAt = new DateTime(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc) },
+    new Answer { Id = 2, QuestionId = 2, UserId = 1, Content = "Kućni ljubimci su dozvoljeni uz prethodni dogovor sa vlasnikom.", CreatedAt = new DateTime(2026, 3, 2, 13, 10, 0, DateTimeKind.Utc) },
+    new Answer { Id = 3, QuestionId = 4, UserId = 1, Content = "Da, uz stan dolazi jedno privatno parking mjesto.", CreatedAt = new DateTime(2026, 3, 4, 15, 0, 0, DateTimeKind.Utc) },
+    new Answer { Id = 4, QuestionId = 6, UserId = 1, Content = "Moguće je iznajmiti nekretninu i na period od jednog mjeseca.", CreatedAt = new DateTime(2026, 3, 6, 14, 20, 0, DateTimeKind.Utc) },
+    new Answer { Id = 5, QuestionId = 8, UserId = 1, Content = "Grijanje je centralno i uključeno je u redovne mjesečne troškove.", CreatedAt = new DateTime(2026, 3, 8, 15, 45, 0, DateTimeKind.Utc) },
+    new Answer { Id = 6, QuestionId = 9, UserId = 1, Content = "Da, moguće je zakazati razgledanje i vikendom uz prethodnu rezervaciju termina.", CreatedAt = new DateTime(2026, 3, 9, 12, 0, 0, DateTimeKind.Utc) },
+    new Answer { Id = 7, QuestionId = 11, UserId = 1, Content = "Da, zgrada posjeduje lift koji je redovno održavan.", CreatedAt = new DateTime(2026, 3, 11, 11, 30, 0, DateTimeKind.Utc) },
+    new Answer { Id = 8, QuestionId = 13, UserId = 1, Content = "Prosječne mjesečne režije iznose između 120 KM i 180 KM, zavisno od sezone.", CreatedAt = new DateTime(2026, 3, 13, 13, 40, 0, DateTimeKind.Utc) },
+    new Answer { Id = 9, QuestionId = 15, UserId = 1, Content = "Da, moguće je depozit platiti u dvije rate prema dogovoru.", CreatedAt = new DateTime(2026, 3, 15, 12, 25, 0, DateTimeKind.Utc) },
+    new Answer { Id = 10, QuestionId = 17, UserId = 1, Content = "Da, kuhinja dolazi sa frižiderom, šporetom i mašinom za suđe.", CreatedAt = new DateTime(2026, 3, 17, 18, 10, 0, DateTimeKind.Utc) },
+    new Answer { Id = 11, QuestionId = 19, UserId = 1, Content = "Da, uz stan se dobija i podrumska ostava koja je uključena u cijenu.", CreatedAt = new DateTime(2026, 3, 19, 11, 0, 0, DateTimeKind.Utc) }
 );
     }
 }

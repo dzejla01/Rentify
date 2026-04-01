@@ -32,13 +32,5 @@ namespace Rentify.WebAPI.Controllers
 
             return Ok(res);
         }
-
-        [HttpDelete("delete-all/{id}")]
-        public async Task<IActionResult> DeleteAll(int id)
-        {
-            var ok = await _reservationService.DeleteAll(id);
-            if (!ok) return NotFound();
-            return NoContent();
-        }
     }
 }

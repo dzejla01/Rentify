@@ -1,7 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/providers/auth_provider.dart';
+import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/providers/user_provider.dart';
+import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
 import 'package:rentify_mobile/models/search_result.dart';
@@ -166,9 +169,23 @@ Future<void> _loadHeaderUserFullName() async {
   Widget build(BuildContext context) {
     return BaseMobileScreen(
       title: "Rezervacije",
-      NameAndSurname: (_fullName.isNotEmpty ? _fullName : (Session.username ?? "Nepoznato")).trim(),
+      NameAndSurname: Session.fullName!,
       userUsername: Session.username ?? "Nepoznato",
-      onLogout: () => Session.odjava(),
+      userImageAsset: Session.userImage,
+      onLogout: () async {
+  await Session.odjava(
+    deviceTokenProvider: context.read<DeviceTokenProvider>(),
+    authProvider: context.read<AuthProvider>(),
+  );
+
+  if (!context.mounted) return;
+
+  Navigator.pushNamedAndRemoveUntil(
+    context,
+    AppRoutes.login,
+    (route) => false,
+  );
+},
       child: Container(
         color: const Color(0xFFF6F7FB),
         child: Column(

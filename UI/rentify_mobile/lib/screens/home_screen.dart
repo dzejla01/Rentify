@@ -73,6 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final userId = Session.userId;
+      
       if (userId == null) {
         throw Exception("Nema userId u sesiji.");
       }
@@ -99,34 +100,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return BaseMobileScreen(
       title: "Početna",
-      NameAndSurname: "${_user?.firstName ?? ""} ${_user?.lastName ?? ""}"
-          .trim(),
+      NameAndSurname: Session.fullName ?? "Nepoznato",
       userUsername: Session.username ?? "Nepoznato",
-      userImageAsset: _user?.userImage,
+      userImageAsset: Session.userImage,
       onLogout: () async {
-        final deviceTokenProvider = context.read<DeviceTokenProvider>();
-        final authProvider = context.read<AuthProvider>();
+  await Session.odjava(
+    deviceTokenProvider: context.read<DeviceTokenProvider>(),
+    authProvider: context.read<AuthProvider>(),
+  );
 
-        try {
-          if (Session.fcmToken != null && Session.fcmToken!.isNotEmpty) {
-            await deviceTokenProvider.unregisterFcmToken();
-          }
-        } catch (_) {}
+  if (!context.mounted) return;
 
-        try {
-          await authProvider.logout();
-        } catch (_) {}
-
-        Session.odjava();
-
-        if (!context.mounted) return;
-
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          AppRoutes.login,
-          (route) => false,
-        );
-      },
+  Navigator.pushNamedAndRemoveUntil(
+    context,
+    AppRoutes.login,
+    (route) => false,
+  );
+},
       child: _loadingUser
           ? const Center(child: CircularProgressIndicator())
           : _userError != null

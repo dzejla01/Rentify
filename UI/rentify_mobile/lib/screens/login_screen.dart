@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/config/token_storage.dart';
 
 import 'package:rentify_mobile/dialogs/forgot_password_dialog.dart';
 import 'package:rentify_mobile/helper/snackBar_helper.dart';
@@ -59,78 +60,60 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _login() async {
-    FocusScope.of(context).unfocus();
-    if (!_formKey.currentState!.validate()) return;
+  FocusScope.of(context).unfocus();
+  if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+  setState(() => _isLoading = true);
 
-    try {
-      final result = await _authProvider.prijava(
-        LoginRequest(username: _username.text.trim(), password: _password.text),
+  try {
+    final result = await _authProvider.prijava(
+      LoginRequest(
+        username: _username.text.trim(),
+        password: _password.text,
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (result == "ZABRANJENO") {
+      SnackbarHelper.showError(
+        context,
+        'Nemate privilegije za pristup aplikaciji',
       );
-
-      if (!mounted) return;
-
-      if (result == "ZABRANJENO") {
-        SnackbarHelper.showError(
-          context,
-          'Nemate privilegije za pristup aplikaciji',
-        );
-        return;
-      }
-
-      if (result == "NEISPRAVNO") {
-        SnackbarHelper.showError(
-          context,
-          'Pogrešno korisničko ime ili lozinka',
-        );
-        return;
-      }
-
-      if (result == "GRESKA") {
-        SnackbarHelper.showError(
-          context,
-          'Greška pri prijavi. Pokušaj ponovo.',
-        );
-        return;
-      }
-
-      final jwt = result;
-      if (jwt.isEmpty) {
-        SnackbarHelper.showError(
-          context,
-          'Pogrešno korisničko ime ili lozinka',
-        );
-        return;
-      }
-
-      await context.read<AuthProvider>().setToken(jwt);
-      final fcm = await FirebaseMessaging.instance.getToken();
-      debugPrint("FCM TOKEN (after login): $fcm");
-
-      if (fcm != null && fcm.isNotEmpty) {
-        Session.fcmToken = fcm;
-
-        try {
-          await context.read<DeviceTokenProvider>().registerFcmToken();
-          context.read<DeviceTokenProvider>().listenForTokenRefresh();
-        } catch (_) {
-        }
-      }
-
-      final goTo = Session.isLoggingFirstTime!
-          ? AppRoutes
-                .taggs // tvoja ruta
-          : AppRoutes.home;
-
-      Navigator.pushReplacementNamed(context, goTo);
-    } catch (e) {
-      if (!mounted) return;
-      SnackbarHelper.showError(context, 'Greška pri prijavi. Pokušaj ponovo.');
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      return;
     }
+
+    final jwt = Session.token;
+    await context.read<AuthProvider>().setToken(jwt!);
+
+    final fcm = await FirebaseMessaging.instance.getToken();
+
+    if (fcm != null && fcm.isNotEmpty) {
+      Session.fcmToken = fcm;
+      await TokenStorage.saveFcmToken(fcm);
+
+      try {
+        await context.read<DeviceTokenProvider>().registerFcmToken();
+        context.read<DeviceTokenProvider>().listenForTokenRefresh();
+      } catch (_) {}
+    }
+
+    final goTo = Session.isLoggingFirstTime == true
+        ? AppRoutes.taggs
+        : AppRoutes.home;
+
+    Navigator.pushReplacementNamed(context, goTo);
+  } catch (e) {
+    if (!mounted) return;
+
+    SnackbarHelper.showError(
+      context,
+      '$e',
+    );
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
   }
+}
 
   @override
   Widget build(BuildContext context) {

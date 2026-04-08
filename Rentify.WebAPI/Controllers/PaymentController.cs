@@ -29,7 +29,7 @@ namespace Rentify.WebAPI.Controllers
             _stripeSettings = stripeSettings;
         }
 
-        //[Authorize(Roles = "Korisnik")]
+        [Authorize(Roles = "Korisnik")]
         [HttpPost("create-new-intent")]
         public async Task<IActionResult> CreateNewPaymentIntent([FromBody] CreatePaymentIntentRequest req)
         {

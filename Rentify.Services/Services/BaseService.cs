@@ -12,6 +12,7 @@ using Rentify.Model.ResponseObjects;
 
 namespace Rentify.Services.Services
 {
+    
     public abstract class BaseService<T, TSearch, TEntity> : IService<T, TSearch> where T : class where TSearch : BaseSearchObject where TEntity : class
     {
         private readonly RentifyDbContext _context;

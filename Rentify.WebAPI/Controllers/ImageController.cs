@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Rentify.Services.Interfaces;
 
 namespace Rentify.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/images")]
+    [Authorize]
     public class ImageController : ControllerBase
     {
         private readonly IImageService _imageService;

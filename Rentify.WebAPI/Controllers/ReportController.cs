@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.SearchObjects;
@@ -8,6 +9,7 @@ namespace Rentify.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Vlasnik")]
     public class ReportController : ControllerBase
     {
         private readonly IReportService _reportService;

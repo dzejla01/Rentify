@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
@@ -14,6 +15,24 @@ namespace Rentify.API.Controllers
     {
         public QuestionController(IQuestionService service) : base(service)
         {
+        }
+
+        [Authorize(Roles = "Korisnik")]
+        public override Task<QuestionResponse> Create([FromBody] QuestionUpsertRequest request)
+        {
+            return base.Create(request);
+        }
+
+        [Authorize(Roles = "Korisnik")]
+        public override Task<bool> Delete(int id)
+        {
+            return base.Delete(id);
+        }
+
+        [Authorize(Roles = "Korisnik")]
+        public override Task<QuestionResponse?> Update(int id, [FromBody] QuestionUpsertRequest request)
+        {
+            return base.Update(id, request);
         }
     }
 }

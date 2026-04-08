@@ -48,7 +48,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> Token() async {
     final token = await FirebaseMessaging.instance.getToken();
-    print("FCM TOKEN: $token");
   }
 
   Future<void> _forgotPasswordOrUsername() async {

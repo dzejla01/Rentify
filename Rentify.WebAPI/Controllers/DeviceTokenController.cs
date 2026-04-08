@@ -19,6 +19,7 @@ namespace Rentify.WebAPI.Controllers
         }
 
         [HttpPost("register")]
+        [Authorize(Roles = "Korisnik")]
         public async Task<IActionResult> Register([FromBody] DeviceTokenRegisterRequest req)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -27,6 +28,7 @@ namespace Rentify.WebAPI.Controllers
         }
 
         [HttpPost("unregister")]
+        [Authorize(Roles = "Korisnik")]
         public async Task<IActionResult> Unregister([FromBody] DeviceTokenUnregisterRequest req)
         {
             var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);

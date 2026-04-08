@@ -73,9 +73,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     if (userId == null || propertyId == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Korisnik ili nekretnina nisu dostupni."),
-        ),
+        const SnackBar(content: Text("Korisnik ili nekretnina nisu dostupni.")),
       );
       return;
     }
@@ -113,9 +111,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Nekretnina je uklonjena iz favorita."),
-          ),
+          const SnackBar(content: Text("Nekretnina je uklonjena iz favorita.")),
         );
       } else {
         final inserted = await favoriteProvider.insert({
@@ -130,18 +126,14 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Nekretnina je dodana u favorite."),
-          ),
+          const SnackBar(content: Text("Nekretnina je dodana u favorite.")),
         );
       }
     } catch (_) {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Greška pri radu sa favoritima."),
-        ),
+        const SnackBar(content: Text("Greška pri radu sa favoritima.")),
       );
     } finally {
       if (mounted) {
@@ -157,9 +149,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     if (propertyId == null || userId == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Korisnik ili nekretnina nisu dostupni."),
-        ),
+        const SnackBar(content: Text("Korisnik ili nekretnina nisu dostupni.")),
       );
       return;
     }
@@ -167,10 +157,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final sent = await showDialog<bool>(
       context: context,
       barrierDismissible: true,
-      builder: (_) => _AskQuestionDialog(
-        propertyId: propertyId,
-        userId: userId,
-      ),
+      builder: (_) =>
+          _AskQuestionDialog(propertyId: propertyId, userId: userId),
     );
 
     if (!mounted) return;
@@ -199,6 +187,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         "userId": userId,
         "propertyId": propertyId,
         "isMonthly": true,
+        "status": "Odobreno",
         "page": 0,
         "pageSize": 1,
         "includeTotalCount": false,
@@ -586,10 +575,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 /* ------------------- DIALOG ZA PITANJE ------------------- */
 
 class _AskQuestionDialog extends StatefulWidget {
-  const _AskQuestionDialog({
-    required this.propertyId,
-    required this.userId,
-  });
+  const _AskQuestionDialog({required this.propertyId, required this.userId});
 
   final int propertyId;
   final int userId;
@@ -888,12 +874,14 @@ class _GalleryHeaderState extends State<_GalleryHeader> {
                 ),
                 const Spacer(),
                 _RoundIconButton(
-                  onTap: widget.favoriteLoading ? () {} : widget.onToggleFavorite,
+                  onTap: widget.favoriteLoading
+                      ? () {}
+                      : widget.onToggleFavorite,
                   icon: widget.favoriteLoading
                       ? Icons.more_horiz_rounded
                       : (widget.isFavorite
-                          ? Icons.favorite_rounded
-                          : Icons.favorite_border_rounded),
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded),
                 ),
               ],
             ),
@@ -1305,11 +1293,7 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(
         text,
-        style: TextStyle(
-          fontWeight: FontWeight.w900,
-          fontSize: 12,
-          color: fg,
-        ),
+        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: fg),
       ),
     );
   }

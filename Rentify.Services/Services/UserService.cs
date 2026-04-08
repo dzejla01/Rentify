@@ -1,5 +1,4 @@
-﻿// Rentify.Services/Implementation/UserService.cs
-using MapsterMapper;
+﻿using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RabbitMQ.Client;
@@ -14,9 +13,7 @@ using Rentify.Services.Helpers;
 using Rentify.Services.Interfaces;
 using Rentify.Services.Services;
 using System;
-using System.Data;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -29,18 +26,24 @@ namespace Rentify.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IConnection _rabbitConnection;
-        public UserService(RentifyDbContext context, IConfiguration configuration,IMapper mapper, IConnection rabbitConnection) : base(context, mapper)
+
+        public UserService(
+            RentifyDbContext context,
+            IConfiguration configuration,
+            IMapper mapper,
+            IConnection rabbitConnection
+        ) : base(context, mapper)
         {
             _configuration = configuration;
             _rabbitConnection = rabbitConnection;
         }
-
 
         protected override IQueryable<User> ApplyFilter(IQueryable<User> query, UserSearchObject search)
         {
             if (!string.IsNullOrWhiteSpace(search.NameFTS))
             {
                 var s = search.NameFTS.Trim().ToLower();
+
                 query = query.Where(x =>
                     x.FirstName.ToLower().Contains(s) ||
                     x.LastName.ToLower().Contains(s) ||
@@ -61,7 +64,6 @@ namespace Rentify.Services
         {
             _mapper.Map(request, entity);
 
-            // Password
             if (!string.IsNullOrWhiteSpace(request.Password))
             {
                 UserHelper.CreatePasswordHash(request.Password, out var hash, out var salt);
@@ -91,7 +93,6 @@ namespace Rentify.Services
 
         protected override async Task BeforeInsert(User entity, UserInsertRequest request)
         {
-
             var exists = await _context.Users.AnyAsync(x =>
                 x.Username == entity.Username || x.Email == entity.Email);
 
@@ -104,9 +105,10 @@ namespace Rentify.Services
         protected override async Task BeforeUpdate(User entity, UserUpdateRequest request)
         {
             entity.IsLoggingFirstTime = false;
-            
+
             var exists = await _context.Users.AnyAsync(x =>
-                x.Id != entity.Id && (x.Username == request.Username || x.Email == request.Email));
+                x.Id != entity.Id &&
+                (x.Username == request.Username || x.Email == request.Email));
 
             if (exists)
                 throw new InvalidOperationException("Korisnik sa istim username/email već postoji.");
@@ -120,10 +122,10 @@ namespace Rentify.Services
                 .FirstOrDefaultAsync(x => x.Username == request.Username);
 
             if (user == null)
-                throw new UserException("Pogrešan username ili password");
+                throw new UserException("Pogrešan username ili password.");
 
-            if(!user.IsActive)
-                throw new UserException("Korisnik je neaktivan, kontaktirajte admina");
+            if (!user.IsActive)
+                throw new UserException("Korisnik je neaktivan, kontaktirajte admina.");
 
             if (!UserHelper.VerifyPassword(request.Password, user.PasswordHash, user.PasswordSalt))
                 throw new UserException("Pogrešan username ili password.");
@@ -134,10 +136,11 @@ namespace Rentify.Services
             {
                 UserId = user.Id,
                 UserName = request.Username,
-                FullName = user.FirstName + " " + user.LastName,
+                FullName = $"{user.FirstName} {user.LastName}".Trim(),
                 UserImage = user.UserImage,
                 Token = token,
                 Roles = user.UserRoles
+                    .Where(ur => ur.Role != null)
                     .Select(ur => ur.Role.Name)
                     .ToList(),
                 IsLoggingFirstTime = user.IsLoggingFirstTime
@@ -157,7 +160,7 @@ namespace Rentify.Services
             if (user == null)
                 throw new NotFoundException("Email nije povezan ni sa jednim nalogom.");
 
-            var newPassword = GenerateRandomPassword();
+            var newPassword = UserHelper.GenerateSecurePassword(12);
 
             UserHelper.CreatePasswordHash(newPassword, out string hash, out string salt);
 
@@ -183,9 +186,7 @@ namespace Rentify.Services
                 NewPassword = newPassword
             };
 
-            var body = Encoding.UTF8.GetBytes(
-                JsonSerializer.Serialize(message)
-            );
+            var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
 
             await channel.BasicPublishAsync(
                 exchange: "",
@@ -193,22 +194,5 @@ namespace Rentify.Services
                 body: body
             );
         }
-
-        private string GenerateRandomPassword(int length = 10)
-        {
-            const string chars =
-                "ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz0123456789!@$?";
-
-            var random = new Random();
-            return new string(
-                Enumerable.Repeat(chars, length)
-                    .Select(s => s[random.Next(s.Length)])
-                    .ToArray()
-            );
-        }
-
-
-
-
     }
 }

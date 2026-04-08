@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:rentify_desktop/config/api_config.dart';
+import 'package:rentify_desktop/helper/http_helper.dart';
+import 'package:rentify_desktop/models/best_owner_by_year.dart';
+import 'package:rentify_desktop/models/best_owner_by_year_request.dart';
 import 'package:rentify_desktop/models/income_report.dart';
 import 'package:rentify_desktop/utils/session.dart';
 
@@ -36,4 +39,23 @@ class IncomeReportApi {
     final data = jsonDecode(res.body) as Map<String, dynamic>;
     return IncomeReport.fromJson(data);
   }
+
+  Future<BestOwnerByYear?> getBestOwnerByYear({
+  required int year,
+}) async {
+  final request = BestOwnerByYearRequest(year: year);
+
+  final uri = Uri.parse("${ApiConfig.apiBase}/api/Report/best-owner-by-year");
+
+  final res = await http.post(
+    uri,
+    headers: HttpHelper.getHeaders(),
+    body: jsonEncode(request.toJson()),
+  );
+
+  HttpHelper.checkResponse(res);
+
+  final data = jsonDecode(res.body) as Map<String, dynamic>;
+  return BestOwnerByYear.fromJson(data);
+}
 }

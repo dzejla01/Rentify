@@ -86,7 +86,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
                 ],
                 rowBuilder: (property) => [
                   SizedBox(width: 220, child: Text(property.name)),
-                  SizedBox(width: 240, child: Text(property.location)),
+                  SizedBox(width: 240, child: Text(property.location, maxLines: 2)),
                   SizedBox(width: 100, child: _checkIcon(property.isAvailable)),
                   SizedBox(
                     width: 100,

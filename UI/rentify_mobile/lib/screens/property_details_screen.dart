@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/base_dialogs.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_mobile/helper/image_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/property_images.dart';
 import 'package:rentify_mobile/providers/favorite_provider.dart';
@@ -217,7 +218,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final city = (property.city ?? "").trim();
     final location = (property.location ?? "").trim();
     final details = (property.details ?? "").trim();
-    final squares = (property.numberOfsquares ?? "").trim();
+    final squares = (property.squareMeters ?? "");
 
     final monthPrice = property.pricePerMonth;
     final dayPrice = property.pricePerDay;
@@ -288,7 +289,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               Expanded(
                                 child: _SmallStat(
                                   title: "Kvadratura",
-                                  value: squares.isEmpty ? "—" : "$squares m²",
+                                  value: squares == null ? "—" : "$squares m²",
                                   icon: Icons.square_foot_rounded,
                                   accent: rentifyGreenDark,
                                 ),
@@ -845,7 +846,7 @@ class _GalleryHeaderState extends State<_GalleryHeader> {
                     itemBuilder: (context, i) {
                       final url = images[i].propertyImg;
                       return Image.network(
-                        url ?? "",
+                        ImageHelper.httpCheck(url, 'properties'),
                         fit: BoxFit.cover,
                         width: double.infinity,
                         errorBuilder: (_, __, ___) => Container(
@@ -1131,6 +1132,7 @@ class _IconRow extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 subtitle,
+                maxLines: 2,
                 style: const TextStyle(
                   fontWeight: FontWeight.w700,
                   color: Color(0xFF7A7A7A),

@@ -6,10 +6,10 @@
         public string? Name { get; set; }
         public string? City { get; set; }
         public bool? IsAvailable { get; set; }
-        public double? MinPriceMonth { get; set; }
-        public double? MaxPriceMonth { get; set; }
-        public double? MinPriceDays { get; set; }
-        public double? MaxPriceDays { get; set; }
+        public decimal? MinPriceMonth { get; set; }
+        public decimal? MaxPriceMonth { get; set; }
+        public decimal? MinPriceDays { get; set; }
+        public decimal? MaxPriceDays { get; set; }
 
         public bool? IncludeUser {get; set;}
     }

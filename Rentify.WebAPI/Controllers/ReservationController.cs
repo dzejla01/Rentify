@@ -17,8 +17,8 @@ namespace Rentify.WebAPI.Controllers
         }
 
         // GET api/reservations/unavailable-dates?propertyId=12&from=2026-03-01&to=2026-06-01
-        [HttpGet("unavailable-dates")]
-        public async Task<ActionResult<UnavailableDatesResponse>> GetUnavailableDates(
+        [HttpGet("unavailable-ap-dates")]
+        public async Task<ActionResult<UnavailableDatesResponse>> GetUnavailableApDates(
             [FromQuery] int propertyId,
             [FromQuery] DateTime? from,
             [FromQuery] DateTime? to
@@ -32,5 +32,22 @@ namespace Rentify.WebAPI.Controllers
 
             return Ok(res);
         }
+
+        [HttpGet("unavailable-res-dates")]
+        public async Task<ActionResult<UnavailableDatesResponse>> GetUnavailableResDates(
+            [FromQuery] int propertyId,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to
+        )
+        {
+            if (propertyId <= 0) return BadRequest("propertyId nije validan.");
+
+            var res = await _reservationService.GetUnavailableReservationDatesAsync(
+                propertyId, from, to
+            );
+
+            return Ok(res);
+        }
+
     }
 }

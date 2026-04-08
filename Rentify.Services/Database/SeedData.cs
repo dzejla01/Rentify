@@ -1,596 +1,159 @@
-// using Microsoft.EntityFrameworkCore;
-// using Rentify.Services.Database;
-// using Rentify.Services.Helpers;
-
-// public static class SeedData
-// {
-//     private static string PropertyImageUrl(int propertyId, int index)
-//         => $"https://picsum.photos/seed/property-{propertyId}-{index}/900/600";
-
-//     public static void Seed(ModelBuilder modelBuilder)
-//     {
-//         UserHelper.CreatePasswordHash(
-//            "Test123!",
-//            out var hashBase64,
-//            out var saltBase64
-//         );
-
-//         // ================= ROLES =================
-//         modelBuilder.Entity<Role>().HasData(
-//             new Role { Id = 1, Name = "Korisnik", Description = "Standardni korisnik aplikacije", IsActive = true, CreatedAt = DateTime.UtcNow },
-//             new Role { Id = 2, Name = "Vlasnik", Description = "Vlasnik nekretnina", IsActive = true, CreatedAt = DateTime.UtcNow }
-//         );
-
-//         // ================= USERS =================
-//         modelBuilder.Entity<User>().HasData(
-//             new User { Id = 1, FirstName = "Marko", LastName = "Petrov", Email = "owner.testni@gmail.com", Username = "owner1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
-//             new User { Id = 2, FirstName = "Ivana", LastName = "Kovac", Email = "ivana.kovac@rentify.dev", Username = "user1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
-//             new User { Id = 3, FirstName = "Nikola", LastName = "Jovic", Email = "nikola.jovic@rentify.dev", Username = "owner2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
-//             new User { Id = 4, FirstName = "Amar", LastName = "Hodzic", Email = "amar.hodzic@rentify.dev", Username = "user2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false }
-//         );
-
-//         modelBuilder.Entity<UserRole>().HasData(
-//             new UserRole { UserId = 1, RoleId = 2 },
-//             new UserRole { UserId = 2, RoleId = 1 },
-//             new UserRole { UserId = 3, RoleId = 2 },
-//             new UserRole { UserId = 4, RoleId = 1 }
-//         );
-
-//         // ================= PROPERTIES =================
-//         modelBuilder.Entity<Property>().HasData(
-
-//     // =========================
-//     // SARAJEVO (8)
-//     // =========================
-//     new Property
-//     {
-//         Id = 1,
-//         UserId = 1,
-//         Name = "Central City Apartment",
-//         City = "Sarajevo",
-//         Location = "Zmaja od Bosne 12",
-//         PricePerDay = 65,
-//         PricePerMonth = 1550,
-//         Tags = new() { "urban", "bright", "central", "modern" },
-//         NumberOfsquares = "55",
-//         Details = "Bright apartment in central Sarajevo.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 2,
-//         UserId = 1,
-//         Name = "Old Town Flat",
-//         City = "Sarajevo",
-//         Location = "Bistrik 7",
-//         PricePerDay = 60,
-//         PricePerMonth = 1450,
-//         Tags = new() { "historic", "authentic", "warm" },
-//         NumberOfsquares = "48",
-//         Details = "Flat near the old town.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 3,
-//         UserId = 3,
-//         Name = "Hillside View Apartment",
-//         City = "Sarajevo",
-//         Location = "Alipašina 42",
-//         PricePerDay = 70,
-//         PricePerMonth = 1650,
-//         Tags = new() { "view", "calm", "elevated" },
-//         NumberOfsquares = "60",
-//         Details = "Apartment with city views.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 4,
-//         UserId = 1,
-//         Name = "Modern Loft",
-//         City = "Sarajevo",
-//         Location = "Kolodvorska 18",
-//         PricePerDay = 75,
-//         PricePerMonth = 1800,
-//         Tags = new() { "loft", "stylish", "open" },
-//         NumberOfsquares = "62",
-//         Details = "Modern loft style apartment.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 5,
-//         UserId = 3,
-//         Name = "Quiet Residential Flat",
-//         City = "Sarajevo",
-//         Location = "Grbavička 91",
-//         PricePerDay = 55,
-//         PricePerMonth = 1350,
-//         Tags = new() { "quiet", "balanced", "comfortable" },
-//         NumberOfsquares = "50",
-//         Details = "Calm residential apartment.",
-//         IsAvailable = false,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 6,
-//         UserId = 1,
-//         Name = "Sunny Apartment",
-//         City = "Sarajevo",
-//         Location = "Hamze Hume 5",
-//         PricePerDay = 68,
-//         PricePerMonth = 1600,
-//         Tags = new() { "sunny", "warm", "airy" },
-//         NumberOfsquares = "57",
-//         Details = "Sunny apartment with open layout.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 7,
-//         UserId = 3,
-//         Name = "Compact Studio",
-//         City = "Sarajevo",
-//         Location = "Logavina 23",
-//         PricePerDay = 45,
-//         PricePerMonth = 1100,
-//         Tags = new() { "compact", "simple", "efficient" },
-//         NumberOfsquares = "32",
-//         Details = "Compact studio apartment.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 8,
-//         UserId = 1,
-//         Name = "Panorama Residence",
-//         City = "Sarajevo",
-//         Location = "Skenderija 10",
-//         PricePerDay = 80,
-//         PricePerMonth = 1900,
-//         Tags = new() { "panorama", "exclusive", "bright" },
-//         NumberOfsquares = "70",
-//         Details = "Residence with panoramic city view.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-
-//     // =========================
-//     // MOSTAR (7)
-//     // =========================
-//     new Property
-//     {
-//         Id = 9,
-//         UserId = 3,
-//         Name = "River Side Apartment",
-//         City = "Mostar",
-//         Location = "Maršala Tita 14",
-//         PricePerDay = 70,
-//         PricePerMonth = 1650,
-//         Tags = new() { "river", "relaxing", "open" },
-//         NumberOfsquares = "58",
-//         Details = "Apartment near the river.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 10,
-//         UserId = 1,
-//         Name = "Old Bridge View Flat",
-//         City = "Mostar",
-//         Location = "Rade Bitange 3",
-//         PricePerDay = 85,
-//         PricePerMonth = 2000,
-//         Tags = new() { "iconic", "view", "historic" },
-//         NumberOfsquares = "65",
-//         Details = "Flat with a view of the Old Bridge.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 11,
-//         UserId = 3,
-//         Name = "Stone House Apartment",
-//         City = "Mostar",
-//         Location = "Braće Fejića 27",
-//         PricePerDay = 60,
-//         PricePerMonth = 1450,
-//         Tags = new() { "stone", "traditional", "cool" },
-//         NumberOfsquares = "50",
-//         Details = "Traditional stone apartment.",
-//         IsAvailable = false,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 12,
-//         UserId = 1,
-//         Name = "Sunny Terrace Flat",
-//         City = "Mostar",
-//         Location = "Adema Buća 9",
-//         PricePerDay = 75,
-//         PricePerMonth = 1750,
-//         Tags = new() { "sunny", "terrace", "open" },
-//         NumberOfsquares = "60",
-//         Details = "Apartment with sunny terrace.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 13,
-//         UserId = 3,
-//         Name = "Quiet Center Apartment",
-//         City = "Mostar",
-//         Location = "Kralja Tvrtka 6",
-//         PricePerDay = 65,
-//         PricePerMonth = 1550,
-//         Tags = new() { "quiet", "central", "comfortable" },
-//         NumberOfsquares = "54",
-//         Details = "Quiet apartment in city center.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 14,
-//         UserId = 1,
-//         Name = "Minimal Flat",
-//         City = "Mostar",
-//         Location = "Splitska 22",
-//         PricePerDay = 55,
-//         PricePerMonth = 1300,
-//         Tags = new() { "minimal", "clean", "simple" },
-//         NumberOfsquares = "45",
-//         Details = "Minimalist apartment.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 15,
-//         UserId = 3,
-//         Name = "Evening Light Apartment",
-//         City = "Mostar",
-//         Location = "Put Mladih Muslimana 4",
-//         PricePerDay = 68,
-//         PricePerMonth = 1600,
-//         Tags = new() { "warm", "evening", "relaxed" },
-//         NumberOfsquares = "56",
-//         Details = "Warm and relaxed living space.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-
-//     // =========================
-//     // TUZLA (7)
-//     // =========================
-//     new Property
-//     {
-//         Id = 16,
-//         UserId = 1,
-//         Name = "City Center Apartment",
-//         City = "Tuzla",
-//         Location = "Slatina 15",
-//         PricePerDay = 50,
-//         PricePerMonth = 1200,
-//         Tags = new() { "central", "balanced", "urban" },
-//         NumberOfsquares = "48",
-//         Details = "Apartment in city center.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 17,
-//         UserId = 3,
-//         Name = "Salt Lake View Flat",
-//         City = "Tuzla",
-//         Location = "Turalibegova 8",
-//         PricePerDay = 65,
-//         PricePerMonth = 1500,
-//         Tags = new() { "lake", "fresh", "open" },
-//         NumberOfsquares = "55",
-//         Details = "Flat near salt lakes.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 18,
-//         UserId = 1,
-//         Name = "Quiet Residential Studio",
-//         City = "Tuzla",
-//         Location = "Batva 21",
-//         PricePerDay = 40,
-//         PricePerMonth = 950,
-//         Tags = new() { "quiet", "compact", "simple" },
-//         NumberOfsquares = "30",
-//         Details = "Studio in a quiet area.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 19,
-//         UserId = 3,
-//         Name = "Modern Flat",
-//         City = "Tuzla",
-//         Location = "Krečka 33",
-//         PricePerDay = 55,
-//         PricePerMonth = 1300,
-//         Tags = new() { "modern", "clean", "bright" },
-//         NumberOfsquares = "50",
-//         Details = "Modern city flat.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 20,
-//         UserId = 1,
-//         Name = "Family Apartment",
-//         City = "Tuzla",
-//         Location = "Brčanska Malta 12",
-//         PricePerDay = 60,
-//         PricePerMonth = 1400,
-//         Tags = new() { "family", "comfortable", "spacious" },
-//         NumberOfsquares = "62",
-//         Details = "Spacious apartment for families.",
-//         IsAvailable = false,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 21,
-//         UserId = 3,
-//         Name = "Sunlit Flat",
-//         City = "Tuzla",
-//         Location = "Stupine A2",
-//         PricePerDay = 58,
-//         PricePerMonth = 1350,
-//         Tags = new() { "sunny", "open", "warm" },
-//         NumberOfsquares = "53",
-//         Details = "Flat with great sunlight.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 22,
-//         UserId = 1,
-//         Name = "Calm Living Space",
-//         City = "Tuzla",
-//         Location = "Irac 6",
-//         PricePerDay = 52,
-//         PricePerMonth = 1250,
-//         Tags = new() { "calm", "balanced", "quiet" },
-//         NumberOfsquares = "49",
-//         Details = "Calm and balanced apartment.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-
-//     // =========================
-//     // BANJA LUKA (8)
-//     // =========================
-//     new Property
-//     {
-//         Id = 23,
-//         UserId = 3,
-//         Name = "City Loft",
-//         City = "Banja Luka",
-//         Location = "Kralja Petra I Karađorđevića 19",
-//         PricePerDay = 70,
-//         PricePerMonth = 1650,
-//         Tags = new() { "loft", "urban", "creative" },
-//         NumberOfsquares = "60",
-//         Details = "Urban loft in city center.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 24,
-//         UserId = 1,
-//         Name = "River Walk Apartment",
-//         City = "Banja Luka",
-//         Location = "Obala Stepe Stepanovića 7",
-//         PricePerDay = 75,
-//         PricePerMonth = 1750,
-//         Tags = new() { "river", "walkable", "fresh" },
-//         NumberOfsquares = "58",
-//         Details = "Apartment near river walk.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 25,
-//         UserId = 3,
-//         Name = "Minimal Residence",
-//         City = "Banja Luka",
-//         Location = "Cara Dušana 41",
-//         PricePerDay = 55,
-//         PricePerMonth = 1300,
-//         Tags = new() { "minimal", "clean", "simple" },
-//         NumberOfsquares = "47",
-//         Details = "Minimalist residence.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 26,
-//         UserId = 1,
-//         Name = "Family City Home",
-//         City = "Banja Luka",
-//         Location = "Bulevar Vojvode Stepe 88",
-//         PricePerDay = 65,
-//         PricePerMonth = 1550,
-//         Tags = new() { "family", "balanced", "comfortable" },
-//         NumberOfsquares = "64",
-//         Details = "Family-friendly city home.",
-//         IsAvailable = false,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 27,
-//         UserId = 3,
-//         Name = "Bright Studio",
-//         City = "Banja Luka",
-//         Location = "Gundulićeva 10",
-//         PricePerDay = 45,
-//         PricePerMonth = 1050,
-//         Tags = new() { "bright", "compact", "efficient" },
-//         NumberOfsquares = "33",
-//         Details = "Bright compact studio.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 28,
-//         UserId = 1,
-//         Name = "Panorama Flat",
-//         City = "Banja Luka",
-//         Location = "Kninska 25",
-//         PricePerDay = 78,
-//         PricePerMonth = 1850,
-//         Tags = new() { "panorama", "open", "elevated" },
-//         NumberOfsquares = "68",
-//         Details = "Flat with panoramic view.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 29,
-//         UserId = 3,
-//         Name = "Quiet Corner Apartment",
-//         City = "Banja Luka",
-//         Location = "Solunska 3",
-//         PricePerDay = 50,
-//         PricePerMonth = 1200,
-//         Tags = new() { "quiet", "corner", "calm" },
-//         NumberOfsquares = "46",
-//         Details = "Quiet corner apartment.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     },
-//     new Property
-//     {
-//         Id = 30,
-//         UserId = 1,
-//         Name = "Elegant City Flat",
-//         City = "Banja Luka",
-//         Location = "Vase Pelagića 17",
-//         PricePerDay = 72,
-//         PricePerMonth = 1700,
-//         Tags = new() { "elegant", "stylish", "urban" },
-//         NumberOfsquares = "61",
-//         Details = "Elegant flat in urban area.",
-//         IsAvailable = true,
-//         IsRentingPerDay = true,
-//         IsActiveOnApp = true
-//     }
-// );
-
-//         // ================= RESERVATIONS =================
-//         modelBuilder.Entity<Reservation>().HasData(
-//             new Reservation { Id = 1, UserId = 2, PropertyId = 1, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-//             new Reservation { Id = 2, UserId = 4, PropertyId = 2, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 2, 0, 0, 0, DateTimeKind.Utc) },
-//             new Reservation { Id = 3, UserId = 2, PropertyId = 4, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 3, 0, 0, 0, DateTimeKind.Utc) },
-//             new Reservation { Id = 4, UserId = 4, PropertyId = 6, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2026, 1, 4, 0, 0, 0, DateTimeKind.Utc) },
-
-//             new Reservation { Id = 5, UserId = 2, PropertyId = 8, IsMonthly = false, StartDateOfRenting = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc), EndDateOfRenting = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc), IsApproved = true, CreatedAt = new DateTime(2026, 2, 1, 0, 0, 0, DateTimeKind.Utc) }
-//         );
-
-//         // ================= PAYMENTS =================
-//         modelBuilder.Entity<Payment>().HasData(
-//             new Payment { Id = 1, UserId = 2, PropertyId = 1, Name = "Mjesečna rata 12.2025", Price = 1550, Comment = "", IsPayed = true, MonthNumber = 12, YearNumber = 2025 },
-//             new Payment { Id = 2, UserId = 2, PropertyId = 1, Name = "Mjesečna rata 01.2026", Price = 1550, Comment = "", IsPayed = true, MonthNumber = 1, YearNumber = 2026 },
-//             new Payment { Id = 3, UserId = 2, PropertyId = 1, Name = "Mjesečna rata 02.2026", Price = 1550, Comment = "", IsPayed = true, MonthNumber = 2, YearNumber = 2026 },
-//             new Payment { Id = 4, UserId = 2, PropertyId = 8, Name = "Kratki boravak 03.2026", Price = 400, Comment = "", IsPayed = true, MonthNumber = 3, YearNumber = 2026 }
-//         );
-
-//         // ================= APPOINTMENTS (Samo available) =================
-//         modelBuilder.Entity<Appointment>().HasData(
-//             new Appointment { Id = 1, UserId = 2, PropertyId = 8, DateAppointment = new DateTime(2026, 3, 8, 11, 0, 0, DateTimeKind.Utc), IsApproved = true },
-//             new Appointment { Id = 2, UserId = 4, PropertyId = 10, DateAppointment = new DateTime(2026, 3, 11, 9, 30, 0, DateTimeKind.Utc), IsApproved = null },
-//             new Appointment { Id = 3, UserId = 2, PropertyId = 12, DateAppointment = new DateTime(2026, 3, 12, 13, 0, 0, DateTimeKind.Utc), IsApproved = true }
-//         );
-//     }
-// }
-
 using Microsoft.EntityFrameworkCore;
 using Rentify.Services.Database;
 using Rentify.Services.Helpers;
+using System.Text;
 
 public static class SeedData
 {
+    private static readonly DateTime SeminarReferenceDate = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime FixedCreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
+    private static readonly string[] FirstNames =
+    {
+        "Darko", "Ajla", "Amar", "Amina", "Adnan", "Aldin", "Armin", "Belma",
+        "Dino", "Dzenan", "Dzejla", "Emina", "Eldar", "Faris", "Hana", "Haris",
+        "Ilda", "Iman", "Jasmin", "Jelena", "Lejla", "Lamija", "Merjem", "Minela",
+        "Naida", "Nejra", "Nermin", "Nidal", "Samir", "Selma", "Tarik", "Teodora",
+        "Una", "Vedad", "Zehra", "Zejna", "Mahir", "Mersiha", "Adela", "Emir"
+    };
+
+    private static readonly string[] LastNames =
+    {
+        "Hodzic", "Delic", "Mehic", "Basic", "Kovacevic", "Kurtovic", "Begic", "Smajic",
+        "Suljic", "Hasic", "Music", "Salkic", "Hadzic", "Catic", "Maric", "Jahic",
+        "Mujic", "Alic", "Imsirovic", "Zukic", "Karic", "Masic", "Vranic", "Muminovic",
+        "Filipovic", "Salihovic", "Pranjic", "Jukic", "Mikic", "Coric"
+    };
+
+    private static readonly string[] Cities =
+    {
+        "Sarajevo", "Mostar", "Tuzla", "Banja Luka", "Zenica", "Bihać"
+    };
+
+    private static readonly string[] StreetNames =
+    {
+        "Zmaja od Bosne", "Bistrik", "Kolodvorska", "Hamze Hume", "Skenderija",
+        "Maršala Tita", "Rade Bitange", "Splitska", "Slatina", "Turalibegova",
+        "Brčanska Malta", "Irac", "Kralja Petra", "Cara Dušana", "Solunska",
+        "Kninska", "Logavina", "Grbavička", "Stupine", "Vase Pelagića"
+    };
+
+    private static readonly string[] PropertyAdjectives =
+    {
+        "Central", "Modern", "Sunny", "Quiet", "Luxury", "Elegant", "Urban", "Panorama",
+        "Premium", "Comfort", "Family", "Bright", "River", "Green", "Classic", "Stylish"
+    };
+
+    private static readonly string[] PropertyTypes =
+    {
+        "Apartment", "Residence", "Flat", "Loft", "Studio", "Home"
+    };
+
+    private static readonly string[] ReviewComments =
+    {
+        "Odlična lokacija i veoma uredan prostor.",
+        "Sve je bilo uredno i tačno kako je opisano.",
+        "Dobra komunikacija i prijatan ambijent.",
+        "Prostor je čist, komforan i dobro opremljen.",
+        "Vrlo ugodno iskustvo, preporučujem.",
+        "Lokacija je dobra, a stan funkcionalan.",
+        "Sve korektno, bez većih zamjerki.",
+        "Lijepo sređen prostor i mirno okruženje.",
+        "Pristojna cijena i dobar kvalitet usluge.",
+        "Vrlo pozitivno iskustvo, rado bih ponovo rezervisao."
+    };
+
+    private static readonly string[] QuestionTemplates =
+    {
+        "Da li su režije uključene u cijenu?",
+        "Da li je dozvoljeno držanje kućnih ljubimaca?",
+        "Koliki je depozit za ovu nekretninu?",
+        "Da li stan ima parking mjesto?",
+        "Da li je internet uključen u cijenu?",
+        "Može li se nekretnina iznajmiti samo na mjesec dana?",
+        "Koji je minimalan period najma?",
+        "Da li nekretnina ima balkon?",
+        "Koliko iznose prosječne mjesečne režije?",
+        "Da li je stan odmah useljiv?"
+    };
+
+    private static readonly string[] AnswerTemplates =
+    {
+        "Da, dostupno je prema dogovoru sa vlasnikom.",
+        "Nije uključeno i obračunava se posebno.",
+        "Depozit iznosi jednu mjesečnu kiriju.",
+        "Da, parking mjesto je dostupno uz nekretninu.",
+        "Internet je uključen u cijenu najma.",
+        "Minimalni period najma zavisi od termina i dogovora.",
+        "Balkon je dostupan i uračunat u opis nekretnine.",
+        "Stan je odmah useljiv nakon potvrde rezervacije.",
+        "Prosječne režije zavise od sezone i potrošnje.",
+        "Sve dodatne informacije možete dobiti direktno od vlasnika."
+    };
+
     private static string PropertyImageUrl(int propertyId, int index)
         => $"https://picsum.photos/seed/property-{propertyId}-{index}/900/600";
 
     public static void Seed(ModelBuilder modelBuilder)
     {
         UserHelper.CreatePasswordHash(
-           "Test123!",
-           out var hashBase64,
-           out var saltBase64
+            "Test123!",
+            out var hashBase64,
+            out var saltBase64
         );
 
-        var fixedCreatedAt = new DateTime(2025, 12, 1, 0, 0, 0, DateTimeKind.Utc);
+        var roles = GenerateRoles();
+        var users = GenerateUsers(hashBase64, saltBase64);
+        var userRoles = GenerateUserRoles(users);
+        var properties = GenerateProperties(users.Where(x => x.IsVlasnik).ToList());
+        var propertyImages = GeneratePropertyImages(properties);
+        var reservations = GenerateReservations(
+            renters: users.Where(x => !x.IsVlasnik).ToList(),
+            properties: properties
+        );
+        var payments = GeneratePayments(reservations, properties);
+        var appointments = GenerateAppointments(
+            renters: users.Where(x => !x.IsVlasnik).ToList(),
+            properties: properties
+        );
+        var reviews = GenerateReviews(
+            renters: users.Where(x => !x.IsVlasnik).ToList(),
+            properties: properties
+        );
+        var questions = GenerateQuestions(
+            renters: users.Where(x => !x.IsVlasnik).ToList(),
+            properties: properties
+        );
+        var answers = GenerateAnswers(
+            owners: users.Where(x => x.IsVlasnik).ToList(),
+            questions: questions,
+            properties: properties
+        );
 
-        // ================= ROLES =================
-        modelBuilder.Entity<Role>().HasData(
+        modelBuilder.Entity<Role>().HasData(roles);
+        modelBuilder.Entity<User>().HasData(users);
+        modelBuilder.Entity<UserRole>().HasData(userRoles);
+        modelBuilder.Entity<Property>().HasData(properties);
+        modelBuilder.Entity<PropertyImage>().HasData(propertyImages);
+        modelBuilder.Entity<Reservation>().HasData(reservations);
+        modelBuilder.Entity<Payment>().HasData(payments);
+        modelBuilder.Entity<Appointment>().HasData(appointments);
+        modelBuilder.Entity<Review>().HasData(reviews);
+        modelBuilder.Entity<Question>().HasData(questions);
+        modelBuilder.Entity<Answer>().HasData(answers);
+    }
+
+    private static List<Role> GenerateRoles()
+    {
+        return new List<Role>
+        {
             new Role
             {
                 Id = 1,
                 Name = "Korisnik",
                 Description = "Standardni korisnik aplikacije",
                 IsActive = true,
-                CreatedAt = fixedCreatedAt
+                CreatedAt = FixedCreatedAt
             },
             new Role
             {
@@ -598,472 +161,505 @@ public static class SeedData
                 Name = "Vlasnik",
                 Description = "Vlasnik nekretnina",
                 IsActive = true,
-                CreatedAt = fixedCreatedAt
+                CreatedAt = FixedCreatedAt
             }
-        );
+        };
+    }
 
-        // ================= USERS =================
-        // Owners: 1 (Marko), 3 (Nikola)
-        // Renters: 2,4,5,6,7,8,9,10  (Ivana može ostati ali više NIJE “glavni lik”)
-        modelBuilder.Entity<User>().HasData(
-            new User { Id = 1, FirstName = "Marko", LastName = "Petrov", Email = "marko.petrov@rentify.dev", Username = "owner1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
-            new User { Id = 3, FirstName = "Nikola", LastName = "Jovic", Email = "owner.testni@gmail.com", Username = "owner2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = true, IsActive = true, IsLoggingFirstTime = false },
+    private static List<User> GenerateUsers(string hashBase64, string saltBase64)
+    {
+        var users = new List<User>();
+        var usedUsernames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var usedEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // Renters
-            new User { Id = 2, FirstName = "Ivana", LastName = "Kovac", Email = "usertestni089@gmail.com", Username = "user1", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
-            new User { Id = 4, FirstName = "Amar", LastName = "Hodzic", Email = "amar.hodzic@rentify.dev", Username = "user2", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
-            new User { Id = 5, FirstName = "Lejla", LastName = "Mehic", Email = "lejla.mehic@rentify.dev", Username = "user3", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
-            new User { Id = 6, FirstName = "Haris", LastName = "Begic", Email = "haris.begic@rentify.dev", Username = "user4", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
-            new User { Id = 7, FirstName = "Selma", LastName = "Kurtovic", Email = "selma.kurtovic@rentify.dev", Username = "user5", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
-            new User { Id = 8, FirstName = "Adnan", LastName = "Delic", Email = "adnan.delic@rentify.dev", Username = "user6", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
-            new User { Id = 9, FirstName = "Emina", LastName = "Zahiragic", Email = "emina.zahiragic@rentify.dev", Username = "user7", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false },
-            new User { Id = 10, FirstName = "Nermin", LastName = "Basic", Email = "nermin.basic@rentify.dev", Username = "user8", PasswordHash = hashBase64, PasswordSalt = saltBase64, IsVlasnik = false, IsActive = true, IsLoggingFirstTime = false }
-        );
+        int nextId = 1;
+        int usernameCounter = 10;
 
-        modelBuilder.Entity<UserRole>().HasData(
-            new UserRole { UserId = 1, RoleId = 2 },  // owner
-            new UserRole { UserId = 3, RoleId = 2 },  // owner
-
-            new UserRole { UserId = 2, RoleId = 1 },
-            new UserRole { UserId = 4, RoleId = 1 },
-            new UserRole { UserId = 5, RoleId = 1 },
-            new UserRole { UserId = 6, RoleId = 1 },
-            new UserRole { UserId = 7, RoleId = 1 },
-            new UserRole { UserId = 8, RoleId = 1 },
-            new UserRole { UserId = 9, RoleId = 1 },
-            new UserRole { UserId = 10, RoleId = 1 }
-        );
-
-        // ================= PROPERTIES =================
-        // (ostavio sam ti iste property-e kao što imaš)
-        modelBuilder.Entity<Property>().HasData(
-            // Sarajevo
-            new Property { Id = 1, UserId = 1, Name = "Central City Apartment", City = "Sarajevo", Location = "Zmaja od Bosne 12", PricePerDay = 65, PricePerMonth = 1550, Tags = new() { "urban", "bright", "central", "modern" }, NumberOfsquares = "55", Details = "Bright apartment in central Sarajevo.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 2, UserId = 1, Name = "Old Town Flat", City = "Sarajevo", Location = "Bistrik 7", PricePerDay = 60, PricePerMonth = 1450, Tags = new() { "historic", "authentic", "warm" }, NumberOfsquares = "48", Details = "Flat near the old town.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 3, UserId = 3, Name = "Hillside View Apartment", City = "Sarajevo", Location = "Alipašina 42", PricePerDay = 70, PricePerMonth = 1650, Tags = new() { "view", "calm", "elevated" }, NumberOfsquares = "60", Details = "Apartment with city views.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 4, UserId = 1, Name = "Modern Loft", City = "Sarajevo", Location = "Kolodvorska 18", PricePerDay = 75, PricePerMonth = 1800, Tags = new() { "loft", "stylish", "open" }, NumberOfsquares = "62", Details = "Modern loft style apartment.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 5, UserId = 3, Name = "Quiet Residential Flat", City = "Sarajevo", Location = "Grbavička 91", PricePerDay = 55, PricePerMonth = 1350, Tags = new() { "quiet", "balanced", "comfortable" }, NumberOfsquares = "50", Details = "Calm residential apartment.", IsAvailable = false, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 6, UserId = 1, Name = "Sunny Apartment", City = "Sarajevo", Location = "Hamze Hume 5", PricePerDay = 68, PricePerMonth = 1600, Tags = new() { "sunny", "warm", "airy" }, NumberOfsquares = "57", Details = "Sunny apartment with open layout.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 7, UserId = 3, Name = "Compact Studio", City = "Sarajevo", Location = "Logavina 23", PricePerDay = 45, PricePerMonth = 1100, Tags = new() { "compact", "simple", "efficient" }, NumberOfsquares = "32", Details = "Compact studio apartment.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 8, UserId = 1, Name = "Panorama Residence", City = "Sarajevo", Location = "Skenderija 10", PricePerDay = 80, PricePerMonth = 1900, Tags = new() { "panorama", "exclusive", "bright" }, NumberOfsquares = "70", Details = "Residence with panoramic city view.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-
-            // Mostar
-            new Property { Id = 9, UserId = 3, Name = "River Side Apartment", City = "Mostar", Location = "Maršala Tita 14", PricePerDay = 70, PricePerMonth = 1650, Tags = new() { "river", "relaxing", "open" }, NumberOfsquares = "58", Details = "Apartment near the river.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 10, UserId = 1, Name = "Old Bridge View Flat", City = "Mostar", Location = "Rade Bitange 3", PricePerDay = 85, PricePerMonth = 2000, Tags = new() { "iconic", "view", "historic" }, NumberOfsquares = "65", Details = "Flat with a view of the Old Bridge.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 11, UserId = 3, Name = "Stone House Apartment", City = "Mostar", Location = "Braće Fejića 27", PricePerDay = 60, PricePerMonth = 1450, Tags = new() { "stone", "traditional", "cool" }, NumberOfsquares = "50", Details = "Traditional stone apartment.", IsAvailable = false, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 12, UserId = 1, Name = "Sunny Terrace Flat", City = "Mostar", Location = "Adema Buća 9", PricePerDay = 75, PricePerMonth = 1750, Tags = new() { "sunny", "terrace", "open" }, NumberOfsquares = "60", Details = "Apartment with sunny terrace.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 13, UserId = 3, Name = "Quiet Center Apartment", City = "Mostar", Location = "Kralja Tvrtka 6", PricePerDay = 65, PricePerMonth = 1550, Tags = new() { "quiet", "central", "comfortable" }, NumberOfsquares = "54", Details = "Quiet apartment in city center.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 14, UserId = 1, Name = "Minimal Flat", City = "Mostar", Location = "Splitska 22", PricePerDay = 55, PricePerMonth = 1300, Tags = new() { "minimal", "clean", "simple" }, NumberOfsquares = "45", Details = "Minimalist apartment.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 15, UserId = 3, Name = "Evening Light Apartment", City = "Mostar", Location = "Put Mladih Muslimana 4", PricePerDay = 68, PricePerMonth = 1600, Tags = new() { "warm", "evening", "relaxed" }, NumberOfsquares = "56", Details = "Warm and relaxed living space.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-
-            // Tuzla
-            new Property { Id = 16, UserId = 1, Name = "City Center Apartment", City = "Tuzla", Location = "Slatina 15", PricePerDay = 50, PricePerMonth = 1200, Tags = new() { "central", "balanced", "urban" }, NumberOfsquares = "48", Details = "Apartment in city center.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 17, UserId = 3, Name = "Salt Lake View Flat", City = "Tuzla", Location = "Turalibegova 8", PricePerDay = 65, PricePerMonth = 1500, Tags = new() { "lake", "fresh", "open" }, NumberOfsquares = "55", Details = "Flat near salt lakes.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 18, UserId = 1, Name = "Quiet Residential Studio", City = "Tuzla", Location = "Batva 21", PricePerDay = 40, PricePerMonth = 950, Tags = new() { "quiet", "compact", "simple" }, NumberOfsquares = "30", Details = "Studio in a quiet area.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 19, UserId = 3, Name = "Modern Flat", City = "Tuzla", Location = "Krečka 33", PricePerDay = 55, PricePerMonth = 1300, Tags = new() { "modern", "clean", "bright" }, NumberOfsquares = "50", Details = "Modern city flat.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 20, UserId = 1, Name = "Family Apartment", City = "Tuzla", Location = "Brčanska Malta 12", PricePerDay = 60, PricePerMonth = 1400, Tags = new() { "family", "comfortable", "spacious" }, NumberOfsquares = "62", Details = "Spacious apartment for families.", IsAvailable = false, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 21, UserId = 3, Name = "Sunlit Flat", City = "Tuzla", Location = "Stupine A2", PricePerDay = 58, PricePerMonth = 1350, Tags = new() { "sunny", "open", "warm" }, NumberOfsquares = "53", Details = "Flat with great sunlight.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 22, UserId = 1, Name = "Calm Living Space", City = "Tuzla", Location = "Irac 6", PricePerDay = 52, PricePerMonth = 1250, Tags = new() { "calm", "balanced", "quiet" }, NumberOfsquares = "49", Details = "Calm and balanced apartment.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-
-            // Banja Luka
-            new Property { Id = 23, UserId = 3, Name = "City Loft", City = "Banja Luka", Location = "Kralja Petra I Karađorđevića 19", PricePerDay = 70, PricePerMonth = 1650, Tags = new() { "loft", "urban", "creative" }, NumberOfsquares = "60", Details = "Urban loft in city center.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 24, UserId = 1, Name = "River Walk Apartment", City = "Banja Luka", Location = "Obala Stepe Stepanovića 7", PricePerDay = 75, PricePerMonth = 1750, Tags = new() { "river", "walkable", "fresh" }, NumberOfsquares = "58", Details = "Apartment near river walk.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 25, UserId = 3, Name = "Minimal Residence", City = "Banja Luka", Location = "Cara Dušana 41", PricePerDay = 55, PricePerMonth = 1300, Tags = new() { "minimal", "clean", "simple" }, NumberOfsquares = "47", Details = "Minimalist residence.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 26, UserId = 1, Name = "Family City Home", City = "Banja Luka", Location = "Bulevar Vojvode Stepe 88", PricePerDay = 65, PricePerMonth = 1550, Tags = new() { "family", "balanced", "comfortable" }, NumberOfsquares = "64", Details = "Family-friendly city home.", IsAvailable = false, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 27, UserId = 3, Name = "Bright Studio", City = "Banja Luka", Location = "Gundulićeva 10", PricePerDay = 45, PricePerMonth = 1050, Tags = new() { "bright", "compact", "efficient" }, NumberOfsquares = "33", Details = "Bright compact studio.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 28, UserId = 1, Name = "Panorama Flat", City = "Banja Luka", Location = "Kninska 25", PricePerDay = 78, PricePerMonth = 1850, Tags = new() { "panorama", "open", "elevated" }, NumberOfsquares = "68", Details = "Flat with panoramic view.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 29, UserId = 3, Name = "Quiet Corner Apartment", City = "Banja Luka", Location = "Solunska 3", PricePerDay = 50, PricePerMonth = 1200, Tags = new() { "quiet", "corner", "calm" }, NumberOfsquares = "46", Details = "Quiet corner apartment.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true },
-            new Property { Id = 30, UserId = 1, Name = "Elegant City Flat", City = "Banja Luka", Location = "Vase Pelagića 17", PricePerDay = 72, PricePerMonth = 1700, Tags = new() { "elegant", "stylish", "urban" }, NumberOfsquares = "61", Details = "Elegant flat in urban area.", IsAvailable = true, IsRentingPerDay = true, IsActiveOnApp = true }
-        );
-
-        // ================= PROPERTY IMAGES =================
-        int imgId = 1;
-        void AddPropertyImages(int propertyId)
+        // 10 ownera
+        for (int i = 0; i < 10; i++)
         {
-            modelBuilder.Entity<PropertyImage>().HasData(
-                new PropertyImage { Id = imgId++, PropertyId = propertyId, PropertyImg = PropertyImageUrl(propertyId, 1), IsMain = true },
-                new PropertyImage { Id = imgId++, PropertyId = propertyId, PropertyImg = PropertyImageUrl(propertyId, 2), IsMain = false },
-                new PropertyImage { Id = imgId++, PropertyId = propertyId, PropertyImg = PropertyImageUrl(propertyId, 3), IsMain = false },
-                new PropertyImage { Id = imgId++, PropertyId = propertyId, PropertyImg = PropertyImageUrl(propertyId, 4), IsMain = false }
-            );
+            var firstName = FirstNames[i % FirstNames.Length];
+            var lastName = LastNames[i % LastNames.Length];
+
+            var username = BuildUniqueUsername(firstName, lastName, usernameCounter, usedUsernames);
+            var email = BuildUniqueEmail(firstName, lastName, usernameCounter, usedEmails);
+
+            users.Add(new User
+            {
+                Id = nextId++,
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                Username = username,
+                PasswordHash = hashBase64,
+                PasswordSalt = saltBase64,
+                IsVlasnik = true,
+                IsActive = true,
+                IsLoggingFirstTime = false
+            });
+
+            usernameCounter++;
         }
 
-        foreach (var propertyId in Enumerable.Range(1, 30))
-            AddPropertyImages(propertyId);
+        // 100 rentera
+        int generatedRenters = 0;
 
-        // ================= RESERVATIONS =================
-        // Pravilo: 1 mjesečna po property-u (da nema konflikta).
-        // Napravio sam više mjesečnih rezervacija da “logika” ima smisla sa payments.
-        modelBuilder.Entity<Reservation>().HasData(
-            new Reservation { Id = 1, UserId = 4, PropertyId = 1, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2025, 12, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation { Id = 2, UserId = 5, PropertyId = 2, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2025, 12, 2, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation { Id = 3, UserId = 6, PropertyId = 3, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2025, 12, 3, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation { Id = 4, UserId = 7, PropertyId = 4, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2025, 12, 4, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation { Id = 5, UserId = 8, PropertyId = 9, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2025, 12, 5, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation { Id = 6, UserId = 9, PropertyId = 10, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2025, 12, 6, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation { Id = 7, UserId = 10, PropertyId = 16, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2025, 12, 7, 0, 0, 0, DateTimeKind.Utc) },
-            new Reservation { Id = 8, UserId = 2, PropertyId = 23, IsMonthly = true, IsApproved = true, CreatedAt = new DateTime(2025, 12, 8, 0, 0, 0, DateTimeKind.Utc) },
-
-            // par kratkih boravaka (ne smeta reportu, ali da DB “živi”)
-            new Reservation
-            {
-                Id = 9,
-                UserId = 5,
-                PropertyId = 12,
-                IsMonthly = false,
-                StartDateOfRenting = new DateTime(2026, 2, 10, 0, 0, 0, DateTimeKind.Utc),
-                EndDateOfRenting = new DateTime(2026, 2, 15, 0, 0, 0, DateTimeKind.Utc),
-                IsApproved = true,
-                CreatedAt = new DateTime(2026, 1, 20, 0, 0, 0, DateTimeKind.Utc)
-            },
-            new Reservation
-            {
-                Id = 10,
-                UserId = 6,
-                PropertyId = 24,
-                IsMonthly = false,
-                StartDateOfRenting = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc),
-                EndDateOfRenting = new DateTime(2026, 1, 10, 0, 0, 0, DateTimeKind.Utc),
-                IsApproved = true,
-                CreatedAt = new DateTime(2025, 12, 28, 0, 0, 0, DateTimeKind.Utc)
-            }
-        );
-
-
-
-        //// ================= PAYMENTS =================
-        //// Fokus: puno plaćenih (IsPayed = true) za 12/2025, 01/2026, 02/2026
-        //// za više nekretnina oba vlasnika.
-        //var payments = new List<Payment>();
-        //int payId = 1;
-
-        //void AddMonthlyPayment(int userId, int propertyId, decimal price, int year, int month)
-        //{
-        //    payments.Add(new Payment
-        //    {
-        //        Id = payId++,
-        //        UserId = userId,
-        //        PropertyId = propertyId,
-        //        Name = $"Mjesečna rata {month:D2}.{year}",
-        //        Comment = "Uplata evidentirana.",
-        //        Price = (double)price,
-        //        IsPayed = true,
-        //        MonthNumber = month,
-        //        YearNumber = year,
-        //        DateToPay = new DateTime(year, month, 5, 0, 0, 0, DateTimeKind.Utc),
-        //        WarningDateToPay = new DateTime(year, month, 12, 0, 0, 0, DateTimeKind.Utc),
-        //    });
-        //}
-
-        //// Ovi parovi daju raznolikost (više usera, više property-a, oba vlasnika)
-        //// Owner1 property-i: 1,2,4,10,12,16,18,24,28,30
-        //// Owner2 property-i: 3,7,9,13,15,17,19,21,23,29
-        //var monthlyPairs = new (int userId, int propertyId, decimal price)[]
-        //{
-        //    (4, 1, 1550),   // owner1
-        //    (5, 2, 1450),
-        //    (7, 4, 1800),
-        //    (9, 10, 2000),
-        //    (5, 12, 1750),
-        //    (10, 16, 1200),
-        //    (8, 18, 950),
-        //    (6, 24, 1750),
-        //    (7, 28, 1850),
-        //    (4, 30, 1700),
-
-        //    (6, 3, 1650),   // owner2
-        //    (8, 7, 1100),
-        //    (8, 9, 1650),
-        //    (10, 13, 1550),
-        //    (9, 15, 1600),
-        //    (2, 17, 1500),
-        //    (4, 19, 1300),
-        //    (7, 21, 1350),
-        //    (2, 23, 1650),
-        //    (10, 29, 1200),
-        //};
-
-        //// 12/2025, 01/2026, 02/2026
-        //foreach (var (u, p, price) in monthlyPairs)
-        //{
-        //    AddMonthlyPayment(u, p, price, 2025, 12);
-        //    AddMonthlyPayment(u, p, price, 2026, 1);
-        //    AddMonthlyPayment(u, p, price, 2026, 2);
-        //}
-
-        //// malo “kratkih boravaka” (također IsPayed=true) za dodatni promet i raznolikost
-        //payments.Add(new Payment
-        //{
-        //    Id = payId++,
-        //    UserId = 5,
-        //    PropertyId = 8,
-        //    Name = "Kratki boravak 12.2025",
-        //    Comment = "Uplata za kratki boravak.",
-        //    Price = 420,
-        //    IsPayed = true,
-        //    MonthNumber = 12,
-        //    YearNumber = 2025,
-        //    DateToPay = new DateTime(2025, 12, 18, 0, 0, 0, DateTimeKind.Utc),
-        //    WarningDateToPay = new DateTime(2025, 12, 22, 0, 0, 0, DateTimeKind.Utc),
-        //});
-
-        //payments.Add(new Payment
-        //{
-        //    Id = payId++,
-        //    UserId = 6,
-        //    PropertyId = 14,
-        //    Name = "Kratki boravak 01.2026",
-        //    Comment = "Uplata za kratki boravak.",
-        //    Price = 380,
-        //    IsPayed = true,
-        //    MonthNumber = 1,
-        //    YearNumber = 2026,
-        //    DateToPay = new DateTime(2026, 1, 12, 0, 0, 0, DateTimeKind.Utc),
-        //    WarningDateToPay = new DateTime(2026, 1, 15, 0, 0, 0, DateTimeKind.Utc),
-        //});
-
-        //payments.Add(new Payment
-        //{
-        //    Id = payId++,
-        //    UserId = 9,
-        //    PropertyId = 25,
-        //    Name = "Kratki boravak 02.2026",
-        //    Comment = "Uplata za kratki boravak.",
-        //    Price = 510,
-        //    IsPayed = true,
-        //    MonthNumber = 2,
-        //    YearNumber = 2026,
-        //    DateToPay = new DateTime(2026, 2, 8, 0, 0, 0, DateTimeKind.Utc),
-        //    WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, DateTimeKind.Utc),
-        //});
-
-        //// Par neplaćenih za 03/2026 (da vidiš da izvještaj neće računati)
-        //payments.Add(new Payment
-        //{
-        //    Id = payId++,
-        //    UserId = 4,
-        //    PropertyId = 1,
-        //    Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
-        //    Comment = "Čeka uplatu.",
-        //    Price = 1550,
-        //    IsPayed = false,
-        //    MonthNumber = 3,
-        //    YearNumber = 2026,
-        //    DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
-        //    WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, DateTimeKind.Utc),
-        //});
-
-        //payments.Add(new Payment
-        //{
-        //    Id = payId++,
-        //    UserId = 10,
-        //    PropertyId = 23,
-        //    Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
-        //    Comment = "Čeka uplatu.",
-        //    Price = 1650,
-        //    IsPayed = false,
-        //    MonthNumber = 3,
-        //    YearNumber = 2026,
-        //    DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
-        //    WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, DateTimeKind.Utc),
-        //});
-        // ================= PAYMENTS =================
-        var payments = new List<Payment>();
-        int payId = 1;
-
-        void AddMonthlyPayment(int reservationId, decimal price, int year, int month)
+        foreach (var firstName in FirstNames)
         {
-            payments.Add(new Payment
+            foreach (var lastName in LastNames)
             {
-                Id = payId++,
-                ReservationId = reservationId,
-                Name = $"Mjesečna rata {month:D2}.{year}",
-                Comment = "Uplata evidentirana.",
-                Price = (double)price,
-                IsPayed = true,
-                MonthNumber = month,
-                YearNumber = year,
-                DateToPay = new DateTime(year, month, 5, 0, 0, 0, DateTimeKind.Utc),
-                WarningDateToPay = new DateTime(year, month, 12, 0, 0, 0, DateTimeKind.Utc),
-                PaidAt = new DateTime(year, month, 3, 0, 0, 0, DateTimeKind.Utc),
-                PaymentStatus = "Paid"
+                if (generatedRenters >= 100)
+                    return users;
+
+                var username = BuildUniqueUsername(firstName, lastName, usernameCounter, usedUsernames);
+                var email = BuildUniqueEmail(firstName, lastName, usernameCounter, usedEmails);
+
+                users.Add(new User
+                {
+                    Id = nextId++,
+                    FirstName = firstName,
+                    LastName = lastName,
+                    Email = email,
+                    Username = username,
+                    PasswordHash = hashBase64,
+                    PasswordSalt = saltBase64,
+                    IsVlasnik = false,
+                    IsActive = true,
+                    IsLoggingFirstTime = false
+                });
+
+                usernameCounter++;
+                generatedRenters++;
+            }
+        }
+
+        return users;
+    }
+
+    private static List<UserRole> GenerateUserRoles(List<User> users)
+    {
+        return users
+            .Select(u => new UserRole
+            {
+                UserId = u.Id,
+                RoleId = u.IsVlasnik ? 2 : 1
+            })
+            .ToList();
+    }
+
+    private static List<Property> GenerateProperties(List<User> owners)
+    {
+        var properties = new List<Property>();
+        int propertyId = 1;
+
+        for (int ownerIndex = 0; ownerIndex < owners.Count; ownerIndex++)
+        {
+            var owner = owners[ownerIndex];
+
+            for (int i = 0; i < 5; i++)
+            {
+                var city = Cities[(ownerIndex + i) % Cities.Length];
+                var adjective = PropertyAdjectives[(propertyId + i) % PropertyAdjectives.Length];
+                var type = PropertyTypes[(propertyId + ownerIndex) % PropertyTypes.Length];
+                var street = StreetNames[(propertyId + i) % StreetNames.Length];
+
+                properties.Add(new Property
+                {
+                    Id = propertyId,
+                    UserId = owner.Id,
+                    Name = $"{adjective} {type} {propertyId}",
+                    City = city,
+                    Location = $"{street} {10 + propertyId}",
+                    PricePerDay = 45 + ((propertyId * 3) % 45),
+                    PricePerMonth = 950 + ((propertyId * 80) % 1200),
+                    Tags = new List<string>
+                    {
+                        city.ToLowerInvariant(),
+                        adjective.ToLowerInvariant(),
+                        "modern",
+                        "comfortable"
+                    },
+                    SquareMeters = (35 + (propertyId % 40)),
+                    Details = $"Automatski generisana nekretnina broj {propertyId} u gradu {city}.",
+                    IsAvailable = propertyId % 7 != 0,
+                    IsRentingPerDay = true,
+                    IsActiveOnApp = true
+                });
+
+                propertyId++;
+            }
+        }
+
+        return properties;
+    }
+
+    private static List<PropertyImage> GeneratePropertyImages(List<Property> properties)
+    {
+        var images = new List<PropertyImage>();
+        int imageId = 1;
+
+        foreach (var property in properties)
+        {
+            for (int i = 1; i <= 4; i++)
+            {
+                images.Add(new PropertyImage
+                {
+                    Id = imageId++,
+                    PropertyId = property.Id,
+                    PropertyImg = PropertyImageUrl(property.Id, i),
+                    IsMain = i == 1
+                });
+            }
+        }
+
+        return images;
+    }
+
+    private static List<Reservation> GenerateReservations(List<User> renters, List<Property> properties)
+    {
+        var reservations = new List<Reservation>();
+        int reservationId = 1;
+
+        var months = new List<(int Year, int Month)>();
+        for (int month = 1; month <= 12; month++)
+            months.Add((2025, month));
+        for (int month = 1; month <= 4; month++)
+            months.Add((2026, month));
+
+        var ownerPropertyMap = properties
+            .GroupBy(p => p.UserId)
+            .ToDictionary(g => g.Key, g => g.OrderBy(x => x.Id).ToList());
+
+        var ownerIds = ownerPropertyMap.Keys.OrderBy(x => x).ToList();
+
+        foreach (var (year, month) in months)
+        {
+            // 25 rezervacija po mjesecu = 16 mjeseci * 25 = 400 rezervacija
+            // 2025 favorizuje prvog ownera za report
+            // 2026 favorizuje drugog ownera da statistika bude zanimljivija
+            var dominantOwnerId = year == 2025
+                ? ownerIds[0]
+                : ownerIds.Count > 1 ? ownerIds[1] : ownerIds[0];
+
+            for (int i = 0; i < 16; i++)
+            {
+                int ownerId;
+                if (i < 10)
+                    ownerId = dominantOwnerId;
+                else
+                    ownerId = ownerIds[(i + month) % ownerIds.Count];
+
+                var ownerProperties = ownerPropertyMap[ownerId];
+                var property = ownerProperties[i % ownerProperties.Count];
+                var renter = renters[(reservationId + i + month) % renters.Count];
+
+                bool isMonthly = i % 3 != 0;
+                int day = Math.Min(1 + i, DateTime.DaysInMonth(year, month));
+
+                var createdAt = new DateTime(year, month, day, 10, 0, 0, DateTimeKind.Utc);
+                var startDate = createdAt.AddDays(2);
+
+                DateTime endDate = isMonthly
+                    ? startDate.AddMonths(1 + (i % 2))
+                    : startDate.AddDays(3 + (i % 5));
+
+                string status;
+
+                if (endDate < SeminarReferenceDate)
+                {
+                    status = "Završeno";
+                }
+                else if (startDate <= SeminarReferenceDate || createdAt <= SeminarReferenceDate.AddDays(7))
+                {
+                    status = "Odobreno";
+                }
+                else
+                {
+                    status = "Na čekanju";
+                }
+
+                reservations.Add(new Reservation
+                {
+                    Id = reservationId++,
+                    UserId = renter.Id,
+                    PropertyId = property.Id,
+                    IsMonthly = isMonthly,
+                    Status = status,
+                    CreatedAt = createdAt,
+                    StartDateOfRenting = startDate,
+                    EndDateOfRenting = endDate
+                });
+            }
+        }
+
+        return reservations;
+    }
+
+    private static List<Payment> GeneratePayments(List<Reservation> reservations, List<Property> properties)
+    {
+        var payments = new List<Payment>();
+        int paymentId = 1;
+
+        var propertyMap = properties.ToDictionary(x => x.Id, x => x);
+
+        foreach (var reservation in reservations)
+        {
+            if (reservation.Status == "Na čekanju")
+                continue;
+
+            var property = propertyMap[reservation.PropertyId];
+
+            if (reservation.IsMonthly)
+            {
+                int monthCount = GetMonthDifference(
+                    reservation.StartDateOfRenting!.Value,
+                    reservation.EndDateOfRenting!.Value);
+
+                monthCount = Math.Max(1, monthCount);
+
+                for (int m = 0; m < monthCount; m++)
+                {
+                    var paymentDate = reservation.StartDateOfRenting.Value.AddMonths(m);
+                    bool isPaid = reservation.Status == "Završeno"
+                        ? true
+                        : m < monthCount - 1;
+
+                    payments.Add(new Payment
+                    {
+                        Id = paymentId++,
+                        ReservationId = reservation.Id,
+                        Name = $"Mjesečna rata {paymentDate.Month:D2}.{paymentDate.Year}",
+                        Comment = isPaid
+                            ? "Automatski generisana evidentirana uplata."
+                            : "Plaćanje je na čekanju.",
+                        Price = property.PricePerMonth,
+                        IsPayed = isPaid,
+                        MonthNumber = paymentDate.Month,
+                        YearNumber = paymentDate.Year,
+                        DateToPay = new DateTime(paymentDate.Year, paymentDate.Month, 5, 0, 0, 0, DateTimeKind.Utc),
+                        WarningDateToPay = new DateTime(paymentDate.Year, paymentDate.Month, 12, 0, 0, 0, DateTimeKind.Utc),
+                        PaidAt = isPaid
+                            ? new DateTime(paymentDate.Year, paymentDate.Month, 3, 0, 0, 0, DateTimeKind.Utc)
+                            : null,
+                        PaymentStatus = isPaid ? "Paid" : "Pending"
+                    });
+                }
+            }
+            else
+            {
+                int days = Math.Max(
+                    1,
+                    (reservation.EndDateOfRenting!.Value - reservation.StartDateOfRenting!.Value).Days);
+
+                bool isPaid = reservation.Status == "Završeno";
+
+                payments.Add(new Payment
+                {
+                    Id = paymentId++,
+                    ReservationId = reservation.Id,
+                    Name = $"Kratki boravak {reservation.StartDateOfRenting!.Value.Month:D2}.{reservation.StartDateOfRenting!.Value.Year}",
+                    Comment = isPaid
+                        ? "Automatski generisana evidentirana uplata."
+                        : "Plaćanje je na čekanju.",
+                    Price = property.PricePerDay * days,
+                    IsPayed = isPaid,
+                    MonthNumber = reservation.StartDateOfRenting.Value.Month,
+                    YearNumber = reservation.StartDateOfRenting.Value.Year,
+                    DateToPay = reservation.StartDateOfRenting.Value,
+                    WarningDateToPay = reservation.StartDateOfRenting.Value.AddDays(2),
+                    PaidAt = isPaid ? reservation.StartDateOfRenting.Value.AddDays(-1) : null,
+                    PaymentStatus = isPaid ? "Paid" : "Pending"
+                });
+            }
+        }
+
+        return payments;
+    }
+
+    private static List<Appointment> GenerateAppointments(List<User> renters, List<Property> properties)
+    {
+        var appointments = new List<Appointment>();
+        int appointmentId = 1;
+
+        for (int i = 0; i < 80; i++)
+        {
+            var renter = renters[i % renters.Count];
+            var property = properties[(i * 2) % properties.Count];
+            bool? approved = i % 5 == 0 ? null : (i % 2 == 0);
+
+            appointments.Add(new Appointment
+            {
+                Id = appointmentId++,
+                UserId = renter.Id,
+                PropertyId = property.Id,
+                DateAppointment = new DateTime(
+                    2026,
+                    ((i % 4) + 1),
+                    Math.Min(3 + i, 28),
+                    9 + (i % 8),
+                    0,
+                    0,
+                    DateTimeKind.Utc
+                ),
+                IsApproved = approved
             });
         }
 
-        // ================= MJESEČNE REZERVACIJE =================
-        // (Id, cijena)
-        var monthlyReservations = new (int reservationId, decimal price)[]
-        {
-    (1, 1550),
-    (2, 1450),
-    (3, 1650),
-    (4, 1800),
-    (5, 1650),
-    (6, 2000),
-    (7, 1200),
-    (8, 1650),
-        };
+        return appointments;
+    }
 
-        // 12/2025, 01/2026, 02/2026
-        foreach (var (reservationId, price) in monthlyReservations)
+    private static List<Review> GenerateReviews(List<User> renters, List<Property> properties)
+    {
+        var reviews = new List<Review>();
+        int reviewId = 1;
+
+        for (int i = 0; i < 50; i++)
         {
-            AddMonthlyPayment(reservationId, price, 2025, 12);
-            AddMonthlyPayment(reservationId, price, 2026, 1);
-            AddMonthlyPayment(reservationId, price, 2026, 2);
+            var renter = renters[i % renters.Count];
+            var property = properties[(i * 3) % properties.Count];
+
+            reviews.Add(new Review
+            {
+                Id = reviewId++,
+                UserId = renter.Id,
+                PropertyId = property.Id,
+                StarRate = 3 + (i % 3),
+                Comment = ReviewComments[i % ReviewComments.Length]
+            });
         }
 
-        // ================= KRATKI BORAVCI =================
+        return reviews;
+    }
 
-        // Reservation 9
-        payments.Add(new Payment
+    private static List<Question> GenerateQuestions(List<User> renters, List<Property> properties)
+    {
+        var questions = new List<Question>();
+        int questionId = 1;
+
+        for (int i = 0; i < 140; i++)
         {
-            Id = payId++,
-            ReservationId = 9,
-            Name = "Kratki boravak 02.2026",
-            Comment = "Uplata za kratki boravak.",
-            Price = 420,
-            IsPayed = true,
-            MonthNumber = 2,
-            YearNumber = 2026,
-            DateToPay = new DateTime(2026, 2, 10, 0, 0, 0, DateTimeKind.Utc),
-            WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, DateTimeKind.Utc),
-            PaidAt = new DateTime(2026, 2, 9, 0, 0, 0, DateTimeKind.Utc),
-            PaymentStatus = "Paid"
-        });
+            var renter = renters[i % renters.Count];
+            var property = properties[(i * 5) % properties.Count];
+            bool answered = i % 2 == 0;
 
-        // Reservation 10
-        payments.Add(new Payment
+            questions.Add(new Question
+            {
+                Id = questionId++,
+                UserId = renter.Id,
+                PropertyId = property.Id,
+                Content = QuestionTemplates[i % QuestionTemplates.Length],
+                CreatedAt = new DateTime(
+                    2026,
+                    ((i % 4) + 1),
+                    Math.Min(1 + i, 28),
+                    10 + (i % 6),
+                    15,
+                    0,
+                    DateTimeKind.Utc
+                ),
+                IsAnswered = answered
+            });
+        }
+
+        return questions;
+    }
+
+    private static List<Answer> GenerateAnswers(List<User> owners, List<Question> questions, List<Property> properties)
+    {
+        var answers = new List<Answer>();
+        int answerId = 1;
+
+        var propertyOwnerMap = properties.ToDictionary(x => x.Id, x => x.UserId);
+        var ownerMap = owners.ToDictionary(x => x.Id, x => x);
+
+        foreach (var question in questions.Where(q => q.IsAnswered))
         {
-            Id = payId++,
-            ReservationId = 10,
-            Name = "Kratki boravak 01.2026",
-            Comment = "Uplata za kratki boravak.",
-            Price = 380,
-            IsPayed = true,
-            MonthNumber = 1,
-            YearNumber = 2026,
-            DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, DateTimeKind.Utc),
-            WarningDateToPay = new DateTime(2026, 1, 8, 0, 0, 0, DateTimeKind.Utc),
-            PaidAt = new DateTime(2026, 1, 4, 0, 0, 0, DateTimeKind.Utc),
-            PaymentStatus = "Paid"
-        });
+            var ownerId = propertyOwnerMap[question.PropertyId];
 
-        // ================= NEPLAĆENI PRIMJERI =================
+            if (!ownerMap.ContainsKey(ownerId))
+                ownerId = owners.First().Id;
 
-        payments.Add(new Payment
+            answers.Add(new Answer
+            {
+                Id = answerId++,
+                QuestionId = question.Id,
+                UserId = ownerId,
+                Content = AnswerTemplates[(question.Id - 1) % AnswerTemplates.Length],
+                CreatedAt = question.CreatedAt.AddHours(2)
+            });
+        }
+
+        return answers;
+    }
+
+    private static string NormalizeForUsername(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return "usr";
+
+        value = value.ToLowerInvariant()
+            .Replace("š", "s")
+            .Replace("đ", "dj")
+            .Replace("ž", "z")
+            .Replace("č", "c")
+            .Replace("ć", "c");
+
+        var sb = new StringBuilder();
+
+        foreach (var ch in value)
         {
-            Id = payId++,
-            ReservationId = 1,
-            Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
-            Comment = "Čeka uplatu.",
-            Price = 1550,
-            IsPayed = false,
-            MonthNumber = 3,
-            YearNumber = 2026,
-            DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
-            WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, DateTimeKind.Utc),
-            PaymentStatus = "Pending"
-        });
+            if (char.IsLetterOrDigit(ch))
+                sb.Append(ch);
+        }
 
-        payments.Add(new Payment
+        return sb.Length == 0 ? "usr" : sb.ToString();
+    }
+
+    private static string BuildUniqueUsername(
+        string firstName,
+        string lastName,
+        int numericSuffix,
+        HashSet<string> usedUsernames)
+    {
+        var first = NormalizeForUsername(firstName);
+        var last = NormalizeForUsername(lastName);
+
+        var left = first.Length >= 3 ? first.Substring(0, 3) : first.PadRight(3, 'x');
+        var right = last.Length >= 3 ? last.Substring(0, 3) : last.PadRight(3, 'x');
+
+        var username = $"{left}{right}{numericSuffix}";
+
+        while (!usedUsernames.Add(username))
         {
-            Id = payId++,
-            ReservationId = 6,
-            Name = "Mjesečna rata 03.2026 (NEPLAĆENO)",
-            Comment = "Čeka uplatu.",
-            Price = 2000,
-            IsPayed = false,
-            MonthNumber = 3,
-            YearNumber = 2026,
-            DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc),
-            WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, DateTimeKind.Utc),
-            PaymentStatus = "Pending"
-        });
+            numericSuffix++;
+            username = $"{left}{right}{numericSuffix}";
+        }
 
-        modelBuilder.Entity<Payment>().HasData(payments);
+        return username;
+    }
 
-        // ================= APPOINTMENTS =================
-        // Par termina (ne utiče na report)
-        modelBuilder.Entity<Appointment>().HasData(
-            new Appointment { Id = 1, UserId = 5, PropertyId = 8, DateAppointment = new DateTime(2026, 3, 8, 11, 0, 0, DateTimeKind.Utc), IsApproved = true },
-            new Appointment { Id = 2, UserId = 6, PropertyId = 10, DateAppointment = new DateTime(2026, 3, 11, 9, 30, 0, DateTimeKind.Utc), IsApproved = null },
-            new Appointment { Id = 3, UserId = 7, PropertyId = 12, DateAppointment = new DateTime(2026, 3, 12, 13, 0, 0, DateTimeKind.Utc), IsApproved = true }
-        );
+    private static string BuildUniqueEmail(
+        string firstName,
+        string lastName,
+        int numericSuffix,
+        HashSet<string> usedEmails)
+    {
+        var first = NormalizeForUsername(firstName);
+        var last = NormalizeForUsername(lastName);
 
-        // ================= REVIEWS =================
-// Napomena: UserId su renteri (2..10), PropertyId postoje (1..30)
-modelBuilder.Entity<Review>().HasData(
-    // Sarajevo
-    new Review { Id = 1,  UserId = 4,  PropertyId = 1,  StarRate = 5, Comment = "Odlična lokacija i baš čisto. Preporuka!" },
-    new Review { Id = 2,  UserId = 5,  PropertyId = 2,  StarRate = 4, Comment = "Ugodan stan, blizu centra. Sve korektno." },
-    new Review { Id = 3,  UserId = 6,  PropertyId = 3,  StarRate = 5, Comment = "Pogled je fantastičan, mirno naselje." },
-    new Review { Id = 4,  UserId = 7,  PropertyId = 4,  StarRate = 4, Comment = "Moderan loft, sve kao na slikama." },
-    new Review { Id = 5,  UserId = 8,  PropertyId = 6,  StarRate = 3, Comment = "Sve ok, ali bi moglo malo bolje održavanje." },
-    new Review { Id = 6,  UserId = 9,  PropertyId = 8,  StarRate = 5, Comment = "Panoramski pogled i top ambijent." },
+        var email = $"{first}.{last}{numericSuffix}@rentify.dev";
 
-    // Mostar
-    new Review { Id = 7,  UserId = 8,  PropertyId = 9,  StarRate = 4, Comment = "Lijep apartman, blizu rijeke. Ugodno." },
-    new Review { Id = 8,  UserId = 9,  PropertyId = 10, StarRate = 5, Comment = "Lokacija savršena, pogled na Stari most." },
-    new Review { Id = 9,  UserId = 5,  PropertyId = 12, StarRate = 4, Comment = "Terasa je odlična, sve uredno i čisto." },
-    new Review { Id = 10, UserId = 10, PropertyId = 13, StarRate = 4, Comment = "Mirno, centralno, domaćin korektan." },
-    new Review { Id = 11, UserId = 6,  PropertyId = 14, StarRate = 3, Comment = "Minimalistički, ok za kratki boravak." },
-    new Review { Id = 12, UserId = 7,  PropertyId = 15, StarRate = 5, Comment = "Top ugođaj, sve preporuke!" },
+        while (!usedEmails.Add(email))
+        {
+            numericSuffix++;
+            email = $"{first}.{last}{numericSuffix}@rentify.dev";
+        }
 
-    // Tuzla
-    new Review { Id = 13, UserId = 10, PropertyId = 16, StarRate = 4, Comment = "Praktično i blizu svega. Komforno." },
-    new Review { Id = 14, UserId = 2,  PropertyId = 17, StarRate = 5, Comment = "Pogled na jezera je predobar. Sve super." },
-    new Review { Id = 15, UserId = 8,  PropertyId = 18, StarRate = 4, Comment = "Studio je mali ali uredan i funkcionalan." },
-    new Review { Id = 16, UserId = 4,  PropertyId = 19, StarRate = 3, Comment = "Sve ok, ali je bilo malo buke navečer." },
-    new Review { Id = 17, UserId = 6,  PropertyId = 22, StarRate = 4, Comment = "Mirno i udobno, dobra vrijednost za novac." },
+        return email;
+    }
 
-    // Banja Luka
-    new Review { Id = 18, UserId = 2,  PropertyId = 23, StarRate = 5, Comment = "Loft je unikatan i baš udoban." },
-    new Review { Id = 19, UserId = 6,  PropertyId = 24, StarRate = 4, Comment = "Super lokacija uz rijeku, sve čisto." },
-    new Review { Id = 20, UserId = 9,  PropertyId = 25, StarRate = 4, Comment = "Minimalistički i uredno, preporuka." },
-    new Review { Id = 21, UserId = 7,  PropertyId = 28, StarRate = 5, Comment = "Panorama je nevjerovatna. Sve savršeno." },
-    new Review { Id = 22, UserId = 10, PropertyId = 29, StarRate = 3, Comment = "Mirno, ali bi dobro došlo malo više opreme." },
-    new Review { Id = 23, UserId = 4,  PropertyId = 30, StarRate = 4, Comment = "Elegantno i uredno, dobra lokacija." },
-
-    // par “strožijih” ocjena da izgleda realnije
-    new Review { Id = 24, UserId = 5,  PropertyId = 1,  StarRate = 2, Comment = "Lokacija dobra, ali higijena može bolje." },
-    new Review { Id = 25, UserId = 8,  PropertyId = 10, StarRate = 3, Comment = "Sve ok, ali parkiranje je bilo problem." }
-);
-
-        modelBuilder.Entity<Question>().HasData(
-    new Question { Id = 1, UserId = 2, PropertyId = 1, Content = "Da li su režije uključene u cijenu najma?", CreatedAt = new DateTime(2026, 3, 1, 10, 15, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 2, UserId = 4, PropertyId = 2, Content = "Da li je dozvoljeno držanje kućnih ljubimaca?", CreatedAt = new DateTime(2026, 3, 2, 11, 20, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 3, UserId = 5, PropertyId = 3, Content = "Koliki je depozit za ovu nekretninu?", CreatedAt = new DateTime(2026, 3, 3, 9, 45, 0, DateTimeKind.Utc), IsAnswered = false },
-    new Question { Id = 4, UserId = 6, PropertyId = 4, Content = "Da li stan ima parking mjesto?", CreatedAt = new DateTime(2026, 3, 4, 14, 10, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 5, UserId = 7, PropertyId = 5, Content = "Da li je internet uključen u cijenu?", CreatedAt = new DateTime(2026, 3, 5, 16, 0, 0, DateTimeKind.Utc), IsAnswered = false },
-    new Question { Id = 6, UserId = 8, PropertyId = 6, Content = "Može li se nekretnina iznajmiti samo na mjesec dana?", CreatedAt = new DateTime(2026, 3, 6, 12, 30, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 7, UserId = 9, PropertyId = 7, Content = "Koji je minimalan period najma?", CreatedAt = new DateTime(2026, 3, 7, 8, 50, 0, DateTimeKind.Utc), IsAnswered = false },
-    new Question { Id = 8, UserId = 10, PropertyId = 8, Content = "Da li je grijanje centralno ili etažno?", CreatedAt = new DateTime(2026, 3, 8, 13, 15, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 9, UserId = 2, PropertyId = 9, Content = "Postoji li mogućnost razgledanja uživo vikendom?", CreatedAt = new DateTime(2026, 3, 9, 10, 40, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 10, UserId = 4, PropertyId = 10, Content = "Da li su dozvoljene manje adaptacije u stanu?", CreatedAt = new DateTime(2026, 3, 10, 15, 25, 0, DateTimeKind.Utc), IsAnswered = false },
-    new Question { Id = 11, UserId = 5, PropertyId = 1, Content = "Ima li zgrada lift?", CreatedAt = new DateTime(2026, 3, 11, 9, 5, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 12, UserId = 6, PropertyId = 2, Content = "Da li je stan odmah useljiv?", CreatedAt = new DateTime(2026, 3, 12, 17, 35, 0, DateTimeKind.Utc), IsAnswered = false },
-    new Question { Id = 13, UserId = 7, PropertyId = 3, Content = "Koliko iznose prosječne mjesečne režije?", CreatedAt = new DateTime(2026, 3, 13, 11, 55, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 14, UserId = 8, PropertyId = 4, Content = "Da li nekretnina ima balkon?", CreatedAt = new DateTime(2026, 3, 14, 14, 45, 0, DateTimeKind.Utc), IsAnswered = false },
-    new Question { Id = 15, UserId = 9, PropertyId = 5, Content = "Da li je moguće platiti depozit u dvije rate?", CreatedAt = new DateTime(2026, 3, 15, 10, 10, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 16, UserId = 10, PropertyId = 6, Content = "Da li su studenti poželjni kao zakupci?", CreatedAt = new DateTime(2026, 3, 16, 13, 20, 0, DateTimeKind.Utc), IsAnswered = false },
-    new Question { Id = 17, UserId = 2, PropertyId = 7, Content = "Da li kuhinja dolazi sa svim aparatima?", CreatedAt = new DateTime(2026, 3, 17, 16, 40, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 18, UserId = 4, PropertyId = 8, Content = "Može li se rezervisati termin razgledanja za sutra?", CreatedAt = new DateTime(2026, 3, 18, 12, 5, 0, DateTimeKind.Utc), IsAnswered = false },
-    new Question { Id = 19, UserId = 5, PropertyId = 9, Content = "Da li se uz stan dobija i podrumska ostava?", CreatedAt = new DateTime(2026, 3, 19, 9, 30, 0, DateTimeKind.Utc), IsAnswered = true },
-    new Question { Id = 20, UserId = 6, PropertyId = 10, Content = "Koliko je udaljena najbliža autobuska stanica?", CreatedAt = new DateTime(2026, 3, 20, 18, 10, 0, DateTimeKind.Utc), IsAnswered = false }
-);
-
-        modelBuilder.Entity<Answer>().HasData(
-    new Answer { Id = 1, QuestionId = 1, UserId = 1, Content = "Režije nisu uključene u cijenu i plaćaju se odvojeno svaki mjesec.", CreatedAt = new DateTime(2026, 3, 1, 12, 0, 0, DateTimeKind.Utc) },
-    new Answer { Id = 2, QuestionId = 2, UserId = 1, Content = "Kućni ljubimci su dozvoljeni uz prethodni dogovor sa vlasnikom.", CreatedAt = new DateTime(2026, 3, 2, 13, 10, 0, DateTimeKind.Utc) },
-    new Answer { Id = 3, QuestionId = 4, UserId = 1, Content = "Da, uz stan dolazi jedno privatno parking mjesto.", CreatedAt = new DateTime(2026, 3, 4, 15, 0, 0, DateTimeKind.Utc) },
-    new Answer { Id = 4, QuestionId = 6, UserId = 1, Content = "Moguće je iznajmiti nekretninu i na period od jednog mjeseca.", CreatedAt = new DateTime(2026, 3, 6, 14, 20, 0, DateTimeKind.Utc) },
-    new Answer { Id = 5, QuestionId = 8, UserId = 1, Content = "Grijanje je centralno i uključeno je u redovne mjesečne troškove.", CreatedAt = new DateTime(2026, 3, 8, 15, 45, 0, DateTimeKind.Utc) },
-    new Answer { Id = 6, QuestionId = 9, UserId = 1, Content = "Da, moguće je zakazati razgledanje i vikendom uz prethodnu rezervaciju termina.", CreatedAt = new DateTime(2026, 3, 9, 12, 0, 0, DateTimeKind.Utc) },
-    new Answer { Id = 7, QuestionId = 11, UserId = 1, Content = "Da, zgrada posjeduje lift koji je redovno održavan.", CreatedAt = new DateTime(2026, 3, 11, 11, 30, 0, DateTimeKind.Utc) },
-    new Answer { Id = 8, QuestionId = 13, UserId = 1, Content = "Prosječne mjesečne režije iznose između 120 KM i 180 KM, zavisno od sezone.", CreatedAt = new DateTime(2026, 3, 13, 13, 40, 0, DateTimeKind.Utc) },
-    new Answer { Id = 9, QuestionId = 15, UserId = 1, Content = "Da, moguće je depozit platiti u dvije rate prema dogovoru.", CreatedAt = new DateTime(2026, 3, 15, 12, 25, 0, DateTimeKind.Utc) },
-    new Answer { Id = 10, QuestionId = 17, UserId = 1, Content = "Da, kuhinja dolazi sa frižiderom, šporetom i mašinom za suđe.", CreatedAt = new DateTime(2026, 3, 17, 18, 10, 0, DateTimeKind.Utc) },
-    new Answer { Id = 11, QuestionId = 19, UserId = 1, Content = "Da, uz stan se dobija i podrumska ostava koja je uključena u cijenu.", CreatedAt = new DateTime(2026, 3, 19, 11, 0, 0, DateTimeKind.Utc) }
-);
+    private static int GetMonthDifference(DateTime start, DateTime end)
+    {
+        return ((end.Year - start.Year) * 12) + end.Month - start.Month;
     }
 }

@@ -14,8 +14,7 @@ namespace Rentify.Model.RequestObjects
         [Required]
         public int ReservationId { get; set; }
 
-        [Range(0, double.MaxValue)]
-        public double Price { get; set; }
+        public decimal Price { get; set; }
 
         public string Name {get; set;}
 

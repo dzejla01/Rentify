@@ -7,7 +7,7 @@ namespace Rentify.Model.SearchObjects
         public int? UserId { get; set; }
         public int? PropertyId { get; set; }
         public bool? IsMonthly { get; set; }
-        public bool? IsApproved { get; set; }
+        public string? Status { get; set; }
         public int? OwnerId {get; set;}
 
         // Include

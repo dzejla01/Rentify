@@ -106,7 +106,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final ownerPropertyIds = propertiesResult.items.map((p) => p.id).toSet();
 
     final relevantReservations = reservationsResult.items
-        .where((r) => r.isApproved == true)
+        .where((r) => r.status == "Odobreno")
         .where((r) => ownerPropertyIds.contains(r.propertyId))
         .toList();
 

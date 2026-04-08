@@ -17,7 +17,6 @@ namespace Rentify.Services.Database
         [Required]
         [MaxLength(100)]
         public string Status { get; set; } = string.Empty; 
-        // npr. Created, Confirmed, Cancelled, Completed
 
         [MaxLength(500)]
         public string? Note { get; set; }

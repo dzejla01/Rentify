@@ -5,6 +5,13 @@ class DateHelper {
 
   static String format(DateTime date) => _uiFormat.format(date.toLocal());
 
+  String toDateOnly(DateTime d) {
+    final x = DateTime(d.year, d.month, d.day);
+    return "${x.year.toString().padLeft(4, '0')}-"
+        "${x.month.toString().padLeft(2, '0')}-"
+        "${x.day.toString().padLeft(2, '0')}";
+  }
+
   static String toIsoFromUi(String value) {
     final parts = value.split('.');
     if (parts.length < 3) {

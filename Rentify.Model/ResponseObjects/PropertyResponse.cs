@@ -10,10 +10,10 @@ namespace Rentify.Model.ResponseObjects
         public string Name { get; set; } = null!;
         public string Location { get; set; } = null!;
         public string City { get; set; } = null!;
-        public double PricePerDay { get; set; }
-        public double PricePerMonth { get; set; }
+        public decimal PricePerDay { get; set; }
+        public decimal PricePerMonth { get; set; }
         public List<string>? Tags { get; set; }
-        public string? NumberOfsquares { get; set; }
+        public double SquareMeters { get; set; }
         public string? Details { get; set; }
         public bool IsAvailable { get; set; }
         public bool IsRentingPerDay {get; set;}

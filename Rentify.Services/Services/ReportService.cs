@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
 using Rentify.Services.Interfaces;
@@ -67,6 +68,44 @@ namespace Rentify.Services.Services
                 Monthly = monthly,
                 ByProperty = byProperty
             };
+        }
+
+        public async Task<BestOwnerByYearResponse?> GetBestOwnerByYearAsync(BestOwnerByYearRequest request)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
+            if (request.Year < 2000 || request.Year > DateTime.Now.Year + 1)
+                throw new ArgumentException("Godina nije validna.");
+
+            var reservations = await _context.Reservations
+                .AsNoTracking()
+                .Include(r => r.Property)
+                    .ThenInclude(p => p.User)
+                .Where(r =>
+                    r.Property != null &&
+                    r.Property.User != null &&
+                    r.CreatedAt.Year == request.Year)
+                .ToListAsync();
+
+            var bestOwner = reservations
+                .GroupBy(r => new
+                {
+                    OwnerId = r.Property!.UserId,
+                    OwnerName = $"{r.Property!.User.FirstName} {r.Property!.User.LastName}"
+                })
+                .Select(g => new BestOwnerByYearResponse
+                {
+                    Year = request.Year,
+                    OwnerId = g.Key.OwnerId,
+                    OwnerName = g.Key.OwnerName,
+                    TotalReservations = g.Count()
+                })
+                .OrderByDescending(x => x.TotalReservations)
+                .ThenBy(x => x.OwnerName)
+                .FirstOrDefault();
+
+            return bestOwner;
         }
     }
 }

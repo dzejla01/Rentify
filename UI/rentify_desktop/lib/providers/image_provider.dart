@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 import 'package:rentify_desktop/config/api_config.dart';
+import 'package:rentify_desktop/helper/http_helper.dart';
 
 class ImageAppProvider {
   ImageAppProvider._();
@@ -28,9 +29,7 @@ class ImageAppProvider {
     final streamed = await request.send();
     final response = await http.Response.fromStream(streamed);
 
-    if (response.statusCode != 200) {
-      throw Exception('Upload slike nije uspio');
-    }
+    HttpHelper.checkResponse(response);
 
     
     final json = jsonDecode(response.body);
@@ -48,8 +47,6 @@ class ImageAppProvider {
 
     final res = await http.delete(uri);
 
-    if (res.statusCode != 200 && res.statusCode != 404) {
-      throw Exception('Brisanje slike nije uspjelo');
-    }
+    HttpHelper.checkResponse(res);
   }
 }

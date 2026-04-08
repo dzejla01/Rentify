@@ -13,7 +13,7 @@ class Property {
   final String city;
   final double pricePerDay;
   final double pricePerMonth;
-  final String numberOfsquares;
+  final int squareMeters;
   List<String>? tags;
   final String details;
   final bool isAvailable;
@@ -29,7 +29,7 @@ class Property {
     required this.city,
     required this.pricePerDay,
     required this.pricePerMonth,
-    required this.numberOfsquares,
+    required this.squareMeters,
     this.tags,
     required this.details,
     required this.isAvailable,

@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_mobile/helper/date_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
-
 import 'package:rentify_mobile/providers/reservation_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/utils/session.dart';
@@ -32,7 +31,6 @@ class PropertyReservationUniversalScreen extends StatefulWidget {
 
 class _PropertyReservationUniversalScreenState
     extends State<PropertyReservationUniversalScreen> {
-  // Rentify theme
   static const rentifyGreenDark = Color(0xFF5F9F3B);
 
   // --- MONTHLY state ---
@@ -48,7 +46,7 @@ class _PropertyReservationUniversalScreenState
   DateTime? _start;
   DateTime? _end;
 
-  late final Set<DateTime> _unavailable; // normalized (yyyy-mm-dd)
+  late final Set<DateTime> _unavailable;
   bool _loadingUnavailable = false;
   bool _submitting = false;
 
@@ -69,7 +67,7 @@ class _PropertyReservationUniversalScreenState
     try {
       final provider = ReservationProvider();
 
-      final resp = await provider.getUnavailableDatesForReservations(
+      final resp = await provider.getUnavailableReservationDates(
         propertyId: widget.property.id,
         from: DateTime.now(),
         to: DateTime.now().add(const Duration(days: 180)),
@@ -114,12 +112,10 @@ class _PropertyReservationUniversalScreenState
           children: [
             _PropertyMiniHeader(property: widget.property),
             const SizedBox(height: 12),
-
             if (widget.type == ReservationType.monthly)
               _monthlyPickerCard()
             else
               _shortStayCalendarCard(),
-
             const SizedBox(height: 12),
             _summaryCard(),
           ],
@@ -132,63 +128,67 @@ class _PropertyReservationUniversalScreenState
   // ------------------ MONTHLY UI ------------------
 
   Widget _monthlyPickerCard() {
-  final now = DateTime.now();
+    final now = DateTime.now();
 
-  // ✅ godine: od ove godine pa npr. narednih 8
-  final years = List.generate(8, (i) => now.year + i);
+    final years = List.generate(8, (i) => now.year + i);
 
-  // ✅ mjeseci: ako je trenutna godina -> od trenutnog mjeseca nadalje
-  final months = (_selectedYear == now.year)
-      ? List.generate(12 - now.month + 1, (i) => now.month + i) // npr. 3..12
-      : List.generate(12, (i) => i + 1); // 1..12
+    final months = (_selectedYear == now.year)
+        ? List.generate(12 - now.month + 1, (i) => now.month + i)
+        : List.generate(12, (i) => i + 1);
 
-  // ✅ ako user promijeni godinu na trenutnu, a mjesec je "prošli", ispravi ga
-  if (_selectedYear == now.year && _selectedMonth < now.month) {
-    _selectedMonth = now.month;
+    if (_selectedYear == now.year && _selectedMonth < now.month) {
+      _selectedMonth = now.month;
+    }
+
+    return _Card(
+      title: "Odaberi period",
+      child: Row(
+        children: [
+          Expanded(
+            child: _Dropdown<int>(
+              label: "Mjesec",
+              value: _selectedMonth,
+              items: months
+                  .map(
+                    (m) => DropdownMenuItem(
+                      value: m,
+                      child: Text(
+                        DateFormat.MMMM("bs").format(DateTime(2025, m, 1)),
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (v) => setState(() {
+                _selectedMonth = v ?? _selectedMonth;
+              }),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _Dropdown<int>(
+              label: "Godina",
+              value: _selectedYear,
+              items: years
+                  .map(
+                    (y) => DropdownMenuItem(
+                      value: y,
+                      child: Text(y.toString()),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (v) => setState(() {
+                _selectedYear = v ?? _selectedYear;
+
+                if (_selectedYear == now.year && _selectedMonth < now.month) {
+                  _selectedMonth = now.month;
+                }
+              }),
+            ),
+          ),
+        ],
+      ),
+    );
   }
-
-  return _Card(
-    title: "Odaberi period",
-    child: Row(
-      children: [
-        Expanded(
-          child: _Dropdown<int>(
-            label: "Mjesec",
-            value: _selectedMonth,
-            items: months
-                .map(
-                  (m) => DropdownMenuItem(
-                    value: m,
-                    child: Text(DateFormat.MMMM("bs").format(DateTime(2025, m, 1))),
-                  ),
-                )
-                .toList(),
-            onChanged: (v) => setState(() {
-              _selectedMonth = v ?? _selectedMonth;
-            }),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _Dropdown<int>(
-            label: "Godina",
-            value: _selectedYear,
-            items: years
-                .map((y) => DropdownMenuItem(value: y, child: Text(y.toString())))
-                .toList(),
-            onChanged: (v) => setState(() {
-              _selectedYear = v ?? _selectedYear;
-
-              if (_selectedYear == now.year && _selectedMonth < now.month) {
-                _selectedMonth = now.month;
-              }
-            }),
-          ),
-        ),
-      ],
-    ),
-  );
-}
 
   // ------------------ SHORT STAY UI ------------------
 
@@ -232,17 +232,23 @@ class _PropertyReservationUniversalScreenState
     final monthName = DateFormat.MMMM("bs").format(_visibleMonth);
     final year = _visibleMonth.year;
 
+    final currentMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    final canGoPrev = !_visibleMonth.isAtSameMomentAs(currentMonth) &&
+        !_visibleMonth.isBefore(currentMonth);
+
     return Row(
       children: [
         _IconBtn(
           icon: Icons.chevron_left_rounded,
-          onTap: () => setState(() {
-            _visibleMonth = DateTime(
-              _visibleMonth.year,
-              _visibleMonth.month - 1,
-              1,
-            );
-          }),
+          onTap: !canGoPrev
+              ? () {}
+              : () => setState(() {
+                    _visibleMonth = DateTime(
+                      _visibleMonth.year,
+                      _visibleMonth.month - 1,
+                      1,
+                    );
+                  }),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -400,6 +406,15 @@ class _PropertyReservationUniversalScreenState
         return;
       }
 
+      if (_normalizeDate(date) == _normalizeDate(_start!)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Datum završetka mora biti nakon početnog datuma."),
+          ),
+        );
+        return;
+      }
+
       setState(() => _end = date);
     }
   }
@@ -430,6 +445,7 @@ class _PropertyReservationUniversalScreenState
       final nights = _start == null || _end == null
           ? null
           : _end!.difference(_start!).inDays;
+
       line1 =
           "Datumi: ${_start == null ? "—" : _fmt(_start!)}  →  ${_end == null ? "—" : _fmt(_end!)}";
 
@@ -538,7 +554,6 @@ class _PropertyReservationUniversalScreenState
     setState(() {
       _selectedMonth = DateTime.now().month;
       _selectedYear = DateTime.now().year;
-
       _start = null;
       _end = null;
       _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
@@ -558,27 +573,49 @@ class _PropertyReservationUniversalScreenState
         "userId": userId,
         "propertyId": widget.property.id,
         "isMonthly": widget.type == ReservationType.monthly,
-        "createdAt": DateHelper.toUtcIso(DateTime.now())
+        "createdAt": DateHelper.toUtcIso(DateTime.now()),
+        "status": "Na čekanju",
       };
 
       if (widget.type == ReservationType.monthly) {
-        // mjesecna: šalješ month/year (kako si već ranije vratio)
         payload["month"] = _selectedMonth;
         payload["year"] = _selectedYear;
-      } else {
-        if (_start == null || _end == null) {
-          throw Exception("Odaberite period boravka.");
-        }
 
-        final startUtc = DateTime.utc(_start!.year, _start!.month, _start!.day);
-        final endUtc = DateTime.utc(_end!.year, _end!.month, _end!.day);
+        final startUtc = DateTime.utc(_selectedYear, _selectedMonth, 1);
+        final endUtc = DateTime.utc(_selectedYear, _selectedMonth + 1, 1);
 
         payload["startDateOfRenting"] = startUtc.toIso8601String();
         payload["endDateOfRenting"] = endUtc.toIso8601String();
+      } else {
+        if (_start == null || _end == null) {
+          throw Exception("Odaberite početni i završni datum.");
+        }
+
+        final normalizedStart = _normalizeDate(_start!);
+        final normalizedEnd = _normalizeDate(_end!);
+
+        if (!normalizedEnd.isAfter(normalizedStart)) {
+          throw Exception("Datum završetka mora biti nakon početnog datuma.");
+        }
+
+        if (_rangeHasUnavailable(normalizedStart, normalizedEnd)) {
+          throw Exception("Odabrani period sadrži zauzete dane.");
+        }
+
+        payload["startDateOfRenting"] = DateTime.utc(
+          normalizedStart.year,
+          normalizedStart.month,
+          normalizedStart.day,
+        ).toIso8601String();
+
+        payload["endDateOfRenting"] = DateTime.utc(
+          normalizedEnd.year,
+          normalizedEnd.month,
+          normalizedEnd.day,
+        ).toIso8601String();
       }
 
-      // ✅ BaseProvider insert (pretpostavka: insert(Map))
-      final created = await Provider.of<ReservationProvider>(
+      await Provider.of<ReservationProvider>(
         context,
         listen: false,
       ).insert(payload);
@@ -603,7 +640,7 @@ class _PropertyReservationUniversalScreenState
       if (!mounted) return;
       setState(() => _submitting = false);
 
-      ConfirmDialogs.okConfirmation(
+      await ConfirmDialogs.okConfirmation(
         context,
         title: "Greška",
         message: e.toString(),

@@ -18,9 +18,9 @@ namespace Rentify.WebAPI.Controllers
 
         [HttpGet("unavailable-dates")]
         public async Task<ActionResult<UnavailableAppointmentsResponse>> GetUnavailableDates(
-    int propertyId,
-    DateTime? from = null,
-    DateTime? to = null)
+        int propertyId,
+        DateTime? from = null,
+        DateTime? to = null)
         {
             var result = await _Appservice
                 .GetUnavailableAppointmentDatesAsync(propertyId, from, to);

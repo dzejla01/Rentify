@@ -4,23 +4,25 @@ import 'package:provider/provider.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
-
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
-
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/payment.dart';
 import 'package:rentify_mobile/models/search_result.dart';
 import 'package:rentify_mobile/helper/univerzal_pagging_helper.dart';
-
 import 'package:rentify_mobile/providers/payment_provider.dart';
 import 'package:rentify_mobile/widgets/swipe_widget.dart';
 import 'payment_preview_screen.dart';
 
 class PaymentListScreen extends StatefulWidget {
-  const PaymentListScreen({super.key, required this.property});
+  const PaymentListScreen({
+    super.key,
+    required this.property,
+    required this.reservationStatus,
+  });
 
   final Property property;
+  final String reservationStatus;
 
   @override
   State<PaymentListScreen> createState() => _PaymentListScreenState();
@@ -57,10 +59,12 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
         final f = <String, dynamic>{
           "userId": userId,
           "propertyId": widget.property.id,
+          "reservationStatus": widget.reservationStatus,
           "page": page,
           "pageSize": pageSize,
           "includeTotalCount": includeTotalCount,
           if (filter != null && filter.trim().isNotEmpty) "FTS": filter.trim(),
+          ...?extra,
         };
 
         return await _paymentProvider.get(filter: f);
@@ -87,37 +91,39 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   @override
   Widget build(BuildContext context) {
     return BaseMobileScreen(
-      title: "Najamnina",
+      title: widget.reservationStatus == "Završeno"
+          ? "Završena plaćanja"
+          : "Aktivna plaćanja",
       NameAndSurname: Session.fullName!,
       userUsername: Session.username ?? "Nepoznato",
       userImageAsset: Session.userImage,
       leading: IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () => Navigator.pop(context),
+        icon: const Icon(Icons.arrow_back),
+        onPressed: () => Navigator.pop(context),
       ),
       onLogout: () async {
-  await Session.odjava(
-    deviceTokenProvider: context.read<DeviceTokenProvider>(),
-    authProvider: context.read<AuthProvider>(),
-  );
+        await Session.odjava(
+          deviceTokenProvider: context.read<DeviceTokenProvider>(),
+          authProvider: context.read<AuthProvider>(),
+        );
 
-  if (!context.mounted) return;
+        if (!context.mounted) return;
 
-  Navigator.pushNamedAndRemoveUntil(
-    context,
-    AppRoutes.login,
-    (route) => false,
-  );
-},
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.login,
+          (route) => false,
+        );
+      },
       child: Container(
         color: const Color(0xFFF6F7FB),
         child: Column(
           children: [
-            // 🔎 Search bar
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(18),
@@ -133,7 +139,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   controller: _searchCtrl,
                   onChanged: (v) {
                     _onSearchChanged(v);
-                    setState(() {}); // da se suffixIcon osvježi
+                    setState(() {});
                   },
                   decoration: InputDecoration(
                     hintText: "Pretraga (naziv / period)...",
@@ -153,8 +159,6 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                 ),
               ),
             ),
-
-            // ✅ Scroll + SwipePagedList
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
@@ -163,13 +167,16 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   separatorHeight: 12,
                   itemBuilder: (context, p) {
                     final isPayed = p.isPayed == true;
+                    final isFinished =
+                        widget.reservationStatus == "Završeno";
 
                     return Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: Colors.black.withOpacity(0.05)),
+                        border:
+                            Border.all(color: Colors.black.withOpacity(0.05)),
                         boxShadow: const [
                           BoxShadow(
                             color: Color(0x12000000),
@@ -194,12 +201,18 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                                 ),
                               ),
                               const SizedBox(width: 10),
-                              _MiniStatus(isPayed: isPayed),
+                              _MiniStatus(
+                                isPayed: isPayed,
+                                isFinishedTab: isFinished,
+                              ),
                             ],
                           ),
                           const SizedBox(height: 10),
                           _Line(label: "Period", value: _periodText(p)),
-                          _Line(label: "Iznos", value: "${p.price.toStringAsFixed(2)} KM"),
+                          _Line(
+                            label: "Iznos",
+                            value: "${p.price.toStringAsFixed(2)} KM",
+                          ),
                           _Line(
                             label: "Rok",
                             value: p.dateToPay == null ? "-" : _fmt(p.dateToPay!),
@@ -234,10 +247,14 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                 ),
-                                icon: const Icon(Icons.visibility_rounded, size: 18),
+                                icon: const Icon(
+                                  Icons.visibility_rounded,
+                                  size: 18,
+                                ),
                                 label: const Text(
                                   "Pregled",
-                                  style: TextStyle(fontWeight: FontWeight.w800),
+                                  style:
+                                      TextStyle(fontWeight: FontWeight.w800),
                                 ),
                               ),
                             ),
@@ -307,15 +324,28 @@ class _Line extends StatelessWidget {
 }
 
 class _MiniStatus extends StatelessWidget {
-  const _MiniStatus({required this.isPayed});
+  const _MiniStatus({
+    required this.isPayed,
+    required this.isFinishedTab,
+  });
+
   final bool isPayed;
+  final bool isFinishedTab;
 
   @override
   Widget build(BuildContext context) {
+    final text = isFinishedTab
+        ? "Završeno"
+        : (isPayed ? "Uplaćeno" : "Na čekanju");
+
+    final color = isFinishedTab
+        ? const Color(0xFF466F2C)
+        : (isPayed ? Colors.green : Colors.orange);
+
     return Text(
-      isPayed ? "Uplaćeno" : "Na čekanju",
+      text,
       style: TextStyle(
-        color: isPayed ? Colors.green : Colors.orange,
+        color: color,
         fontWeight: FontWeight.w900,
       ),
     );

@@ -6,7 +6,7 @@ namespace Rentify.WebAPI.Services
     public class StripeService : IStripeService
     {
         public async Task<PaymentIntent> CreatePaymentIntentAsync(
-            double amount,
+            decimal amount,
             string currency,
             Dictionary<string, string> metadata)
         {

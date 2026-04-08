@@ -17,7 +17,7 @@ Reservation _$ReservationFromJson(Map<String, dynamic> json) => Reservation(
       ? null
       : Property.fromJson(json['property'] as Map<String, dynamic>),
   isMonthly: json['isMonthly'] as bool,
-  isApproved: json['isApproved'] as bool?,
+  status: json['status'] as String?,
   createdAt: json['createdAt'] == null
       ? null
       : DateTime.parse(json['createdAt'] as String),
@@ -37,7 +37,7 @@ Map<String, dynamic> _$ReservationToJson(Reservation instance) =>
       'propertyId': instance.propertyId,
       'property': instance.property,
       'isMonthly': instance.isMonthly,
-      'isApproved': instance.isApproved,
+      'status': instance.status,
       'createdAt': instance.createdAt?.toIso8601String(),
       'startDateOfRenting': instance.startDateOfRenting?.toIso8601String(),
       'endDateOfRenting': instance.endDateOfRenting?.toIso8601String(),

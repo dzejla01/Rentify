@@ -22,7 +22,7 @@ namespace Rentify.Model.RequestObjects
 
         public List<string>? Tags { get; set; }
 
-        public string? NumberOfsquares { get; set; }
+        public string? SquareMeters { get; set; }
 
         [Required]
         public string? Details { get; set; }

@@ -12,7 +12,7 @@ class Reservation {
   final int propertyId;
   final Property? property;
   final bool isMonthly;
-  bool? isApproved;
+  String? status;
   DateTime? createdAt;
   DateTime? startDateOfRenting;
   DateTime? endDateOfRenting;
@@ -24,7 +24,7 @@ class Reservation {
     required this.propertyId,
     required this.property,
     required this.isMonthly,
-    this.isApproved,
+    this.status,
     this.createdAt,
     this.startDateOfRenting,
     this.endDateOfRenting,

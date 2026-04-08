@@ -28,6 +28,6 @@ namespace Rentify.Services.Database
 
         public bool IsAnswered { get; set; } = false;
 
-        public ICollection<Answer> Answers { get; set; } = new List<Answer>();
+        public Answer? Answer { get; set; }
     }
 }

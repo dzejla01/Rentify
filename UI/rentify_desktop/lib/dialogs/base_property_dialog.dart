@@ -328,7 +328,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
             : 0.0,
           'pricePerMonth': toDouble(fields.text('pricePerMonth')),
           'tags': _selectedTags.isEmpty ? null : _selectedTags,
-          'numberOfsquares': fields.text('square').trim().isEmpty
+          'squareMeters': fields.text('square').trim().isEmpty
               ? null
               : fields.text('square').trim(),
           'details': fields.text('details').trim().isEmpty
@@ -454,7 +454,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     if (p != null) {
       fields.setText('name', p.name);
       fields.setText('pricePerMonth', p.pricePerMonth.toStringAsFixed(0));
-      fields.setText('square', p.numberOfsquares);
+      fields.setText('square', p.squareMeters.toString());
       fields.setText('details', p.details);
       fields.setText('location', p.location);
       fields.setText('city', p.city);

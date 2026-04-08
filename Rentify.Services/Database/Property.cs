@@ -19,10 +19,10 @@ namespace Rentify.Services.Database
         public string Name { get; set; }
         public string Location { get; set; }
         public string City { get; set; }
-        public double PricePerDay { get; set; }
-        public double PricePerMonth { get; set; }
+        public decimal PricePerDay { get; set; }
+        public decimal PricePerMonth { get; set; }
         public List<string> Tags { get; set; }
-        public string NumberOfsquares { get; set; }
+        public double SquareMeters { get; set; }
         public string Details { get; set; }
         public bool IsAvailable { get; set; }
         public bool IsRentingPerDay {get; set;}

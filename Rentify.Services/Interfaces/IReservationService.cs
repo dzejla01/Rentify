@@ -9,9 +9,14 @@ namespace Rentify.Services.Interfaces
         : ICRUDService<ReservationResponse, ReservationSearchObject, ReservationUpsertRequest, ReservationUpsertRequest>
     {
 
-       public Task<UnavailableAppointmentsResponse> GetUnavailableAppointmentDatesAsync(
-        int propertyId,
-        DateTime? from = null,
-        DateTime? to = null);
+        public Task<UnavailableDatesResponse> GetUnavailableAppointmentDatesAsync(
+             int propertyId,
+             DateTime? from = null,
+             DateTime? to = null);
+
+        public Task<UnavailableDatesResponse> GetUnavailableReservationDatesAsync(
+     int propertyId,
+     DateTime? from = null,
+     DateTime? to = null);
     }
 }

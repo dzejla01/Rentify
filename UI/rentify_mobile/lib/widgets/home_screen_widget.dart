@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/helper/image_helper.dart';
 import 'package:rentify_mobile/helper/univerzal_pagging_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/property_images.dart';
@@ -466,7 +467,7 @@ class _PropertyMainImage extends StatelessWidget {
         return ClipRRect(
           borderRadius: BorderRadius.circular(14),
           child: Image.network(
-            url,
+            ImageHelper.httpCheck(url, 'properties'),
             width: size,
             height: size,
             fit: BoxFit.cover,

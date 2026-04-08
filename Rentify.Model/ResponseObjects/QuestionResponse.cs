@@ -11,6 +11,7 @@ namespace Rentify.Model.ResponseObjects
         public PropertyResponse? Property {get; set;}
         public string Content { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
+        public AnswerResponse? Answer { get; set; }
         public bool IsAnswered { get; set; }
     }
 }

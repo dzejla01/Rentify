@@ -6,13 +6,12 @@ import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:rentify_desktop/models/best_owner_by_year.dart';
 import 'package:rentify_desktop/models/monthly_income.dart';
 import 'package:rentify_desktop/models/property_income.dart';
 import 'package:rentify_desktop/providers/report_provider.dart';
 import 'package:rentify_desktop/screens/base_screen.dart';
 import 'package:rentify_desktop/utils/session.dart';
-
-import 'package:rentify_desktop/models/income_report.dart';
 
 class ReportScreen extends StatefulWidget {
   const ReportScreen({super.key});
@@ -21,10 +20,13 @@ class ReportScreen extends StatefulWidget {
   State<ReportScreen> createState() => _ReportScreenState();
 }
 
+enum _ReportTab { income, bestOwner }
+
 class _ReportScreenState extends State<ReportScreen> {
-  // 🎨 Rentify theme
   static const Color _green = Color(0xFF5F9F3B);
+  static const Color _greenDark = Color(0xFF466F2C);
   static const Color _greenSoft = Color(0xFFEAF6E5);
+  static const Color _greenSoft2 = Color(0xFFF3FAEF);
   static const Color _border = Color(0xFFDFE6DA);
   static const Color _text = Color(0xFF1F2A1F);
   static const Color _muted = Color(0xFF6B7280);
@@ -32,12 +34,22 @@ class _ReportScreenState extends State<ReportScreen> {
   final _api = IncomeReportApi();
 
   bool _loading = false;
+  _ReportTab _selectedTab = _ReportTab.income;
 
-  // ✅ real data from API
+  final ScrollController _incomeScrollController = ScrollController();
+  final ScrollController _bestOwnerScrollController = ScrollController();
+  final ScrollController _trendHorizontalController = ScrollController();
+
+  // INCOME
   List<MonthlyIncome> _monthly = [];
   List<PropertyIncome> _byProperty = [];
+  int? _selectedIncomeYear;
+  int? _selectedIncomeMonth;
 
-  MonthlyIncome? _selectedMonth;
+  // BEST OWNER
+  final List<int> _yearOptions = const [2025, 2026];
+  int? _selectedYear = 2026;
+  BestOwnerByYear? _bestOwner;
 
   @override
   void initState() {
@@ -45,7 +57,231 @@ class _ReportScreenState extends State<ReportScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadInitial());
   }
 
-  Future<List<int>> _buildReportPdfBytes({
+  @override
+  void dispose() {
+    _incomeScrollController.dispose();
+    _bestOwnerScrollController.dispose();
+    _trendHorizontalController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadInitial() async {
+    if (_loading) return;
+
+    setState(() => _loading = true);
+    try {
+      await _loadIncomeInitial();
+      await _loadBestOwner();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Greška: $e")));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _loadIncomeInitial() async {
+    final ownerId = Session.userId!;
+
+    final report = await _api.getIncomeReport(ownerId: ownerId, monthsBack: 24);
+
+    final sorted = [...report.monthly]
+      ..sort((a, b) {
+        final ay = a.year * 100 + a.month;
+        final by = b.year * 100 + b.month;
+        return ay.compareTo(by);
+      });
+
+    setState(() {
+      _monthly = sorted;
+    });
+
+    // default: zadnji dostupan mjesec
+    if (sorted.isNotEmpty) {
+      final last = sorted.last;
+      _selectedIncomeYear = last.year;
+      _selectedIncomeMonth = last.month;
+      await _loadSelectedIncomeByProperty();
+    } else {
+      setState(() {
+        _selectedIncomeYear = 2026;
+        _selectedIncomeMonth = 1;
+        _byProperty = [];
+      });
+    }
+  }
+
+  Future<void> _loadSelectedIncomeByProperty() async {
+    if (_selectedIncomeYear == null || _selectedIncomeMonth == null) return;
+
+    final ownerId = Session.userId!;
+
+    final report = await _api.getIncomeReport(
+      ownerId: ownerId,
+      monthsBack: 24,
+      year: _selectedIncomeYear,
+      month: _selectedIncomeMonth,
+    );
+
+    setState(() {
+      _byProperty = report.byProperty;
+    });
+  }
+
+  Future<void> _loadBestOwner() async {
+    if (_selectedYear == null) return;
+
+    final result = await _api.getBestOwnerByYear(year: _selectedYear!);
+
+    setState(() {
+      _bestOwner = result;
+    });
+  }
+
+  MonthlyIncome? get _selectedMonthlyIncome {
+    if (_selectedIncomeYear == null || _selectedIncomeMonth == null)
+      return null;
+
+    try {
+      return _monthly.firstWhere(
+        (m) => m.year == _selectedIncomeYear && m.month == _selectedIncomeMonth,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  double get _selectedMonthTotal =>
+      _byProperty.fold<double>(0, (a, b) => a + b.total);
+
+  String _km(num v) => "${v.toStringAsFixed(0)} KM";
+
+  List<int> get _incomeYearOptions => const [2025, 2026];
+
+  List<int> get _incomeMonthOptions {
+    if (_selectedIncomeYear == 2025) {
+      return List.generate(12, (i) => i + 1);
+    }
+    if (_selectedIncomeYear == 2026) {
+      return List.generate(4, (i) => i + 1);
+    }
+    return [];
+  }
+
+  String _monthLabel(int month) {
+    const names = [
+      "Januar",
+      "Februar",
+      "Mart",
+      "April",
+      "Maj",
+      "Juni",
+      "Juli",
+      "August",
+      "Septembar",
+      "Oktobar",
+      "Novembar",
+      "Decembar",
+    ];
+
+    if (month < 1 || month > 12) return month.toString();
+    return names[month - 1];
+  }
+
+  Future<void> _printCurrentReport() async {
+    if (_selectedTab == _ReportTab.income) {
+      await _printIncomeReport();
+    } else {
+      await _printBestOwnerReport();
+    }
+  }
+
+  Future<void> _printIncomeReport() async {
+    final selected = _selectedMonthlyIncome;
+
+    if (selected == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Nema podataka za printanje.")),
+      );
+      return;
+    }
+
+    final label =
+        "${selected.year}_${selected.month.toString().padLeft(2, '0')}";
+
+    final path = await FilePicker.platform.saveFile(
+      dialogTitle: 'Sačuvaj PDF izvjestaj',
+      fileName: 'Rentify_Izvjestaj_Prihod_$label.pdf',
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (path == null) return;
+
+    try {
+      setState(() => _loading = true);
+
+      final bytes = await _buildIncomePdfBytes(
+        monthly: _monthly,
+        byProperty: _byProperty,
+        selected: selected,
+        totalSelected: _selectedMonthTotal,
+      );
+
+      final file = File(path);
+      await file.writeAsBytes(bytes, flush: true);
+      await OpenFilex.open(file.path);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Ne mogu napraviti PDF: $e")));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _printBestOwnerReport() async {
+    if (_selectedYear == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Odaberite godinu.")));
+      return;
+    }
+
+    final path = await FilePicker.platform.saveFile(
+      dialogTitle: 'Sačuvaj PDF izvještaj',
+      fileName: 'Rentify_NajboljiOwner_${_selectedYear!}.pdf',
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (path == null) return;
+
+    try {
+      setState(() => _loading = true);
+
+      final bytes = await _buildBestOwnerPdfBytes(
+        year: _selectedYear!,
+        bestOwner: _bestOwner,
+      );
+
+      final file = File(path);
+      await file.writeAsBytes(bytes, flush: true);
+      await OpenFilex.open(file.path);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Ne mogu napraviti PDF: $e")));
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<List<int>> _buildIncomePdfBytes({
     required List<MonthlyIncome> monthly,
     required List<PropertyIncome> byProperty,
     required MonthlyIncome selected,
@@ -58,7 +294,6 @@ class _ReportScreenState extends State<ReportScreen> {
 
     String km(num v) => "${v.toStringAsFixed(0)} KM";
 
-    // sortiranja (da u pdf bude stabilno)
     final monthlySorted = [...monthly]
       ..sort(
         (a, b) => (a.year * 100 + a.month).compareTo(b.year * 100 + b.month),
@@ -72,7 +307,6 @@ class _ReportScreenState extends State<ReportScreen> {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
         build: (context) => [
-          // HEADER
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
@@ -107,7 +341,7 @@ class _ReportScreenState extends State<ReportScreen> {
                   border: pw.Border.all(color: PdfColors.green200),
                 ),
                 child: pw.Text(
-                  "Mjesec: ${selected.label}",
+                  "Period: ${_monthLabel(selected.month)} ${selected.year}",
                   style: pw.TextStyle(
                     fontSize: 11,
                     fontWeight: pw.FontWeight.bold,
@@ -116,10 +350,7 @@ class _ReportScreenState extends State<ReportScreen> {
               ),
             ],
           ),
-
           pw.SizedBox(height: 16),
-
-          // KPI
           pw.Container(
             padding: const pw.EdgeInsets.all(12),
             decoration: pw.BoxDecoration(
@@ -148,12 +379,9 @@ class _ReportScreenState extends State<ReportScreen> {
               ],
             ),
           ),
-
           pw.SizedBox(height: 18),
-
-          // TREND TABLE
           pw.Text(
-            "Trend prihoda (zadnji mjeseci)",
+            "Trend prihoda",
             style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 8),
@@ -165,23 +393,17 @@ class _ReportScreenState extends State<ReportScreen> {
               horizontal: 8,
               vertical: 6,
             ),
-            columnWidths: {
-              0: const pw.FlexColumnWidth(2),
-              1: const pw.FlexColumnWidth(2),
-            },
             headers: const ["Mjesec", "Ukupno"],
-            data: monthlySorted.map((m) => [m.label, km(m.total)]).toList(),
+            data: monthlySorted
+                .map((m) => ["${_monthLabel(m.month)} ${m.year}", km(m.total)])
+                .toList(),
           ),
-
           pw.SizedBox(height: 18),
-
-          // BY PROPERTY TABLE
           pw.Text(
-            "Prihod po nekretnini (${selected.label})",
+            "Prihod po nekretnini (${_monthLabel(selected.month)} ${selected.year})",
             style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 8),
-
           if (byPropertySorted.isEmpty)
             pw.Text("Nema podataka za odabrani mjesec.")
           else
@@ -226,126 +448,169 @@ class _ReportScreenState extends State<ReportScreen> {
     return doc.save();
   }
 
-  Future<void> _loadInitial() async {
-    if (_loading) return;
-    setState(() => _loading = true);
+  Future<List<int>> _buildBestOwnerPdfBytes({
+    required int year,
+    required BestOwnerByYear? bestOwner,
+  }) async {
+    final doc = pw.Document();
+    final now = DateTime.now();
+    final dateFmt = DateFormat('dd.MM.yyyy HH:mm');
 
-    try {
-      final ownerId = Session.userId!;
-      final report = await _api.getIncomeReport(
-        ownerId: ownerId,
-        monthsBack: 6,
-      );
-
-      // sort just in case (year/month)
-      final sorted = [...report.monthly]
-        ..sort((a, b) {
-          final ay = a.year * 100 + a.month;
-          final by = b.year * 100 + b.month;
-          return ay.compareTo(by);
-        });
-
-      final last = sorted.isNotEmpty ? sorted.last : null;
-
-      setState(() {
-        _monthly = sorted;
-        _selectedMonth = last;
-      });
-
-      // load by property for selected month
-      if (last != null) {
-        await _loadByProperty(last);
-      } else {
-        setState(() => _byProperty = []);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Greška: $e")));
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
-
-  Future<void> _printReport() async {
-    if (_selectedMonth == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Nema podataka za printanje.")),
-      );
-      return;
-    }
-
-    // 1) Save As dialog
-    final label = _selectedMonth!.label.replaceAll('.', '_'); // npr 12_2025
-    final path = await FilePicker.platform.saveFile(
-      dialogTitle: 'Sačuvaj PDF izvještaj',
-      fileName: 'Rentify_Izvjestaj_$label.pdf',
-      type: FileType.custom,
-      allowedExtensions: ['pdf'],
+    doc.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
+        build: (context) => [
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+            children: [
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    "Rentify Izvještaj najboljeg ownera",
+                    style: pw.TextStyle(
+                      fontSize: 20,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Text(
+                    "Generisano: ${dateFmt.format(now)}",
+                    style: const pw.TextStyle(
+                      fontSize: 10,
+                      color: PdfColors.grey700,
+                    ),
+                  ),
+                ],
+              ),
+              pw.Container(
+                padding: const pw.EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.green50,
+                  borderRadius: pw.BorderRadius.circular(8),
+                  border: pw.Border.all(color: PdfColors.green200),
+                ),
+                child: pw.Text(
+                  "Godina: $year",
+                  style: pw.TextStyle(
+                    fontSize: 11,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 20),
+          if (bestOwner == null)
+            pw.Container(
+              padding: const pw.EdgeInsets.all(18),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.grey100,
+                borderRadius: pw.BorderRadius.circular(10),
+                border: pw.Border.all(color: PdfColors.grey300),
+              ),
+              child: pw.Text(
+                "Za odabranu godinu nema podataka o rezervacijama.",
+                style: pw.TextStyle(
+                  fontSize: 13,
+                  fontWeight: pw.FontWeight.bold,
+                ),
+              ),
+            )
+          else
+            pw.Container(
+              width: double.infinity,
+              padding: const pw.EdgeInsets.all(18),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.green50,
+                borderRadius: pw.BorderRadius.circular(14),
+                border: pw.Border.all(color: PdfColors.green200),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(
+                    "Najbolji owner godine",
+                    style: pw.TextStyle(
+                      fontSize: 16,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 16),
+                  pw.Text(
+                    bestOwner.ownerName,
+                    style: pw.TextStyle(
+                      fontSize: 24,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.green800,
+                    ),
+                  ),
+                  pw.SizedBox(height: 8),
+                  pw.Text(
+                    "Ukupan broj rezervacija: ${bestOwner.totalReservations}",
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 18),
+                  pw.Table.fromTextArray(
+                    headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    headerDecoration: const pw.BoxDecoration(
+                      color: PdfColors.grey200,
+                    ),
+                    cellAlignment: pw.Alignment.centerLeft,
+                    cellPadding: const pw.EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    headers: const ["Polje", "Vrijednost"],
+                    data: [
+                      ["Godina", bestOwner.year.toString()],
+                      ["Ime ownera", bestOwner.ownerName],
+                      [
+                        "Ukupno rezervacija",
+                        bestOwner.totalReservations.toString(),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+        ],
+        footer: (context) => pw.Align(
+          alignment: pw.Alignment.centerRight,
+          child: pw.Text(
+            "Stranica ${context.pageNumber} / ${context.pagesCount}",
+            style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+          ),
+        ),
+      ),
     );
 
-    if (path == null) return; // user cancel
-
-    try {
-      setState(() => _loading = true);
-
-      // 2) napravi PDF bytes
-      final bytes = await _buildReportPdfBytes(
-        monthly: _monthly,
-        byProperty: _byProperty,
-        selected: _selectedMonth!,
-        totalSelected: _selectedMonthTotal,
-      );
-
-      // 3) snimi
-      final file = File(path);
-      await file.writeAsBytes(bytes, flush: true);
-
-      // 4) otvori PDF
-      await OpenFilex.open(file.path);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Ne mogu napraviti PDF: $e")));
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+    return doc.save();
   }
-
-  Future<void> _loadByProperty(MonthlyIncome month) async {
-    final ownerId = Session.userId!;
-    final report = await _api.getIncomeReport(
-      ownerId: ownerId,
-      monthsBack: 6,
-      year: month.year,
-      month: month.month,
-    );
-
-    setState(() {
-      _byProperty = report.byProperty;
-    });
-  }
-
-  double get _selectedMonthTotal =>
-      _byProperty.fold<double>(0, (a, b) => a + b.total);
-
-  String _km(num v) => "${v.toStringAsFixed(0)} KM";
 
   @override
   Widget build(BuildContext context) {
-    final selectedLabel = _selectedMonth?.label ?? "-";
+    final selectedLabel = _selectedMonthlyIncome == null
+        ? "-"
+        : "${_monthLabel(_selectedMonthlyIncome!.month)} ${_selectedMonthlyIncome!.year}";
 
-    // RIGHT: map to entries for existing UI
     final propertyEntries =
         _byProperty.map((e) => MapEntry(e.propertyName, e.total)).toList()
           ..sort((a, b) => b.value.compareTo(a.value));
 
     final lineData = _monthly.map((e) => e.total).toList();
-    final lineLabels = _monthly.map((e) => e.label).toList();
+    final lineLabels = _monthly
+        .map((e) => "${e.month.toString().padLeft(2, '0')}/${e.year}")
+        .toList();
 
-    final kpiValue = (_monthly.isNotEmpty ? _monthly.last.total : 0.0);
+    final kpiValue = _selectedMonthTotal;
 
     return RentifyBasePage(
       title: "Izvještaji",
@@ -356,17 +621,37 @@ class _ReportScreenState extends State<ReportScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // TOP: KPI + month selector
+                _TopSwitchBar(
+                  selectedTab: _selectedTab,
+                  onChanged: (tab) {
+                    setState(() => _selectedTab = tab);
+                  },
+                ),
+                const SizedBox(height: 14),
                 Row(
                   children: [
                     Expanded(
                       child: _KpiCard(
-                        title: "Ukupni mjesečni prihod",
-                        value: _km(kpiValue),
-                        subtitle: "Plaćeni payments • trend zadnjih mjeseci",
-                        icon: Icons.payments_rounded,
-                        green: _green,
-                        greenSoft: _greenSoft,
+                        title: _selectedTab == _ReportTab.income
+                            ? "Ukupni mjesečni prihod"
+                            : "Najbolji owner u godini",
+                        value: _selectedTab == _ReportTab.income
+                            ? _km(kpiValue)
+                            : (_bestOwner?.ownerName ?? "Nema podataka"),
+                        subtitle: _selectedTab == _ReportTab.income
+                            ? "Period: $selectedLabel"
+                            : (_bestOwner == null
+                                  ? "Za odabranu godinu nema podataka."
+                                  : "${_bestOwner!.totalReservations} rezervacija u ${_bestOwner!.year}. godini"),
+                        icon: _selectedTab == _ReportTab.income
+                            ? Icons.payments_rounded
+                            : Icons.workspace_premium_rounded,
+                        accent: _selectedTab == _ReportTab.income
+                            ? _green
+                            : _greenDark,
+                        accentSoft: _selectedTab == _ReportTab.income
+                            ? _greenSoft
+                            : _greenSoft2,
                         border: _border,
                         text: _text,
                         muted: _muted,
@@ -374,92 +659,253 @@ class _ReportScreenState extends State<ReportScreen> {
                     ),
                     const SizedBox(width: 14),
 
-                    _FilterCard(
-                      border: _border,
-                      greenSoft: _greenSoft,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.calendar_month_rounded,
-                            color: _green,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 10),
-                          const Text(
-                            "Mjesec:",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              color: _text,
+                    if (_selectedTab == _ReportTab.income)
+                      _FilterCard(
+                        border: _border,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.calendar_month_rounded,
+                              color: _green,
+                              size: 18,
                             ),
-                          ),
-                          const SizedBox(width: 10),
-                          SizedBox(
-                            width: 140,
-                            child: DropdownButtonFormField<MonthlyIncome>(
-                              value: _selectedMonth,
-                              decoration: InputDecoration(
-                                isDense: true,
-                                filled: true,
-                                fillColor: Colors.white,
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 10,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: _border),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: _border),
-                                ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              "Godina:",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: _text,
                               ),
-                              items: _monthly
-                                  .map(
-                                    (m) => DropdownMenuItem(
-                                      value: m,
-                                      child: Text(
-                                        m.label,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w700,
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 110,
+                              child: DropdownButtonFormField<int>(
+                                value: _selectedIncomeYear,
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: _border,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: _border,
+                                    ),
+                                  ),
+                                ),
+                                items: _incomeYearOptions
+                                    .map(
+                                      (y) => DropdownMenuItem(
+                                        value: y,
+                                        child: Text(
+                                          y.toString(),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  )
-                                  .toList(),
-                              onChanged: (v) async {
-                                if (v == null) return;
-                                setState(() => _selectedMonth = v);
-                                try {
-                                  setState(() => _loading = true);
-                                  await _loadByProperty(v);
-                                } catch (e) {
-                                  if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text("Greška: $e")),
-                                  );
-                                } finally {
-                                  if (mounted) setState(() => _loading = false);
-                                }
-                              },
+                                    )
+                                    .toList(),
+                                onChanged: (v) async {
+                                  if (v == null) return;
+                                  setState(() {
+                                    _selectedIncomeYear = v;
+                                    _selectedIncomeMonth = v == 2025 ? 1 : 1;
+                                  });
+
+                                  try {
+                                    setState(() => _loading = true);
+                                    await _loadSelectedIncomeByProperty();
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text("Greška: $e")),
+                                    );
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => _loading = false);
+                                    }
+                                  }
+                                },
+                              ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 10),
+                            const Text(
+                              "Mjesec:",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: _text,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 150,
+                              child: DropdownButtonFormField<int>(
+                                value: _selectedIncomeMonth,
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: _border,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: _border,
+                                    ),
+                                  ),
+                                ),
+                                items: _incomeMonthOptions
+                                    .map(
+                                      (m) => DropdownMenuItem(
+                                        value: m,
+                                        child: Text(
+                                          _monthLabel(m),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) async {
+                                  if (v == null) return;
+                                  setState(() => _selectedIncomeMonth = v);
+                                  try {
+                                    setState(() => _loading = true);
+                                    await _loadSelectedIncomeByProperty();
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text("Greška: $e")),
+                                    );
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => _loading = false);
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+
+                    if (_selectedTab == _ReportTab.bestOwner)
+                      _FilterCard(
+                        border: _border,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.event_rounded,
+                              color: _greenDark,
+                              size: 18,
+                            ),
+                            const SizedBox(width: 10),
+                            const Text(
+                              "Godina:",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                color: _text,
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            SizedBox(
+                              width: 130,
+                              child: DropdownButtonFormField<int>(
+                                value: _selectedYear,
+                                decoration: InputDecoration(
+                                  isDense: true,
+                                  filled: true,
+                                  fillColor: Colors.white,
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 10,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: _border,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: _border,
+                                    ),
+                                  ),
+                                ),
+                                items: _yearOptions
+                                    .map(
+                                      (y) => DropdownMenuItem(
+                                        value: y,
+                                        child: Text(
+                                          y.toString(),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) async {
+                                  if (v == null) return;
+                                  setState(() => _selectedYear = v);
+                                  try {
+                                    setState(() => _loading = true);
+                                    await _loadBestOwner();
+                                  } catch (e) {
+                                    if (!mounted) return;
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text("Greška: $e")),
+                                    );
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => _loading = false);
+                                    }
+                                  }
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
                     const SizedBox(width: 14),
 
-                    // ✅ PRINT BUTTON
                     ElevatedButton.icon(
-                      onPressed: _loading ? null : _printReport,
+                      onPressed: _loading ? null : _printCurrentReport,
                       icon: const Icon(Icons.print_rounded, size: 18),
-                      label: const Text(
-                        "Printaj Izvještaj",
-                        style: TextStyle(fontWeight: FontWeight.w900),
+                      label: Text(
+                        _selectedTab == _ReportTab.income
+                            ? "Printaj Izvještaj"
+                            : "Printaj Najboljeg Ownera",
+                        style: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _green,
+                        backgroundColor: _selectedTab == _ReportTab.income
+                            ? _green
+                            : _greenDark,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -473,181 +919,470 @@ class _ReportScreenState extends State<ReportScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 14),
-
                 Expanded(
-                  child: Row(
-                    children: [
-                      // LEFT: line chart
-                      Expanded(
-                        flex: 6,
-                        child: _SectionCard(
-                          title: "Trend prihoda (mjeseci)",
-                          subtitle: "Line chart • ukupni prihod po mjesecima",
-                          border: _border,
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                            child: _LineChart(
-                              data: lineData,
-                              labels: lineLabels,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-
-                      // RIGHT: pie + list
-                      Expanded(
-                        flex: 5,
-                        child: _SectionCard(
-                          title: "Prihod po nekretnini",
-                          subtitle: "Pie chart • raspodjela za $selectedLabel",
-                          border: _border,
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+                  child: _selectedTab == _ReportTab.income
+                      ? Scrollbar(
+                          controller: _incomeScrollController,
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            controller: _incomeScrollController,
                             child: Column(
                               children: [
-                                // total
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      "Ukupno",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        color: _text,
-                                      ),
-                                    ),
-                                    Text(
-                                      _km(_selectedMonthTotal),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        color: _green,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-
                                 SizedBox(
-                                  height: 160,
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: _PieChart(
-                                          values: propertyEntries
-                                              .map((e) => e.value)
-                                              .toList(),
-                                        ),
+                                  height: 380,
+                                  child: _SectionCard(
+                                    title: "Trend prihoda (mjeseci)",
+                                    subtitle:
+                                        "Line chart • ukupni prihod po mjesecima",
+                                    border: _border,
+                                    headerColor: _greenSoft,
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        16,
+                                        14,
+                                        16,
+                                        16,
                                       ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: _LegendList(
-                                          items: propertyEntries
-                                              .map(
-                                                (e) =>
-                                                    _LegendItem(e.key, e.value),
-                                              )
-                                              .toList(),
-                                          total: _selectedMonthTotal,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                const SizedBox(height: 12),
-                                const Divider(height: 1, color: _border),
-                                const SizedBox(height: 10),
-
-                                // list rows
-                                Expanded(
-                                  child: propertyEntries.isEmpty
-                                      ? const Center(
-                                          child: Text(
-                                            "Nema podataka.",
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w800,
+                                      child: Scrollbar(
+                                        controller: _trendHorizontalController,
+                                        thumbVisibility: true,
+                                        notificationPredicate: (_) => true,
+                                        child: SingleChildScrollView(
+                                          controller:
+                                              _trendHorizontalController,
+                                          scrollDirection: Axis.horizontal,
+                                          child: SizedBox(
+                                            width: math.max(
+                                              MediaQuery.of(
+                                                    context,
+                                                  ).size.width -
+                                                  120,
+                                              lineData.length * 110,
+                                            ),
+                                            child: _LineChart(
+                                              data: lineData,
+                                              labels: lineLabels,
                                             ),
                                           ),
-                                        )
-                                      : ListView.separated(
-                                          itemCount: propertyEntries.length,
-                                          separatorBuilder: (_, __) =>
-                                              const SizedBox(height: 10),
-                                          itemBuilder: (context, i) {
-                                            final e = propertyEntries[i];
-                                            final pct = _selectedMonthTotal == 0
-                                                ? 0
-                                                : (e.value /
-                                                          _selectedMonthTotal) *
-                                                      100;
-
-                                            return Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 14,
-                                                    vertical: 12,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: _greenSoft,
-                                                borderRadius:
-                                                    BorderRadius.circular(14),
-                                                border: Border.all(
-                                                  color: _border,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                SizedBox(
+                                  height: 520,
+                                  child: _SectionCard(
+                                    title: "Prihod po nekretnini",
+                                    subtitle:
+                                        "Pie chart • raspodjela za $selectedLabel",
+                                    border: _border,
+                                    headerColor: _greenSoft,
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                        16,
+                                        14,
+                                        16,
+                                        16,
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                "Ukupno",
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w800,
+                                                  color: _text,
                                                 ),
                                               ),
-                                              child: Row(
-                                                children: [
-                                                  const Icon(
-                                                    Icons.home_rounded,
-                                                    size: 18,
-                                                    color: _green,
+                                              Text(
+                                                _km(_selectedMonthTotal),
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.w900,
+                                                  color: _green,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
+                                          SizedBox(
+                                            height: 180,
+                                            child: Row(
+                                              children: [
+                                                Expanded(
+                                                  child: _PieChart(
+                                                    values: propertyEntries
+                                                        .map((e) => e.value)
+                                                        .toList(),
                                                   ),
-                                                  const SizedBox(width: 10),
-                                                  Expanded(
+                                                ),
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: _LegendList(
+                                                    items: propertyEntries
+                                                        .map(
+                                                          (e) => _LegendItem(
+                                                            e.key,
+                                                            e.value,
+                                                          ),
+                                                        )
+                                                        .toList(),
+                                                    total: _selectedMonthTotal,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          const Divider(
+                                            height: 1,
+                                            color: _border,
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Expanded(
+                                            child: propertyEntries.isEmpty
+                                                ? const Center(
                                                     child: Text(
-                                                      e.key,
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: const TextStyle(
+                                                      "Nema podataka.",
+                                                      style: TextStyle(
                                                         fontWeight:
                                                             FontWeight.w800,
-                                                        color: _text,
                                                       ),
                                                     ),
+                                                  )
+                                                : ListView.separated(
+                                                    itemCount:
+                                                        propertyEntries.length,
+                                                    separatorBuilder: (_, __) =>
+                                                        const SizedBox(
+                                                          height: 10,
+                                                        ),
+                                                    itemBuilder: (context, i) {
+                                                      final e =
+                                                          propertyEntries[i];
+                                                      final pct =
+                                                          _selectedMonthTotal ==
+                                                              0
+                                                          ? 0
+                                                          : (e.value /
+                                                                    _selectedMonthTotal) *
+                                                                100;
+
+                                                      return Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                              horizontal: 14,
+                                                              vertical: 12,
+                                                            ),
+                                                        decoration: BoxDecoration(
+                                                          color: _greenSoft,
+                                                          borderRadius:
+                                                              BorderRadius.circular(
+                                                                14,
+                                                              ),
+                                                          border: Border.all(
+                                                            color: _border,
+                                                          ),
+                                                        ),
+                                                        child: Row(
+                                                          children: [
+                                                            const Icon(
+                                                              Icons
+                                                                  .home_rounded,
+                                                              size: 18,
+                                                              color: _green,
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 10,
+                                                            ),
+                                                            Expanded(
+                                                              child: Text(
+                                                                e.key,
+                                                                maxLines: 1,
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                style: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w800,
+                                                                  color: _text,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            const SizedBox(
+                                                              width: 10,
+                                                            ),
+                                                            Text(
+                                                              "${_km(e.value)} • ${pct.toStringAsFixed(0)}%",
+                                                              style: const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w800,
+                                                                color: _muted,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    },
                                                   ),
-                                                  const SizedBox(width: 10),
-                                                  Text(
-                                                    "${_km(e.value)} • ${pct.toStringAsFixed(0)}%",
-                                                    style: const TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      color: _muted,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
                           ),
+                        )
+                      : Scrollbar(
+                          controller: _bestOwnerScrollController,
+                          thumbVisibility: true,
+                          child: SingleChildScrollView(
+                            controller: _bestOwnerScrollController,
+                            child: SizedBox(
+                              height: 560,
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    flex: 6,
+                                    child: _SectionCard(
+                                      title: "Šampion godine",
+                                      subtitle: "Owner sa najviše rezervacija",
+                                      border: _border,
+                                      headerColor: _greenSoft2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(20),
+                                        child: Container(
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                Color(0xFFF7FCF4),
+                                                Color(0xFFEAF6E5),
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              24,
+                                            ),
+                                            border: Border.all(color: _border),
+                                            boxShadow: const [
+                                              BoxShadow(
+                                                color: Color(0x12000000),
+                                                blurRadius: 18,
+                                                offset: Offset(0, 10),
+                                              ),
+                                            ],
+                                          ),
+                                          padding: const EdgeInsets.all(26),
+                                          child: _bestOwner == null
+                                              ? Center(
+                                                  child: Text(
+                                                    "Za godinu ${_selectedYear ?? '-'} nema podataka.",
+                                                    style: const TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.w900,
+                                                      color: _text,
+                                                      fontSize: 16,
+                                                    ),
+                                                  ),
+                                                )
+                                              : Column(
+                                                  children: [
+                                                    Container(
+                                                      width: 82,
+                                                      height: 82,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        shape: BoxShape.circle,
+                                                        border: Border.all(
+                                                          color: _greenDark
+                                                              .withOpacity(
+                                                                0.28,
+                                                              ),
+                                                        ),
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons
+                                                            .emoji_events_rounded,
+                                                        color: _greenDark,
+                                                        size: 42,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 18),
+                                                    Text(
+                                                      "Najbolji owner za ${_bestOwner!.year}. godinu",
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w800,
+                                                        color: _muted,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 12),
+                                                    Text(
+                                                      _bestOwner!.ownerName,
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: const TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w900,
+                                                        color: _text,
+                                                        fontSize: 28,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 14),
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.symmetric(
+                                                            horizontal: 18,
+                                                            vertical: 10,
+                                                          ),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                              999,
+                                                            ),
+                                                        border: Border.all(
+                                                          color: _border,
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        "${_bestOwner!.totalReservations} rezervacija",
+                                                        style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.w900,
+                                                          color: _greenDark,
+                                                          fontSize: 15,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const Spacer(),
+                                                    Center(
+                                                      child: SizedBox(
+                                                        width: 220,
+                                                        child: _MiniInfoCard(
+                                                          title: "Godina",
+                                                          value: _bestOwner!
+                                                              .year
+                                                              .toString(),
+                                                          icon: Icons
+                                                              .event_rounded,
+                                                          accent: _greenDark,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    flex: 4,
+                                    child: _SectionCard(
+                                      title: "Sažetak",
+                                      subtitle: "Brzi pregled rezultata",
+                                      border: _border,
+                                      headerColor: _greenSoft2,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(18),
+                                        child: _bestOwner == null
+                                            ? const Center(
+                                                child: Text(
+                                                  "Nema podataka.",
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                                ),
+                                              )
+                                            : Column(
+                                                children: [
+                                                  _InfoTile(
+                                                    icon: Icons.person_rounded,
+                                                    title: "Ime ownera",
+                                                    value:
+                                                        _bestOwner!.ownerName,
+                                                    accent: _greenDark,
+                                                    soft: _greenSoft2,
+                                                    border: _border,
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  _InfoTile(
+                                                    icon:
+                                                        Icons.home_work_rounded,
+                                                    title: "Ukupno rezervacija",
+                                                    value: _bestOwner!
+                                                        .totalReservations
+                                                        .toString(),
+                                                    accent: _greenDark,
+                                                    soft: _greenSoft2,
+                                                    border: _border,
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  _InfoTile(
+                                                    icon: Icons
+                                                        .calendar_today_rounded,
+                                                    title: "Godina izvještaja",
+                                                    value: _bestOwner!.year
+                                                        .toString(),
+                                                    accent: _greenDark,
+                                                    soft: _greenSoft2,
+                                                    border: _border,
+                                                  ),
+                                                  const Spacer(),
+                                                  Container(
+                                                    width: double.infinity,
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                          16,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: _greenSoft2,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            16,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: _border,
+                                                      ),
+                                                    ),
+                                                    child: const Text(
+                                                      "Prikaz je usklađen sa bojama aplikacije i fokus je isključivo na vlasniku i ukupnom broju rezervacija.",
+                                                      style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        color: _muted,
+                                                        height: 1.45,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),
           ),
-
-          // loading overlay
           if (_loading)
             Positioned.fill(
               child: Container(
@@ -661,17 +1396,450 @@ class _ReportScreenState extends State<ReportScreen> {
   }
 }
 
-// =====================
-// UI BUILDING BLOCKS
-// =====================
+class _TopSwitchBar extends StatelessWidget {
+  final _ReportTab selectedTab;
+  final ValueChanged<_ReportTab> onChanged;
+
+  const _TopSwitchBar({required this.selectedTab, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFDFE6DA)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 18,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _SwitchButton(
+              title: "Ukupni prihod",
+              icon: Icons.bar_chart_rounded,
+              active: selectedTab == _ReportTab.income,
+              activeColor: _ReportScreenState._green,
+              onTap: () => onChanged(_ReportTab.income),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: _SwitchButton(
+              title: "Najbolji owner",
+              icon: Icons.workspace_premium_rounded,
+              active: selectedTab == _ReportTab.bestOwner,
+              activeColor: _ReportScreenState._greenDark,
+              onTap: () => onChanged(_ReportTab.bestOwner),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SwitchButton extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final bool active;
+  final Color activeColor;
+  final VoidCallback onTap;
+
+  const _SwitchButton({
+    required this.title,
+    required this.icon,
+    required this.active,
+    required this.activeColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: active ? activeColor.withOpacity(0.12) : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: active ? activeColor.withOpacity(0.24) : Colors.transparent,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: active ? activeColor : const Color(0xFF6B7280),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: active ? activeColor : const Color(0xFF6B7280),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BestOwnerTab extends StatelessWidget {
+  final Color border;
+  final Color accent;
+  final Color accentSoft;
+  final Color text;
+  final Color muted;
+  final int? selectedYear;
+  final BestOwnerByYear? bestOwner;
+
+  const _BestOwnerTab({
+    required this.border,
+    required this.accent,
+    required this.accentSoft,
+    required this.text,
+    required this.muted,
+    required this.selectedYear,
+    required this.bestOwner,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (bestOwner == null) {
+      return _SectionCard(
+        title: "Najbolji owner",
+        subtitle: "Pregled za odabranu godinu",
+        border: border,
+        headerColor: accentSoft,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(22),
+            decoration: BoxDecoration(
+              color: accentSoft,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: border),
+            ),
+            child: Text(
+              "Za godinu ${selectedYear ?? '-'} nema podataka.",
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: text,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 6,
+          child: _SectionCard(
+            title: "Šampion godine",
+            subtitle: "Owner sa najviše rezervacija",
+            border: border,
+            headerColor: accentSoft,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFF7FCF4), Color(0xFFEAF6E5)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: border),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x12000000),
+                      blurRadius: 18,
+                      offset: Offset(0, 10),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(26),
+                child: Column(
+                  children: [
+                    Container(
+                      width: 82,
+                      height: 82,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: accent.withOpacity(0.28)),
+                      ),
+                      child: Icon(
+                        Icons.emoji_events_rounded,
+                        color: accent,
+                        size: 42,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Text(
+                      "Najbolji owner za ${bestOwner!.year}. godinu",
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: muted,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      bestOwner!.ownerName,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: text,
+                        fontSize: 28,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: border),
+                      ),
+                      child: Text(
+                        "${bestOwner!.totalReservations} rezervacija",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          color: accent,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    Center(
+                      child: SizedBox(
+                        width: 220,
+                        child: _MiniInfoCard(
+                          title: "Godina",
+                          value: bestOwner!.year.toString(),
+                          icon: Icons.event_rounded,
+                          accent: accent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          flex: 4,
+          child: _SectionCard(
+            title: "Sažetak",
+            subtitle: "Brzi pregled rezultata",
+            border: border,
+            headerColor: accentSoft,
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                children: [
+                  _InfoTile(
+                    icon: Icons.person_rounded,
+                    title: "Ime ownera",
+                    value: bestOwner!.ownerName,
+                    accent: accent,
+                    soft: accentSoft,
+                    border: border,
+                  ),
+                  const SizedBox(height: 12),
+                  _InfoTile(
+                    icon: Icons.home_work_rounded,
+                    title: "Ukupno rezervacija",
+                    value: bestOwner!.totalReservations.toString(),
+                    accent: accent,
+                    soft: accentSoft,
+                    border: border,
+                  ),
+                  const SizedBox(height: 12),
+                  _InfoTile(
+                    icon: Icons.calendar_today_rounded,
+                    title: "Godina izvještaja",
+                    value: bestOwner!.year.toString(),
+                    accent: accent,
+                    soft: accentSoft,
+                    border: border,
+                  ),
+                  const Spacer(),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: accentSoft,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: border),
+                    ),
+                    child: Text(
+                      "Prikaz je usklađen sa bojama aplikacije i fokus je isključivo na vlasniku i ukupnom broju rezervacija.",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: muted,
+                        height: 1.45,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MiniInfoCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color accent;
+
+  const _MiniInfoCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.accent,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFDFE6DA)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: accent, size: 20),
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF6B7280),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1F2A1F),
+              fontSize: 18,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final Color accent;
+  final Color soft;
+  final Color border;
+
+  const _InfoTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.accent,
+    required this.soft,
+    required this.border,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: soft,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: border),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: border),
+            ),
+            child: Icon(icon, color: accent, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF6B7280),
+                    fontSize: 12.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    color: Color(0xFF1F2A1F),
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _KpiCard extends StatelessWidget {
   final String title;
   final String value;
   final String subtitle;
   final IconData icon;
-  final Color green;
-  final Color greenSoft;
+  final Color accent;
+  final Color accentSoft;
   final Color border;
   final Color text;
   final Color muted;
@@ -681,8 +1849,8 @@ class _KpiCard extends StatelessWidget {
     required this.value,
     required this.subtitle,
     required this.icon,
-    required this.green,
-    required this.greenSoft,
+    required this.accent,
+    required this.accentSoft,
     required this.border,
     required this.text,
     required this.muted,
@@ -710,11 +1878,11 @@ class _KpiCard extends StatelessWidget {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: greenSoft,
+              color: accentSoft,
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: border),
             ),
-            child: Icon(icon, color: green, size: 22),
+            child: Icon(icon, color: accent, size: 22),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -732,15 +1900,19 @@ class _KpiCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
-                    color: green,
+                    color: accent,
                     fontSize: 22,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subtitle,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     color: muted,
@@ -759,13 +1931,8 @@ class _KpiCard extends StatelessWidget {
 class _FilterCard extends StatelessWidget {
   final Widget child;
   final Color border;
-  final Color greenSoft;
 
-  const _FilterCard({
-    required this.child,
-    required this.border,
-    required this.greenSoft,
-  });
+  const _FilterCard({required this.child, required this.border});
 
   @override
   Widget build(BuildContext context) {
@@ -793,12 +1960,14 @@ class _SectionCard extends StatelessWidget {
   final String subtitle;
   final Widget child;
   final Color border;
+  final Color headerColor;
 
   const _SectionCard({
     required this.title,
     required this.subtitle,
     required this.child,
     required this.border,
+    required this.headerColor,
   });
 
   @override
@@ -821,7 +1990,7 @@ class _SectionCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
             decoration: BoxDecoration(
-              color: const Color(0xFFEAF6E5),
+              color: headerColor,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(18),
               ),
@@ -862,10 +2031,6 @@ class _SectionCard extends StatelessWidget {
     );
   }
 }
-
-// =====================
-// LINE CHART (no deps)
-// =====================
 
 class _LineChart extends StatelessWidget {
   final List<double> data;
@@ -920,7 +2085,6 @@ class _LineChartPainter extends CustomPainter {
     final maxV = data.reduce(math.max);
     final range = (maxV - minV).abs() < 0.001 ? 1.0 : (maxV - minV);
 
-    // grid
     final gridPaint = Paint()
       ..color = const Color(0xFFDFE6DA)
       ..strokeWidth = 1;
@@ -934,7 +2098,6 @@ class _LineChartPainter extends CustomPainter {
       );
     }
 
-    // line
     final linePaint = Paint()
       ..color = const Color(0xFF5F9F3B)
       ..strokeWidth = 3
@@ -944,7 +2107,9 @@ class _LineChartPainter extends CustomPainter {
     final path = Path();
 
     for (int i = 0; i < data.length; i++) {
-      final x = paddingLeft + (chartW / (data.length - 1)) * i;
+      final x = data.length == 1
+          ? paddingLeft + chartW / 2
+          : paddingLeft + (chartW / (data.length - 1)) * i;
       final norm = (data[i] - minV) / range;
       final y = paddingTop + chartH * (1 - norm);
 
@@ -957,10 +2122,11 @@ class _LineChartPainter extends CustomPainter {
 
     canvas.drawPath(path, linePaint);
 
-    // points
     final dotPaint = Paint()..color = const Color(0xFF1F2A1F);
     for (int i = 0; i < data.length; i++) {
-      final x = paddingLeft + (chartW / (data.length - 1)) * i;
+      final x = data.length == 1
+          ? paddingLeft + chartW / 2
+          : paddingLeft + (chartW / (data.length - 1)) * i;
       final norm = (data[i] - minV) / range;
       final y = paddingTop + chartH * (1 - norm);
       canvas.drawCircle(Offset(x, y), 3.5, dotPaint);
@@ -971,10 +2137,6 @@ class _LineChartPainter extends CustomPainter {
   bool shouldRepaint(covariant _LineChartPainter oldDelegate) =>
       oldDelegate.data != data;
 }
-
-// =====================
-// PIE CHART (no deps)
-// =====================
 
 class _PieChart extends StatelessWidget {
   final List<double> values;
@@ -1053,6 +2215,7 @@ class _PiePainter extends CustomPainter {
 class _LegendItem {
   final String name;
   final double value;
+
   _LegendItem(this.name, this.value);
 }
 

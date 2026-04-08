@@ -10,7 +10,7 @@ namespace Rentify.Services.Interfaces
     public interface IStripeService
     {
         Task<PaymentIntent> CreatePaymentIntentAsync(
-           double amount,
+           decimal amount,
            string currency,
            Dictionary<string, string> metadata);
         

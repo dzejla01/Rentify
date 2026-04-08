@@ -49,11 +49,10 @@ public class RentifyDbContext : DbContext
             .HasForeignKey(q => q.PropertyId)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<Answer>()
-            .HasOne(a => a.Question)
-            .WithMany(q => q.Answers)
-            .HasForeignKey(a => a.QuestionId)
-            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<Question>()
+            .HasOne(q => q.Answer)
+            .WithOne(a => a.Question)
+            .HasForeignKey<Answer>(a => a.QuestionId);
 
         modelBuilder.Entity<Answer>()
             .HasOne(a => a.User)
@@ -81,6 +80,10 @@ public class RentifyDbContext : DbContext
 
         modelBuilder.Entity<Favorite>()
             .HasIndex(f => new { f.UserId, f.PropertyId })
+            .IsUnique();
+
+        modelBuilder.Entity<Review>()
+            .HasIndex(x => new { x.UserId, x.PropertyId })
             .IsUnique();
 
         SeedData.Seed(modelBuilder);

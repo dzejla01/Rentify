@@ -17,6 +17,9 @@ Question _$QuestionFromJson(Map<String, dynamic> json) => Question(
   content: json['content'] as String,
   createdAt: DateTime.parse(json['createdAt'] as String),
   isAnswered: json['isAnswered'] as bool,
+  answer: json['answer'] == null
+      ? null
+      : Answer.fromJson(json['answer'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$QuestionToJson(Question instance) => <String, dynamic>{
@@ -26,4 +29,5 @@ Map<String, dynamic> _$QuestionToJson(Question instance) => <String, dynamic>{
   'content': instance.content,
   'createdAt': instance.createdAt.toIso8601String(),
   'isAnswered': instance.isAnswered,
+  'answer': instance.answer,
 };

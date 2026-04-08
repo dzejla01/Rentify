@@ -21,7 +21,9 @@ namespace Rentify.Services.Services
             query = query.Include(x => x.User)
                          .Include(x => x.Property);
 
-            
+            if(search.OwnerId.HasValue)
+                query = query.Where(x => x.Property.UserId == search.OwnerId.Value);
+
             if (search.UserId.HasValue)
                 query = query.Where(x => x.UserId == search.UserId.Value);
 
@@ -43,6 +45,8 @@ namespace Rentify.Services.Services
                 query = query.Include(x => x.User);
             if (search.IncludeProperty.HasValue)
                 query = query.Include(x => x.Property);
+            if (search.IncludeAnswer.HasValue)
+                query = query.Include(x => x.Answer);
 
             return base.AddInclude(query, search);
         }

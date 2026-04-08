@@ -24,7 +24,7 @@ namespace Rentify.Model.RequestObjects
         public double PricePerMonth { get; set; }
         public List<string>? Tags { get; set; }
 
-        public string? NumberOfsquares { get; set; }
+        public string? SquareMeters { get; set; }
 
         public string? Details { get; set; }
 

@@ -13,7 +13,7 @@ namespace Rentify.Model.ResponseObjects
 
         public bool IsMonthly { get; set; }
 
-        public bool? IsApproved { get; set; }
+        public string? Status { get; set; }
 
         public DateTime? CreatedAt {get; set;}
 

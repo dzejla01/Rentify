@@ -25,6 +25,7 @@ class ReservationListScreen extends StatefulWidget {
 class _ReservationListScreenState extends State<ReservationListScreen> {
   late ReservationProvider _reservationProvider;
   late PropertyProvider _propertyProvider;
+  late UserProvider _userProvider;
 
   late UniversalPagingProvider<Reservation> _paging;
 
@@ -36,38 +37,37 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   bool _metaLoading = false;
   String? _metaError;
 
-  late UserProvider _userProvider;
-
   String _fullName = "";
   bool _userLoading = false;
 
+  String? _selectedStatus; // null = sve, ili "Odobreno" / "Na čekanju" / "Završeno"
+
   Future<String> _getUserFullName(int userId) async {
-  final u = await _userProvider.getById(userId); 
-  final first = (u.firstName ?? "").trim();
-  final last = (u.lastName ?? "").trim();
-  final full = "$first $last".trim();
-  return full.isEmpty ? (Session.username ?? "Nepoznato") : full;
-}
-
-Future<void> _loadHeaderUserFullName() async {
-  final userId = Session.userId;
-  if (userId == null) return;
-
-  if (!mounted) return;
-  setState(() => _userLoading = true);
-
-  try {
-    final name = await _getUserFullName(userId);
-    if (!mounted) return;
-    setState(() => _fullName = name);
-  } catch (_) {
-    if (!mounted) return;
-    // fallback ako API pukne
-    setState(() => _fullName = (Session.username ?? "Nepoznato"));
-  } finally {
-    if (mounted) setState(() => _userLoading = false);
+    final u = await _userProvider.getById(userId);
+    final first = (u.firstName ?? "").trim();
+    final last = (u.lastName ?? "").trim();
+    final full = "$first $last".trim();
+    return full.isEmpty ? (Session.username ?? "Nepoznato") : full;
   }
-}
+
+  Future<void> _loadHeaderUserFullName() async {
+    final userId = Session.userId;
+    if (userId == null) return;
+
+    if (!mounted) return;
+    setState(() => _userLoading = true);
+
+    try {
+      final name = await _getUserFullName(userId);
+      if (!mounted) return;
+      setState(() => _fullName = name);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _fullName = (Session.username ?? "Nepoznato"));
+    } finally {
+      if (mounted) setState(() => _userLoading = false);
+    }
+  }
 
   @override
   void initState() {
@@ -75,6 +75,7 @@ Future<void> _loadHeaderUserFullName() async {
 
     _reservationProvider = context.read<ReservationProvider>();
     _propertyProvider = context.read<PropertyProvider>();
+    _userProvider = context.read<UserProvider>();
 
     _paging = UniversalPagingProvider<Reservation>(
       pageSize: 6,
@@ -96,6 +97,7 @@ Future<void> _loadHeaderUserFullName() async {
           "pageSize": pageSize,
           "includeTotalCount": includeTotalCount,
           if (filter != null && filter.trim().isNotEmpty) "FTS": filter.trim(),
+          if (_selectedStatus != null) "status": _selectedStatus,
           ...?extra,
         };
 
@@ -106,7 +108,7 @@ Future<void> _loadHeaderUserFullName() async {
     _paging.addListener(_onPagingChanged);
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _loadHeaderUserFullName(); 
+      await _loadHeaderUserFullName();
       await _refreshWithMeta();
     });
   }
@@ -131,6 +133,18 @@ Future<void> _loadHeaderUserFullName() async {
       if (!mounted) return;
       await _loadPropertiesForPage();
     });
+  }
+
+  Future<void> _changeStatusFilter(String? status) async {
+    if (!mounted) return;
+
+    setState(() {
+      _selectedStatus = status;
+    });
+
+    await _paging.refresh();
+    if (!mounted) return;
+    await _loadPropertiesForPage();
   }
 
   Future<void> _loadPropertiesForPage() async {
@@ -169,23 +183,23 @@ Future<void> _loadHeaderUserFullName() async {
   Widget build(BuildContext context) {
     return BaseMobileScreen(
       title: "Rezervacije",
-      NameAndSurname: Session.fullName!,
+      NameAndSurname: Session.fullName ?? _fullName,
       userUsername: Session.username ?? "Nepoznato",
       userImageAsset: Session.userImage,
       onLogout: () async {
-  await Session.odjava(
-    deviceTokenProvider: context.read<DeviceTokenProvider>(),
-    authProvider: context.read<AuthProvider>(),
-  );
+        await Session.odjava(
+          deviceTokenProvider: context.read<DeviceTokenProvider>(),
+          authProvider: context.read<AuthProvider>(),
+        );
 
-  if (!context.mounted) return;
+        if (!context.mounted) return;
 
-  Navigator.pushNamedAndRemoveUntil(
-    context,
-    AppRoutes.login,
-    (route) => false,
-  );
-},
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.login,
+          (route) => false,
+        );
+      },
       child: Container(
         color: const Color(0xFFF6F7FB),
         child: Column(
@@ -201,6 +215,15 @@ Future<void> _loadHeaderUserFullName() async {
               },
               hint: "Pretraga (nekretnina / period / tip...)",
             ),
+
+            _StatusFilterBar(
+              selectedStatus: _selectedStatus,
+              onTapAll: () => _changeStatusFilter(null),
+              onTapApproved: () => _changeStatusFilter("Odobreno"),
+              onTapPending: () => _changeStatusFilter("Na čekanju"),
+              onTapFinished: () => _changeStatusFilter("Završeno"),
+            ),
+
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _refreshWithMeta,
@@ -226,7 +249,7 @@ Future<void> _loadHeaderUserFullName() async {
                         separatorHeight: 12,
                         itemBuilder: (context, r) {
                           final p = _propertiesMap[r.propertyId];
-                          final status = StatusMapper.fromApproved(r.isApproved);
+                          final status = ReservationStatusMapper.fromString(r.status);
 
                           return _ReservationCard(
                             propertyName: p?.name ?? "Učitavanje...",
@@ -268,7 +291,6 @@ Future<void> _loadHeaderUserFullName() async {
   }
 
   static String _createdAtText(DateTime createdAt) {
-    // prikaz: 01.03.2026 • 11:05
     final local = createdAt.toLocal();
     final dd = local.day.toString().padLeft(2, '0');
     final mm = local.month.toString().padLeft(2, '0');
@@ -288,6 +310,115 @@ Future<void> _loadHeaderUserFullName() async {
   }
 }
 
+/// ==================== STATUS FILTER ====================
+
+class _StatusFilterBar extends StatelessWidget {
+  const _StatusFilterBar({
+    required this.selectedStatus,
+    required this.onTapAll,
+    required this.onTapApproved,
+    required this.onTapPending,
+    required this.onTapFinished,
+  });
+
+  final String? selectedStatus;
+  final VoidCallback onTapAll;
+  final VoidCallback onTapApproved;
+  final VoidCallback onTapPending;
+  final VoidCallback onTapFinished;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _FilterChipButton(
+              label: "Sve",
+              selected: selectedStatus == null,
+              onTap: onTapAll,
+              selectedColor: const Color(0xFF5F9F3B),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Odobrene",
+              selected: selectedStatus == "Odobreno",
+              onTap: onTapApproved,
+              selectedColor: const Color(0xFF2E7D32),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Na čekanju",
+              selected: selectedStatus == "Na čekanju",
+              onTap: onTapPending,
+              selectedColor: const Color(0xFFEF6C00),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Završene",
+              selected: selectedStatus == "Završeno",
+              onTap: onTapFinished,
+              selectedColor: const Color(0xFF1565C0),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterChipButton extends StatelessWidget {
+  const _FilterChipButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.selectedColor,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color selectedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? selectedColor : Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? selectedColor : Colors.black.withOpacity(0.08),
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: selectedColor.withOpacity(0.18),
+                    blurRadius: 14,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : const Color(0xFF374151),
+            fontWeight: FontWeight.w900,
+            fontSize: 12.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// ==================== CARD UI ====================
 
 class _ReservationCard extends StatelessWidget {
@@ -304,7 +435,7 @@ class _ReservationCard extends StatelessWidget {
   final String typeText;
   final String periodText;
   final String createdAtText;
-  final _Status status;
+  final ReservationStatusUi status;
   final bool loadingMeta;
 
   @override
@@ -326,7 +457,6 @@ class _ReservationCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // header row: icon + name + status chip
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -363,7 +493,10 @@ class _ReservationCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     _MiniRow(icon: Icons.date_range_rounded, text: periodText),
                     const SizedBox(height: 6),
-                    _MiniRow(icon: Icons.bookmark_added_rounded, text: "rezervacija poslana: ${createdAtText}"),
+                    _MiniRow(
+                      icon: Icons.bookmark_added_rounded,
+                      text: "rezervacija poslana: $createdAtText",
+                    ),
                   ],
                 ),
               ),
@@ -371,32 +504,29 @@ class _ReservationCard extends StatelessWidget {
               _StatusPill(status: status),
             ],
           ),
-
           const SizedBox(height: 12),
-
-          // alert-like row (created at)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: _alertBg(status),
+              color: status.alertBg,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _alertBorder(status)),
+              border: Border.all(color: status.alertBorder),
             ),
             child: Row(
               children: [
                 Icon(
-                  _alertIcon(status),
+                  status.alertIcon,
                   size: 18,
-                  color: _alertFg(status),
+                  color: status.alertFg,
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _alertText(status, createdAtText),
+                    status.alertText,
                     style: TextStyle(
                       fontSize: 12.7,
                       fontWeight: FontWeight.w900,
-                      color: _alertFg(status),
+                      color: status.alertFg,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -415,66 +545,11 @@ class _ReservationCard extends StatelessWidget {
       ),
     );
   }
-
-  static IconData _alertIcon(_Status s) {
-    switch (s) {
-      case _Status.accepted:
-        return Icons.check_circle_rounded;
-      case _Status.pending:
-        return Icons.hourglass_bottom_rounded;
-      case _Status.rejected:
-        return Icons.cancel_rounded;
-    }
-  }
-
-  static String _alertText(_Status s, String createdAtText) {
-    switch (s) {
-      case _Status.accepted:
-        return "Rezervacija je prihvaćena, za otkazivanje, kontaktirajte vlasnika";
-      case _Status.pending:
-        return "Rezervacija je na čekanju";
-      case _Status.rejected:
-        return "Rezervacija je odbijena, kontaktirajte vlasnika za detalje";
-    }
-  }
-
-  static Color _alertBg(_Status s) {
-    switch (s) {
-      case _Status.accepted:
-        return const Color(0xFFEAF6E5);
-      case _Status.pending:
-        return const Color(0xFFFFF3E0);
-      case _Status.rejected:
-        return const Color(0xFFFFE5E5);
-    }
-  }
-
-  static Color _alertBorder(_Status s) {
-    switch (s) {
-      case _Status.accepted:
-        return const Color(0xFFBFE6B2);
-      case _Status.pending:
-        return const Color(0xFFFFD59A);
-      case _Status.rejected:
-        return const Color(0xFFFFBDBD);
-    }
-  }
-
-  static Color _alertFg(_Status s) {
-    switch (s) {
-      case _Status.accepted:
-        return const Color(0xFF2E7D32);
-      case _Status.pending:
-        return const Color(0xFFEF6C00);
-      case _Status.rejected:
-        return const Color(0xFFE53935);
-    }
-  }
 }
 
 class _StatusPill extends StatelessWidget {
   const _StatusPill({required this.status});
-  final _Status status;
+  final ReservationStatusUi status;
 
   @override
   Widget build(BuildContext context) {
@@ -526,34 +601,116 @@ class _MiniRow extends StatelessWidget {
 
 /// ==================== STATUS ====================
 
-enum _Status { accepted, pending, rejected }
+enum ReservationStatusUi {
+  approved,
+  pending,
+  finished,
+  unknown,
+}
 
-extension StatusMapper on _Status {
-  static _Status fromApproved(bool? isApproved) {
-    if (isApproved == true) return _Status.accepted;
-    if (isApproved == false) return _Status.rejected;
-    return _Status.pending;
+extension ReservationStatusMapper on ReservationStatusUi {
+  static ReservationStatusUi fromString(String? status) {
+    final s = (status ?? "").trim().toLowerCase();
+
+    if (s == "odobreno") return ReservationStatusUi.approved;
+    if (s == "na čekanju" || s == "na cekanju") {
+      return ReservationStatusUi.pending;
+    }
+    if (s == "završeno" || s == "zavrseno") {
+      return ReservationStatusUi.finished;
+    }
+
+    return ReservationStatusUi.unknown;
   }
 
   String get label {
     switch (this) {
-      case _Status.accepted:
-        return "Prihvaćeno";
-      case _Status.pending:
+      case ReservationStatusUi.approved:
+        return "Odobreno";
+      case ReservationStatusUi.pending:
         return "Na čekanju";
-      case _Status.rejected:
-        return "Odbijeno";
+      case ReservationStatusUi.finished:
+        return "Završeno";
+      case ReservationStatusUi.unknown:
+        return "Nepoznato";
     }
   }
 
   Color get color {
     switch (this) {
-      case _Status.accepted:
+      case ReservationStatusUi.approved:
         return Colors.green;
-      case _Status.pending:
+      case ReservationStatusUi.pending:
         return Colors.orange;
-      case _Status.rejected:
-        return const Color(0xFFE53935);
+      case ReservationStatusUi.finished:
+        return Colors.blue;
+      case ReservationStatusUi.unknown:
+        return Colors.grey;
+    }
+  }
+
+  Color get alertBg {
+    switch (this) {
+      case ReservationStatusUi.approved:
+        return const Color(0xFFEAF6E5);
+      case ReservationStatusUi.pending:
+        return const Color(0xFFFFF3E0);
+      case ReservationStatusUi.finished:
+        return const Color(0xFFE3F2FD);
+      case ReservationStatusUi.unknown:
+        return const Color(0xFFF3F4F6);
+    }
+  }
+
+  Color get alertBorder {
+    switch (this) {
+      case ReservationStatusUi.approved:
+        return const Color(0xFFBFE6B2);
+      case ReservationStatusUi.pending:
+        return const Color(0xFFFFD59A);
+      case ReservationStatusUi.finished:
+        return const Color(0xFF90CAF9);
+      case ReservationStatusUi.unknown:
+        return const Color(0xFFD1D5DB);
+    }
+  }
+
+  Color get alertFg {
+    switch (this) {
+      case ReservationStatusUi.approved:
+        return const Color(0xFF2E7D32);
+      case ReservationStatusUi.pending:
+        return const Color(0xFFEF6C00);
+      case ReservationStatusUi.finished:
+        return const Color(0xFF1565C0);
+      case ReservationStatusUi.unknown:
+        return const Color(0xFF6B7280);
+    }
+  }
+
+  IconData get alertIcon {
+    switch (this) {
+      case ReservationStatusUi.approved:
+        return Icons.check_circle_rounded;
+      case ReservationStatusUi.pending:
+        return Icons.hourglass_bottom_rounded;
+      case ReservationStatusUi.finished:
+        return Icons.task_alt_rounded;
+      case ReservationStatusUi.unknown:
+        return Icons.info_outline_rounded;
+    }
+  }
+
+  String get alertText {
+    switch (this) {
+      case ReservationStatusUi.approved:
+        return "Rezervacija je odobrena.";
+      case ReservationStatusUi.pending:
+        return "Rezervacija je na čekanju.";
+      case ReservationStatusUi.finished:
+        return "Rezervacija je završena.";
+      case ReservationStatusUi.unknown:
+        return "Status rezervacije nije poznat.";
     }
   }
 }
@@ -651,7 +808,10 @@ class _SearchBar extends StatelessWidget {
             prefixIcon: const Icon(Icons.search),
             suffixIcon: controller.text.isEmpty
                 ? null
-                : IconButton(icon: const Icon(Icons.clear), onPressed: onClear),
+                : IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: onClear,
+                  ),
           ),
         ),
       ),

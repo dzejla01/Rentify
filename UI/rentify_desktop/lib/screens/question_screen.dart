@@ -51,6 +51,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
               "page": page,
               "pageSize": pageSize,
               "includeTotalCount": includeTotalCount,
+              "includeAnswer": true,
+              "ownerId": Session.userId,
             };
 
             if (filter != null && filter.isNotEmpty) {
@@ -286,92 +288,104 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
             border: Border.all(color: border),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      q.content,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: text,
-                        height: 1.4,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: hasAnswer
-                          ? const Color(0xFFEAF6E3)
-                          : const Color(0xFFFFF4DA),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      hasAnswer ? "Odgovoreno" : "Na čekanju",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: hasAnswer ? primary : const Color(0xFFB28704),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Text(
-                "Korisnik: ${fullName.isEmpty ? 'Nepoznato' : fullName}",
-                style: const TextStyle(color: subText, fontSize: 13),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                "Datum: ${q.createdAt.day.toString().padLeft(2, '0')}.${q.createdAt.month.toString().padLeft(2, '0')}.${q.createdAt.year}",
-                style: const TextStyle(color: subText, fontSize: 13),
-              ),
-              if (hasAnswer) ...[
-                const SizedBox(height: 12),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: border),
-                  ),
-                  child: Text(
-                    q.content!,
-                    style: const TextStyle(
-                      color: text,
-                      fontSize: 13,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              Align(
-                alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                  onPressed: () => _openDialog(q),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  child: Text(hasAnswer ? "Uredi odgovor" : "Odgovori"),
-                ),
-              ),
-            ],
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    Text(
+      q.property?.name ?? "",
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: const TextStyle(
+        fontWeight: FontWeight.w700,
+        fontSize: 14,
+        color: text,
+        height: 1.4,
+      ),
+    ),
+    const SizedBox(height: 8),
+    Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(
+            q.content ?? "",
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+              color: text,
+              height: 1.4,
+            ),
           ),
+        ),
+        const SizedBox(width: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 10,
+            vertical: 6,
+          ),
+          decoration: BoxDecoration(
+            color: hasAnswer
+                ? const Color(0xFFEAF6E3)
+                : const Color(0xFFFFF4DA),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            hasAnswer ? "Odgovoreno" : "Na čekanju",
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: hasAnswer ? primary : const Color(0xFFB28704),
+            ),
+          ),
+        ),
+      ],
+    ),
+    const SizedBox(height: 10),
+    Text(
+      "Korisnik: ${fullName.isEmpty ? 'Nepoznato' : fullName}",
+      style: const TextStyle(color: subText, fontSize: 13),
+    ),
+    const SizedBox(height: 6),
+    Text(
+      "Datum: ${q.createdAt.day.toString().padLeft(2, '0')}.${q.createdAt.month.toString().padLeft(2, '0')}.${q.createdAt.year}",
+      style: const TextStyle(color: subText, fontSize: 13),
+    ),
+    if (hasAnswer) ...[
+      const SizedBox(height: 12),
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: border),
+        ),
+        child: Text(
+          q.answer!.content,
+          style: const TextStyle(
+            color: text,
+            fontSize: 13,
+            height: 1.4,
+          ),
+        ),
+      ),
+    ],
+    const SizedBox(height: 12),
+    Align(
+      alignment: Alignment.centerRight,
+      child: ElevatedButton(
+        onPressed: () => _openDialog(q),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primary,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        child: Text(hasAnswer ? "Uredi odgovor" : "Odgovori"),
+      ),
+    ),
+  ],
+),
         );
       },
     );

@@ -14,7 +14,7 @@ namespace Rentify.Model.ResponseObjects
         public ReservationResponse? Reservation {  get; set; }
         public string Name {get; set;}
         public string Comment {get; set;}
-        public double Price { get; set; }
+        public decimal Price { get; set; }
         public bool IsPayed { get; set; }
         public string PaymentStatus { get; set; }
         public int MonthNumber { get; set; }

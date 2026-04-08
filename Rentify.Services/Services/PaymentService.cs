@@ -71,6 +71,9 @@ namespace Rentify.Services.Services
             if (search.YearNumber.HasValue)
                 query = query.Where(x => x.YearNumber == search.YearNumber.Value);
 
+            if (!string.IsNullOrEmpty(search.ReservationStatus))
+                query = query.Where(x => x.Reservation.Status == search.ReservationStatus);
+
             return base.ApplyFilter(query, search);
         }
 

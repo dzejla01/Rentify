@@ -3,10 +3,13 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_mobile/helper/date_helper.dart';
+import 'package:rentify_mobile/helper/snackBar_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/providers/reservation_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/utils/session.dart';
+import 'package:rentify_mobile/validation/validation_model/validation_field_rule.dart';
+import 'package:rentify_mobile/validation/validation_model/validation_rules.dart';
 
 enum ReservationType { monthly, shortStay }
 
@@ -20,8 +23,6 @@ class PropertyReservationUniversalScreen extends StatefulWidget {
 
   final Property property;
   final ReservationType type;
-
-  /// Za "colored calendar": listu popuniš sa API-a (zauzeti dani).
   final List<DateTime> unavailableDates;
 
   @override
@@ -34,8 +35,10 @@ class _PropertyReservationUniversalScreenState
   static const rentifyGreenDark = Color(0xFF5F9F3B);
 
   // --- MONTHLY state ---
-  int _selectedMonth = DateTime.now().month;
-  int _selectedYear = DateTime.now().year;
+  DateTime _visibleMonthYear = DateTime(DateTime.now().year, 1, 1);
+  DateTime? _monthlyStart;
+  DateTime? _monthlyEnd;
+  late final Set<DateTime> _unavailableMonths;
 
   // --- SHORT STAY state ---
   DateTime _visibleMonth = DateTime(
@@ -50,47 +53,115 @@ class _PropertyReservationUniversalScreenState
   bool _loadingUnavailable = false;
   bool _submitting = false;
 
+  Map<String, String> _fieldErrors = {};
+
   @override
   void initState() {
     super.initState();
 
     _unavailable = widget.unavailableDates.map(_normalizeDate).toSet();
+    _unavailableMonths = <DateTime>{};
 
     if (widget.type == ReservationType.shortStay) {
       _loadUnavailableDates();
+    } else {
+      _visibleMonthYear = DateTime(DateTime.now().year, 1, 1);
+      _loadUnavailableMonths();
     }
   }
 
   Future<void> _loadUnavailableDates() async {
-    setState(() => _loadingUnavailable = true);
+  setState(() => _loadingUnavailable = true);
 
-    try {
-      final provider = ReservationProvider();
+  try {
+    final provider = ReservationProvider();
 
-      final resp = await provider.getUnavailableReservationDates(
-        propertyId: widget.property.id,
-        from: DateTime.now(),
-        to: DateTime.now().add(const Duration(days: 180)),
-      );
+    final fromDate = DateTime.now();
+    final toDate = DateTime.now().add(const Duration(days: 180));
 
-      if (!mounted) return;
+    final shortStayResp = await provider.getUnavailableReservationDates(
+      propertyId: widget.property.id,
+      from: fromDate,
+      to: toDate,
+    );
 
-      setState(() {
-        _unavailable
-          ..clear()
-          ..addAll(resp.dates.map(_normalizeDate));
-        _loadingUnavailable = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
+    final monthlyResp = await provider.getUnavailableMonthlyReservationMonths(
+      propertyId: widget.property.id,
+      from: DateTime(fromDate.year, fromDate.month, 1),
+      to: DateTime(toDate.year, toDate.month, 1),
+    );
 
-      setState(() => _loadingUnavailable = false);
+    final dailyUnavailable = <DateTime>{
+      ...shortStayResp.dates.map(_normalizeDate),
+    };
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Ne mogu učitati zauzete datume: $e")),
+    for (final month in monthlyResp.dates) {
+      dailyUnavailable.addAll(
+        _expandMonthToDays(month).map(_normalizeDate),
       );
     }
+
+    if (!mounted) return;
+
+    setState(() {
+      _unavailable
+        ..clear()
+        ..addAll(dailyUnavailable);
+      _loadingUnavailable = false;
+    });
+  } catch (e) {
+    if (!mounted) return;
+
+    setState(() => _loadingUnavailable = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Ne mogu učitati zauzete datume: $e")),
+    );
   }
+}
+
+  Iterable<DateTime> _expandMonthToDays(DateTime monthDate) sync* {
+  final normalizedMonth = _normalizeMonth(monthDate);
+  final daysInMonth = DateUtils.getDaysInMonth(
+    normalizedMonth.year,
+    normalizedMonth.month,
+  );
+
+  for (int day = 1; day <= daysInMonth; day++) {
+    yield DateTime(normalizedMonth.year, normalizedMonth.month, day);
+  }
+}
+
+  Future<void> _loadUnavailableMonths() async {
+  setState(() => _loadingUnavailable = true);
+
+  try {
+    final provider = ReservationProvider();
+
+    final resp = await provider.getUnavailableMonthlyReservationMonths(
+      propertyId: widget.property.id,
+      from: DateTime(DateTime.now().year, DateTime.now().month, 1),
+      to: DateTime(DateTime.now().year + 2, 12, 1),
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      _unavailableMonths
+        ..clear()
+        ..addAll(resp.dates.map(_normalizeMonth));
+      _loadingUnavailable = false;
+    });
+  } catch (e) {
+    if (!mounted) return;
+
+    setState(() => _loadingUnavailable = false);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Ne mogu učitati zauzete mjesece: $e")),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -116,6 +187,10 @@ class _PropertyReservationUniversalScreenState
               _monthlyPickerCard()
             else
               _shortStayCalendarCard(),
+            if (_fieldErrors.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _validationCard(),
+            ],
             const SizedBox(height: 12),
             _summaryCard(),
           ],
@@ -125,65 +200,201 @@ class _PropertyReservationUniversalScreenState
     );
   }
 
+  // ------------------ MONTHLY HELPERS ------------------
+
+  DateTime _normalizeMonth(DateTime d) => DateTime(d.year, d.month, 1);
+
+  String _fmtMonth(DateTime d) {
+    final month = DateFormat.MMMM("bs").format(d);
+    return "${_capitalize(month)} ${d.year}";
+  }
+
+  bool _monthRangeHasUnavailable(DateTime start, DateTime end) {
+    DateTime d = _normalizeMonth(start);
+    final normalizedEnd = _normalizeMonth(end);
+
+    while (!d.isAfter(normalizedEnd)) {
+      if (_unavailableMonths.contains(d)) return true;
+      d = DateTime(d.year, d.month + 1, 1);
+    }
+
+    return false;
+  }
+
+  void _onTapMonth(DateTime monthDate) {
+    final normalized = _normalizeMonth(monthDate);
+
+    setState(() {
+      _fieldErrors.remove("monthlyStart");
+      _fieldErrors.remove("monthlyEnd");
+      _fieldErrors.remove("monthlyRange");
+      _fieldErrors.remove("monthlyUnavailable");
+    });
+
+    if (_monthlyStart == null || (_monthlyStart != null && _monthlyEnd != null)) {
+      setState(() {
+        _monthlyStart = normalized;
+        _monthlyEnd = null;
+      });
+      return;
+    }
+
+    if (_monthlyStart != null && _monthlyEnd == null) {
+      if (normalized.isBefore(_normalizeMonth(_monthlyStart!))) {
+        setState(() {
+          _monthlyStart = normalized;
+        });
+        return;
+      }
+
+      setState(() {
+        _monthlyEnd = normalized;
+      });
+    }
+  }
+
   // ------------------ MONTHLY UI ------------------
 
   Widget _monthlyPickerCard() {
-    final now = DateTime.now();
+    final nowMonth = _normalizeMonth(DateTime.now());
+    final visibleYear = _visibleMonthYear.year;
+    final currentYear = DateTime.now().year;
+    final canGoPrev = visibleYear > currentYear;
 
-    final years = List.generate(8, (i) => now.year + i);
-
-    final months = (_selectedYear == now.year)
-        ? List.generate(12 - now.month + 1, (i) => now.month + i)
-        : List.generate(12, (i) => i + 1);
-
-    if (_selectedYear == now.year && _selectedMonth < now.month) {
-      _selectedMonth = now.month;
-    }
+    final months = List.generate(12, (i) => DateTime(visibleYear, i + 1, 1));
 
     return _Card(
-      title: "Odaberi period",
-      child: Row(
+      title: "Odaberi period najamnine",
+      subtitle: _loadingUnavailable
+          ? "Učitavam zauzete mjesece..."
+          : "Odaberite početni i krajnji mjesec. Crveno = zauzeto • Sivo = prošlo",
+      child: Column(
         children: [
-          Expanded(
-            child: _Dropdown<int>(
-              label: "Mjesec",
-              value: _selectedMonth,
-              items: months
-                  .map(
-                    (m) => DropdownMenuItem(
-                      value: m,
-                      child: Text(
-                        DateFormat.MMMM("bs").format(DateTime(2025, m, 1)),
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) => setState(() {
-                _selectedMonth = v ?? _selectedMonth;
-              }),
-            ),
+          Row(
+            children: [
+              _IconBtn(
+                icon: Icons.chevron_left_rounded,
+                onTap: !canGoPrev
+                    ? () {}
+                    : () => setState(() {
+                          _visibleMonthYear = DateTime(visibleYear - 1, 1, 1);
+                        }),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  visibleYear.toString(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              _IconBtn(
+                icon: Icons.chevron_right_rounded,
+                onTap: () => setState(() {
+                  _visibleMonthYear = DateTime(visibleYear + 1, 1, 1);
+                }),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: _Dropdown<int>(
-              label: "Godina",
-              value: _selectedYear,
-              items: years
-                  .map(
-                    (y) => DropdownMenuItem(
-                      value: y,
-                      child: Text(y.toString()),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) => setState(() {
-                _selectedYear = v ?? _selectedYear;
-
-                if (_selectedYear == now.year && _selectedMonth < now.month) {
-                  _selectedMonth = now.month;
-                }
-              }),
+          const SizedBox(height: 14),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: months.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+              childAspectRatio: 1.45,
             ),
+            itemBuilder: (context, index) {
+              final monthDate = months[index];
+              final normalized = _normalizeMonth(monthDate);
+
+              final isPast = normalized.isBefore(nowMonth);
+              final isUnavailable = _unavailableMonths.contains(normalized);
+
+              final isSelectedStart =
+                  _monthlyStart != null &&
+                  _normalizeMonth(_monthlyStart!) == normalized;
+
+              final isSelectedEnd =
+                  _monthlyEnd != null &&
+                  _normalizeMonth(_monthlyEnd!) == normalized;
+
+              final inRange =
+                  _monthlyStart != null &&
+                  _monthlyEnd != null &&
+                  !normalized.isBefore(_normalizeMonth(_monthlyStart!)) &&
+                  !normalized.isAfter(_normalizeMonth(_monthlyEnd!));
+
+              final canTap = !_loadingUnavailable && !isPast && !isUnavailable;
+
+              Color bg = Colors.white;
+              Color fg = const Color(0xFF2F2F2F);
+              BorderSide border = const BorderSide(color: Color(0x11000000));
+
+              if (isPast) {
+                fg = const Color(0xFFB0B0B0);
+                bg = const Color(0xFFF2F3F4);
+              } else if (isUnavailable) {
+                fg = const Color(0xFFE53935);
+                bg = const Color(0xFFFFE8E8);
+                border = const BorderSide(color: Color(0x33E53935));
+              }
+
+              if (inRange && _monthlyStart != null && _monthlyEnd != null) {
+                bg = const Color(0x1A5F9F3B);
+                border = const BorderSide(color: Color(0x335F9F3B));
+              }
+
+              if (isSelectedStart || isSelectedEnd) {
+                bg = rentifyGreenDark;
+                fg = Colors.white;
+                border = BorderSide.none;
+              }
+
+              return GestureDetector(
+                onTap: !canTap ? null : () => _onTapMonth(normalized),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.fromBorderSide(border),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    _capitalize(DateFormat.MMM("bs").format(monthDate)),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w900,
+                      color: fg,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _MiniInfo(
+                  label: "Od mjeseca",
+                  value: _monthlyStart == null ? "—" : _fmtMonth(_monthlyStart!),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _MiniInfo(
+                  label: "Do mjeseca",
+                  value: _monthlyEnd == null ? "—" : _fmtMonth(_monthlyEnd!),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -385,6 +596,13 @@ class _PropertyReservationUniversalScreenState
   }
 
   void _onTapDate(DateTime date) {
+    setState(() {
+      _fieldErrors.remove("startDate");
+      _fieldErrors.remove("endDate");
+      _fieldErrors.remove("shortStayRange");
+      _fieldErrors.remove("shortStayUnavailable");
+    });
+
     if (_start == null || (_start != null && _end != null)) {
       setState(() {
         _start = date;
@@ -396,22 +614,6 @@ class _PropertyReservationUniversalScreenState
     if (_start != null && _end == null) {
       if (date.isBefore(_normalizeDate(_start!))) {
         setState(() => _start = date);
-        return;
-      }
-
-      if (_rangeHasUnavailable(_normalizeDate(_start!), date)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Odabrani period sadrži zauzete dane.")),
-        );
-        return;
-      }
-
-      if (_normalizeDate(date) == _normalizeDate(_start!)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Datum završetka mora biti nakon početnog datuma."),
-          ),
-        );
         return;
       }
 
@@ -428,6 +630,162 @@ class _PropertyReservationUniversalScreenState
     return false;
   }
 
+  // ------------------ VALIDATION ------------------
+
+  bool _validateForm() {
+    final errors = <String, String>{};
+    final rules = <FieldRule>[];
+
+    if (widget.type == ReservationType.monthly) {
+      rules.add(
+        FieldRule(
+          "monthlyStart",
+          () => _monthlyStart == null ? "Početni mjesec je obavezan." : null,
+        ),
+      );
+
+      rules.add(
+        FieldRule(
+          "monthlyEnd",
+          () => _monthlyEnd == null ? "Krajnji mjesec je obavezan." : null,
+        ),
+      );
+
+      rules.add(
+        FieldRule(
+          "monthlyRange",
+          () {
+            if (_monthlyStart == null || _monthlyEnd == null) return null;
+
+            if (!_monthlyEnd!.isAfter(_monthlyStart!)) {
+              return "Krajnji mjesec mora biti nakon početnog (npr. april → maj).";
+            }
+
+            return null;
+          },
+        ),
+      );
+
+      rules.add(
+        FieldRule(
+          "monthlyUnavailable",
+          () {
+            if (_monthlyStart == null || _monthlyEnd == null) return null;
+
+            if (_monthRangeHasUnavailable(_monthlyStart!, _monthlyEnd!)) {
+              return "Odabrani period sadrži zauzete mjesece.";
+            }
+
+            return null;
+          },
+        ),
+      );
+    } else {
+      rules.add(
+        Rules.requiredDate(
+          "startDate",
+          _start,
+          "Početni datum je obavezan.",
+        ),
+      );
+
+      rules.add(
+        Rules.requiredDate(
+          "endDate",
+          _end,
+          "Završni datum je obavezan.",
+        ),
+      );
+
+      rules.add(
+        FieldRule("shortStayRange", () {
+          if (_start == null || _end == null) return null;
+
+          final normalizedStart = _normalizeDate(_start!);
+          final normalizedEnd = _normalizeDate(_end!);
+
+          if (!normalizedEnd.isAfter(normalizedStart)) {
+            return "Datum završetka mora biti nakon početnog datuma.";
+          }
+
+          return null;
+        }),
+      );
+
+      rules.add(
+        FieldRule("shortStayUnavailable", () {
+          if (_start == null || _end == null) return null;
+
+          final normalizedStart = _normalizeDate(_start!);
+          final normalizedEnd = _normalizeDate(_end!);
+
+          if (_rangeHasUnavailable(normalizedStart, normalizedEnd)) {
+            return "Odabrani period sadrži zauzete dane.";
+          }
+
+          return null;
+        }),
+      );
+    }
+
+    for (final rule in rules) {
+      final error = rule.validate();
+      if (error != null) {
+        errors[rule.field] = error;
+      }
+    }
+
+    setState(() {
+      _fieldErrors = errors;
+    });
+
+    if (errors.isNotEmpty) {
+      final message = errors.values.first;
+      SnackbarHelper.showError(context, message);
+      return false;
+    }
+
+    return true;
+  }
+
+  Widget _validationCard() {
+    final values = _fieldErrors.values.toList();
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF4F4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0x33D32F2F)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Provjerite unesene podatke",
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: Color(0xFFD32F2F),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...values.map(
+            (e) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                "• $e",
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF7A1C1C),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ------------------ SUMMARY + BOTTOM ------------------
 
   Widget _summaryCard() {
@@ -439,15 +797,30 @@ class _PropertyReservationUniversalScreenState
 
     if (widget.type == ReservationType.monthly) {
       line1 =
-          "Period: ${_selectedMonth.toString().padLeft(2, '0')}.${_selectedYear}";
-      line2 = "Cijena: ${priceMonth.toStringAsFixed(0)} KM / mjesec";
+          "Period: ${_monthlyStart == null ? "—" : _fmtMonth(_monthlyStart!)} → ${_monthlyEnd == null ? "—" : _fmtMonth(_monthlyEnd!)}";
+
+      int? monthsCount;
+      if (_monthlyStart != null && _monthlyEnd != null) {
+        monthsCount =
+            ((_monthlyEnd!.year - _monthlyStart!.year) * 12) +
+            (_monthlyEnd!.month - _monthlyStart!.month) +
+            1;
+      }
+
+      if (monthsCount == null || monthsCount <= 0) {
+        line2 = "Mjeseci: — • Ukupno: —";
+      } else {
+        final total = priceMonth * monthsCount;
+        line2 =
+            "Mjeseci: $monthsCount • Ukupno: ${total.toStringAsFixed(0)} KM";
+      }
     } else {
       final nights = _start == null || _end == null
           ? null
           : _end!.difference(_start!).inDays;
 
       line1 =
-          "Datumi: ${_start == null ? "—" : _fmt(_start!)}  →  ${_end == null ? "—" : _fmt(_end!)}";
+          "Datumi: ${_start == null ? "—" : _fmt(_start!)} → ${_end == null ? "—" : _fmt(_end!)}";
 
       if (nights == null) {
         line2 = "Cijena: —";
@@ -483,10 +856,6 @@ class _PropertyReservationUniversalScreenState
   }
 
   Widget _bottomBar() {
-    final canContinue = widget.type == ReservationType.monthly
-        ? true
-        : (_start != null && _end != null);
-
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
       decoration: const BoxDecoration(
@@ -523,7 +892,7 @@ class _PropertyReservationUniversalScreenState
             child: SizedBox(
               height: 48,
               child: ElevatedButton(
-                onPressed: (!canContinue || _submitting) ? null : _reserve,
+                onPressed: _submitting ? null : _reserve,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: rentifyGreenDark,
                   foregroundColor: Colors.white,
@@ -536,7 +905,10 @@ class _PropertyReservationUniversalScreenState
                     ? const SizedBox(
                         width: 22,
                         height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text(
                         "Rezerviši",
@@ -552,21 +924,32 @@ class _PropertyReservationUniversalScreenState
 
   void _reset() {
     setState(() {
-      _selectedMonth = DateTime.now().month;
-      _selectedYear = DateTime.now().year;
+      _monthlyStart = null;
+      _monthlyEnd = null;
+
       _start = null;
       _end = null;
+      _fieldErrors = {};
       _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+      _visibleMonthYear = DateTime(DateTime.now().year, 1, 1);
     });
   }
 
   Future<void> _reserve() async {
+    if (!_validateForm()) return;
+
     try {
       setState(() => _submitting = true);
 
       final userId = Session.userId;
       if (userId == null) {
-        throw Exception("Niste prijavljeni.");
+        await ConfirmDialogs.okConfirmation(
+          context,
+          title: "Greška",
+          message: "Niste prijavljeni.",
+        );
+        setState(() => _submitting = false);
+        return;
       }
 
       final payload = <String, dynamic>{
@@ -578,29 +961,23 @@ class _PropertyReservationUniversalScreenState
       };
 
       if (widget.type == ReservationType.monthly) {
-        payload["month"] = _selectedMonth;
-        payload["year"] = _selectedYear;
+        final startUtc = DateTime.utc(
+          _monthlyStart!.year,
+          _monthlyStart!.month,
+          1,
+        );
 
-        final startUtc = DateTime.utc(_selectedYear, _selectedMonth, 1);
-        final endUtc = DateTime.utc(_selectedYear, _selectedMonth + 1, 1);
+        final endUtc = DateTime.utc(
+          _monthlyEnd!.year,
+          _monthlyEnd!.month,
+          1,
+        );
 
         payload["startDateOfRenting"] = startUtc.toIso8601String();
         payload["endDateOfRenting"] = endUtc.toIso8601String();
       } else {
-        if (_start == null || _end == null) {
-          throw Exception("Odaberite početni i završni datum.");
-        }
-
         final normalizedStart = _normalizeDate(_start!);
         final normalizedEnd = _normalizeDate(_end!);
-
-        if (!normalizedEnd.isAfter(normalizedStart)) {
-          throw Exception("Datum završetka mora biti nakon početnog datuma.");
-        }
-
-        if (_rangeHasUnavailable(normalizedStart, normalizedEnd)) {
-          throw Exception("Odabrani period sadrži zauzete dane.");
-        }
 
         payload["startDateOfRenting"] = DateTime.utc(
           normalizedStart.year,
@@ -640,11 +1017,7 @@ class _PropertyReservationUniversalScreenState
       if (!mounted) return;
       setState(() => _submitting = false);
 
-      await ConfirmDialogs.okConfirmation(
-        context,
-        title: "Greška",
-        message: e.toString(),
-      );
+      SnackbarHelper.showError(context, e.toString());
     }
   }
 
@@ -667,8 +1040,8 @@ class _PropertyMiniHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = (property.name ?? "").trim();
-    final city = (property.city ?? "").trim();
+    final title = property.name.trim();
+    final city = property.city.trim();
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -768,43 +1141,6 @@ class _Card extends StatelessWidget {
           const SizedBox(height: 12),
           child,
         ],
-      ),
-    );
-  }
-}
-
-class _Dropdown<T> extends StatelessWidget {
-  const _Dropdown({
-    required this.label,
-    required this.value,
-    required this.items,
-    required this.onChanged,
-  });
-
-  final String label;
-  final T value;
-  final List<DropdownMenuItem<T>> items;
-  final ValueChanged<T?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: label,
-        filled: true,
-        fillColor: const Color(0xFFF6F7F8),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          items: items,
-          onChanged: onChanged,
-          isExpanded: true,
-        ),
       ),
     );
   }

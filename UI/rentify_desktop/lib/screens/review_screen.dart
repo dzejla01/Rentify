@@ -8,7 +8,7 @@ import 'package:rentify_desktop/helper/univerzal_pagging_helper.dart';
 import 'package:rentify_desktop/models/review.dart';
 import 'package:rentify_desktop/providers/review_provider.dart';
 import 'package:rentify_desktop/screens/base_screen.dart';
-
+import 'package:rentify_desktop/utils/session.dart';
 
 class RentifyColors {
   static const primary = Color(0xFF5F9F3B);
@@ -70,10 +70,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
   }
 
   String _reviewerName(Review r) {
-    final fn = r.user?.firstName?.trim() ?? "";
-    final ln = r.user?.lastName?.trim() ?? "";
+    final fn = r.reservation?.user?.firstName?.trim() ?? "";
+    final ln = r.reservation?.user?.lastName?.trim() ?? "";
     final full = "$fn $ln".trim();
     return full.isEmpty ? "Nepoznato" : full;
+  }
+
+  String _propertyName(Review r) {
+    final name = r.reservation?.property?.name?.trim() ?? "";
+    return name.isEmpty ? "Nepoznata nekretnina" : name;
   }
 
   Widget _starRow(int count) {
@@ -98,8 +103,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
       question:
           "Da li ste sigurni da želite obrisati recenziju:\n\n"
           "Autor: ${_reviewerName(r)}\n"
+          "Nekretnina: ${_propertyName(r)}\n"
           "Ocjena: ${r.starRate} zvjezdica\n\n"
-          "Poruka:\n„${r.comment ?? ""}“",
+          "Poruka:\n„${r.comment.trim().isEmpty ? "-" : r.comment}“",
       badText: "Odustani",
       goodText: "Obriši",
       barrierDismissible: true,
@@ -118,12 +124,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
 
     try {
       await context.read<ReviewProvider>().delete(id);
-
       await paging.search(_searchCtrl.text.trim());
 
-      if (mounted) SnackbarHelper.showUpdate(context, "Recenzija obrisana.");
+      if (mounted) {
+        SnackbarHelper.showUpdate(context, "Recenzija obrisana.");
+      }
     } catch (e) {
-      if (mounted) SnackbarHelper.showError(context, e.toString());
+      if (mounted) {
+        SnackbarHelper.showError(context, e.toString());
+      }
     }
   }
 
@@ -133,6 +142,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
     required Review r,
   }) {
     final name = _reviewerName(r);
+    final propertyName = _propertyName(r);
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
@@ -143,12 +153,14 @@ class _ReviewScreenState extends State<ReviewScreen> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.person_outline_rounded,
-              size: 22, color: RentifyColors.primary),
+          const Icon(
+            Icons.person_outline_rounded,
+            size: 22,
+            color: RentifyColors.primary,
+          ),
           const SizedBox(width: 10),
-
           SizedBox(
-            width: 190,
+            width: 170,
             child: Text(
               name,
               maxLines: 1,
@@ -160,21 +172,40 @@ class _ReviewScreenState extends State<ReviewScreen> {
               ),
             ),
           ),
-
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 14),
             width: 1,
             height: 26,
             color: Colors.black.withOpacity(0.12),
           ),
-
-          const Icon(Icons.chat_bubble_outline_rounded,
-              size: 18, color: RentifyColors.text),
+          SizedBox(
+            width: 190,
+            child: Text(
+              propertyName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 13.2,
+                fontWeight: FontWeight.w700,
+                color: RentifyColors.text,
+              ),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 14),
+            width: 1,
+            height: 26,
+            color: Colors.black.withOpacity(0.12),
+          ),
+          const Icon(
+            Icons.chat_bubble_outline_rounded,
+            size: 18,
+            color: RentifyColors.text,
+          ),
           const SizedBox(width: 10),
-
           Expanded(
             child: Text(
-              (r.comment ?? "").trim().isEmpty ? "-" : r.comment!,
+              r.comment.trim().isEmpty ? "-" : r.comment,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -184,13 +215,9 @@ class _ReviewScreenState extends State<ReviewScreen> {
               ),
             ),
           ),
-
           const SizedBox(width: 14),
-
           _starRow(r.starRate),
-
           const SizedBox(width: 12),
-
           IconButton(
             onPressed: paging.isLoading
                 ? null
@@ -215,13 +242,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text("Ukupno: ${paging.totalCount}",
-            style: const TextStyle(fontWeight: FontWeight.w800)),
+        Text(
+          "Ukupno: ${paging.totalCount}",
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             IconButton(
-              onPressed: paging.hasPreviousPage ? () => paging.previousPage() : null,
+              onPressed:
+                  paging.hasPreviousPage ? () => paging.previousPage() : null,
               icon: const Icon(Icons.arrow_back),
               color: RentifyColors.primary,
             ),
@@ -259,16 +289,16 @@ class _ReviewScreenState extends State<ReviewScreen> {
                   "page": page,
                   "pageSize": pageSize,
                   "includeTotalCount": includeTotalCount,
-                  if (filter != null && filter.trim().isNotEmpty) "FTS": filter.trim(),
+                  if (filter != null && filter.trim().isNotEmpty)
+                    "FTS": filter.trim(),
                   if (_selectedStars != null) "StarNumber": _selectedStars,
-                  "includeUser": true,
-                  "includeProperty": true
-
+                  "includeReservation": true,
+                  "ownersPropertyId": Session.userId,
                 },
               );
             },
           );
-      
+
           Future.microtask(() => paging.loadPage());
           return paging;
         },
@@ -279,7 +309,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // TOP FILTER ROW
                   Row(
                     children: [
                       Expanded(
@@ -287,12 +316,15 @@ class _ReviewScreenState extends State<ReviewScreen> {
                         child: TextField(
                           controller: _searchCtrl,
                           decoration: _rentifyFieldDecoration(
-                            hint: "Pretraga recenzija po članovima",
+                            hint: "Pretraga recenzija",
                             prefixIcon: Icons.search_rounded,
                             suffixIcon: (_searchCtrl.text.trim().isEmpty)
                                 ? null
                                 : IconButton(
-                                    icon: const Icon(Icons.close_rounded, size: 18),
+                                    icon: const Icon(
+                                      Icons.close_rounded,
+                                      size: 18,
+                                    ),
                                     onPressed: () {
                                       _searchCtrl.clear();
                                       setState(() {});
@@ -308,7 +340,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
                         ),
                       ),
                       const SizedBox(width: 14),
-  
                       SizedBox(
                         height: 44,
                         child: OutlinedButton(
@@ -328,12 +359,12 @@ class _ReviewScreenState extends State<ReviewScreen> {
                       ),
                     ],
                   ),
-      
                   const SizedBox(height: 16),
-      
-                  // LIST HEADER (light green)
                   Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 14,
+                    ),
                     decoration: BoxDecoration(
                       color: RentifyColors.primaryLight,
                       borderRadius: BorderRadius.circular(12),
@@ -341,25 +372,43 @@ class _ReviewScreenState extends State<ReviewScreen> {
                     ),
                     child: const Row(
                       children: [
-                        SizedBox(width: 32), // icon space
+                        SizedBox(width: 32),
+                        SizedBox(
+                          width: 170,
+                          child: Text(
+                            "Korisnik",
+                            style: TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                        SizedBox(width: 29),
                         SizedBox(
                           width: 190,
-                          child: Text("Korisnik", style: TextStyle(fontWeight: FontWeight.w900)),
+                          child: Text(
+                            "Nekretnina",
+                            style: TextStyle(fontWeight: FontWeight.w900),
+                          ),
                         ),
-                        SizedBox(width: 29), // divider approx
+                        SizedBox(width: 29),
                         Expanded(
-                          child: Text("Komentar", style: TextStyle(fontWeight: FontWeight.w900)),
+                          child: Text(
+                            "Komentar",
+                            style: TextStyle(fontWeight: FontWeight.w900),
+                          ),
                         ),
                         SizedBox(width: 14),
-                        Text("Ocjena", style: TextStyle(fontWeight: FontWeight.w900)),
+                        Text(
+                          "Ocjena",
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
                         SizedBox(width: 36),
-                        Text("Obriši", style: TextStyle(fontWeight: FontWeight.w900)),
+                        Text(
+                          "Obriši",
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
                       ],
                     ),
                   ),
-      
                   const SizedBox(height: 6),
-      
                   Expanded(
                     child: (paging.isLoading && paging.items.isEmpty)
                         ? const Center(child: CircularProgressIndicator())
@@ -379,7 +428,6 @@ class _ReviewScreenState extends State<ReviewScreen> {
                                 ),
                               ),
                   ),
-      
                   const SizedBox(height: 10),
                   _pagingControls(paging),
                 ],

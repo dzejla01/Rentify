@@ -15,6 +15,20 @@ class SnackbarHelper {
     );
   }
 
+  static void showDelete(
+    BuildContext context,
+    String message,
+  ) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
   static void showSuccess(
     BuildContext context,
     String message,

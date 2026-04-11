@@ -4,6 +4,7 @@ using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
 using Rentify.Services.Interfaces;
+using Rentify.Services.ReservationStateMachine;
 
 namespace Rentify.WebAPI.Controllers
 {
@@ -48,22 +49,69 @@ namespace Rentify.WebAPI.Controllers
             return Ok(res);
         }
 
-        [Authorize(Roles = "Vlasnik")]
-        public override Task<bool> Delete(int id)
+        [HttpGet("unavailable-res-months")]
+        public async Task<UnavailableDatesResponse> GetUnavailableResMonths(
+    [FromQuery] int propertyId,
+    [FromQuery] DateTime? from,
+    [FromQuery] DateTime? to
+)
         {
-            return base.Delete(id);
+            return await _reservationService.GetUnavailableReservationMonthsAsync(
+                propertyId, from, to
+            );
         }
 
         [Authorize(Roles = "Vlasnik")]
+        public override Task<bool> Delete(int id)
+        {
+            return _reservationService.DeleteAsync(id);
+        }
+
+        [Authorize(Roles = "Vlasnik,Korisnik")]
         public override Task<ReservationResponse?> Update(int id, [FromBody] ReservationUpsertRequest request)
         {
-            return base.Update(id, request);
+            return _reservationService.UpdateAsync(id, request);
         }
 
         [Authorize(Roles = "Korisnik")]
         public override Task<ReservationResponse> Create([FromBody] ReservationUpsertRequest request)
         {
-            return base.Create(request);
+            return _reservationService.CreateAsync(request);
+        }
+
+        [HttpGet("{id}/allowed-actions")]
+        [Authorize(Roles = "Vlasnik,Korisnik")]
+        public List<string> AllowedActions(int id)
+        {
+            return _reservationService.AllowedActions(id);
+        }
+
+        [HttpPut("{id}/approve")]
+        [Authorize(Roles = "Vlasnik")]
+        public async Task<ReservationResponse> Approve(int id)
+        {
+            return await _reservationService.ApproveAsync(id);
+        }
+
+        [HttpPut("{id}/finish")]
+        [Authorize(Roles = "Vlasnik")]
+        public async Task<ReservationResponse> Finish(int id)
+        {
+            return await _reservationService.FinishAsync(id);
+        }
+
+        [HttpPut("{id}/reject")]
+        [Authorize(Roles = "Vlasnik")]
+        public async Task<ReservationResponse> Reject(int id)
+        {
+            return await _reservationService.RejectAsync(id);
+        }
+
+        [HttpPut("{id}/cancel")]
+        [Authorize(Roles = "Vlasnik,Korisnik")]
+        public async Task<ReservationResponse> Cancel(int id)
+        {
+            return await _reservationService.CancelAsync(id);
         }
 
     }

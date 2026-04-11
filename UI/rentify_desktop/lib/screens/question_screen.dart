@@ -95,6 +95,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
           return RentifyBaseDialog(
             title: existing == null ? "Odgovori" : "Uredi odgovor",
             width: 600,
+            height: 330,
             onClose: () {
               Navigator.of(context).pop();
             },
@@ -120,7 +121,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Expanded(
+                Container(
+                  height: 100,
                   child: TextField(
                     controller: controller,
                     expands: true,

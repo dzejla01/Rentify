@@ -13,6 +13,6 @@ namespace Rentify.Model.RequestObjects
 
         public DateTime? DateAppointment { get; set; }
 
-        public bool? IsApproved { get; set; }
+        public string Status { get; set; } = "Na čekanju";
     }
 }

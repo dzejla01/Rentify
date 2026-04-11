@@ -6,7 +6,6 @@ namespace Rentify.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/images")]
-    [Authorize]
     public class ImageController : ControllerBase
     {
         private readonly IImageService _imageService;

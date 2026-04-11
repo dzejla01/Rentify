@@ -83,7 +83,7 @@ public class RentifyDbContext : DbContext
             .IsUnique();
 
         modelBuilder.Entity<Review>()
-            .HasIndex(x => new { x.UserId, x.PropertyId })
+            .HasIndex(x => x.ReservationId)
             .IsUnique();
 
         SeedData.Seed(modelBuilder);

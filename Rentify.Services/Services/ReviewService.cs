@@ -30,10 +30,22 @@ namespace Rentify.Services.Services
 
                 query = query.Where(x =>
                     (x.Comment != null && x.Comment.ToLower().Contains(fts))
-                    ||
-                    (x.User != null &&
-                        ((x.User.FirstName + " " + x.User.LastName).ToLower().Contains(fts)))
                 );
+            }
+
+            if (search.UserId.HasValue)
+            {
+                query = query.Where(x => x.Reservation.UserId == search.UserId);
+            }
+
+            if (search.OwnersPropertyId.HasValue)
+            {
+                query = query.Where(x => x.Reservation.Property.UserId == search.OwnersPropertyId);
+            }
+
+            if (search.ReservationId.HasValue && search.ReservationId.Value > 0)
+            {
+                query = query.Where(x => x.ReservationId == search.ReservationId.Value);
             }
 
             return query;
@@ -43,14 +55,15 @@ namespace Rentify.Services.Services
         {
             query = base.AddInclude(query, search);
 
-            if (search.IncludeUser == true)
+            if (search.IncludeReservation == true)
             {
-                query = query.Include(x => x.User);
-            }
+                query = query
+                    .Include(x => x.Reservation)
+                    .ThenInclude(r => r.User);
 
-            if (search.IncludeProperty == true)
-            {
-                query = query.Include(x => x.Property);
+                query = query
+                    .Include(x => x.Reservation)
+                    .ThenInclude(r => r.Property);
             }
 
             return query;
@@ -58,57 +71,73 @@ namespace Rentify.Services.Services
 
         protected override async Task BeforeInsert(Review entity, ReviewUpsertRequest request)
         {
-            if (request.UserId <= 0)
-                throw new InvalidOperationException("UserId je obavezan.");
+            if (request.ReservationId <= 0)
+                throw new InvalidOperationException("ReservationId je obavezan.");
 
-            if (request.PropertyId <= 0)
-                throw new InvalidOperationException("PropertyId je obavezan.");
+            if (string.IsNullOrWhiteSpace(request.Comment))
+                throw new InvalidOperationException("Komentar je obavezan.");
 
             if (request.StarRate < 1 || request.StarRate > 5)
                 throw new InvalidOperationException("Ocjena mora biti u rasponu od 1 do 5.");
 
-            var propertyExists = await _context.Properties
+            var reservation = await _context.Reservations
                 .AsNoTracking()
-                .AnyAsync(x => x.Id == request.PropertyId);
+                .FirstOrDefaultAsync(x => x.Id == request.ReservationId);
 
-            if (!propertyExists)
-                throw new NotFoundException("Nekretnina ne postoji.");
+            if (reservation == null)
+                throw new NotFoundException("Rezervacija ne postoji.");
 
-            var userExists = await _context.Users
-                .AsNoTracking()
-                .AnyAsync(x => x.Id == request.UserId);
-
-            if (!userExists)
-                throw new NotFoundException("Korisnik ne postoji.");
-
-            var hasReservation = await _context.Reservations
-                .AsNoTracking()
-                .AnyAsync(r =>
-                    r.UserId == request.UserId &&
-                    r.PropertyId == request.PropertyId &&
-                    (r.Status == "Odobreno" || r.Status == "Završeno"));
-
-            if (!hasReservation)
+            if (reservation.Status != "Odobreno" && reservation.Status != "Završeno")
             {
                 throw new InvalidOperationException(
-                    "Recenziju može ostaviti samo korisnik koji ima rezervaciju za ovu nekretninu."
+                    "Recenziju je moguće ostaviti samo za odobrenu ili završenu rezervaciju."
                 );
             }
 
             var alreadyReviewed = await _context.Reviews
                 .AsNoTracking()
-                .AnyAsync(r =>
-                    r.UserId == request.UserId &&
-                    r.PropertyId == request.PropertyId);
+                .AnyAsync(x => x.ReservationId == request.ReservationId);
 
             if (alreadyReviewed)
             {
                 throw new InvalidOperationException(
-                    "Već ste ostavili recenziju za ovu nekretninu."
+                    "Već postoji recenzija za ovu rezervaciju."
                 );
             }
 
             await base.BeforeInsert(entity, request);
+        }
+
+        protected override async Task BeforeUpdate(Review entity, ReviewUpsertRequest request)
+        {
+            if (request.ReservationId <= 0)
+                throw new InvalidOperationException("ReservationId je obavezan.");
+
+            if (string.IsNullOrWhiteSpace(request.Comment))
+                throw new InvalidOperationException("Komentar je obavezan.");
+
+            if (request.StarRate < 1 || request.StarRate > 5)
+                throw new InvalidOperationException("Ocjena mora biti u rasponu od 1 do 5.");
+
+            var reservationExists = await _context.Reservations
+                .AsNoTracking()
+                .AnyAsync(x => x.Id == request.ReservationId);
+
+            if (!reservationExists)
+                throw new NotFoundException("Rezervacija ne postoji.");
+
+            var duplicateReview = await _context.Reviews
+                .AsNoTracking()
+                .AnyAsync(x => x.ReservationId == request.ReservationId && x.Id != entity.Id);
+
+            if (duplicateReview)
+            {
+                throw new InvalidOperationException(
+                    "Već postoji recenzija za ovu rezervaciju."
+                );
+            }
+
+            await base.BeforeUpdate(entity, request);
         }
     }
 }

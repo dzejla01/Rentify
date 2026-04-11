@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/dialogs/base_dialogs.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/providers/user_provider.dart';
+import 'package:rentify_mobile/providers/review_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
@@ -26,6 +28,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   late ReservationProvider _reservationProvider;
   late PropertyProvider _propertyProvider;
   late UserProvider _userProvider;
+  late ReviewProvider _reviewProvider;
 
   late UniversalPagingProvider<Reservation> _paging;
 
@@ -33,6 +36,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   Timer? _debounce;
 
   Map<int, Property> _propertiesMap = {};
+  final Map<int, bool> _reviewedReservations = {};
 
   bool _metaLoading = false;
   String? _metaError;
@@ -40,7 +44,8 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   String _fullName = "";
   bool _userLoading = false;
 
-  String? _selectedStatus; // null = sve, ili "Odobreno" / "Na čekanju" / "Završeno"
+  String? _selectedStatus;
+  int? _cancellingReservationId;
 
   Future<String> _getUserFullName(int userId) async {
     final u = await _userProvider.getById(userId);
@@ -76,33 +81,37 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     _reservationProvider = context.read<ReservationProvider>();
     _propertyProvider = context.read<PropertyProvider>();
     _userProvider = context.read<UserProvider>();
+    _reviewProvider = context.read<ReviewProvider>();
 
     _paging = UniversalPagingProvider<Reservation>(
       pageSize: 6,
-      fetcher: ({
-        required int page,
-        required int pageSize,
-        String? filter,
-        Map<String, dynamic>? extra,
-        bool includeTotalCount = true,
-      }) async {
-        final userId = Session.userId;
-        if (userId == null) {
-          return SearchResult<Reservation>()..totalCount = 0;
-        }
+      fetcher:
+          ({
+            required int page,
+            required int pageSize,
+            String? filter,
+            Map<String, dynamic>? extra,
+            bool includeTotalCount = true,
+          }) async {
+            final userId = Session.userId;
+            if (userId == null) {
+              return SearchResult<Reservation>()..totalCount = 0;
+            }
 
-        final f = <String, dynamic>{
-          "userId": userId,
-          "page": page,
-          "pageSize": pageSize,
-          "includeTotalCount": includeTotalCount,
-          if (filter != null && filter.trim().isNotEmpty) "FTS": filter.trim(),
-          if (_selectedStatus != null) "status": _selectedStatus,
-          ...?extra,
-        };
+            final f = <String, dynamic>{
+              "userId": userId,
+              "includeProperty": true,
+              "page": page,
+              "pageSize": pageSize,
+              "includeTotalCount": includeTotalCount,
+              if (filter != null && filter.trim().isNotEmpty)
+                "FTS": filter.trim(),
+              if (_selectedStatus != null) "status": _selectedStatus,
+              ...?extra,
+            };
 
-        return await _reservationProvider.get(filter: f);
-      },
+            return await _reservationProvider.get(filter: f);
+          },
     );
 
     _paging.addListener(_onPagingChanged);
@@ -116,14 +125,14 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   void _onPagingChanged() {
     if (!mounted) return;
     if (!_paging.isLoading) {
-      _loadPropertiesForPage();
+      _loadMetaForPage();
     }
   }
 
   Future<void> _refreshWithMeta() async {
     await _paging.refresh();
     if (!mounted) return;
-    await _loadPropertiesForPage();
+    await _loadMetaForPage();
   }
 
   void _onSearchChanged(String value) {
@@ -131,7 +140,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     _debounce = Timer(const Duration(milliseconds: 350), () async {
       await _paging.search(value);
       if (!mounted) return;
-      await _loadPropertiesForPage();
+      await _loadMetaForPage();
     });
   }
 
@@ -144,10 +153,10 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
 
     await _paging.refresh();
     if (!mounted) return;
-    await _loadPropertiesForPage();
+    await _loadMetaForPage();
   }
 
-  Future<void> _loadPropertiesForPage() async {
+  Future<void> _loadMetaForPage() async {
     if (!mounted) return;
 
     setState(() {
@@ -155,19 +164,52 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
       _metaError = null;
     });
 
-    try {
-      final reservations = _paging.items;
+    final reservations = _paging.items;
+    final Map<int, Property> loadedProperties = {};
+    final Map<int, bool> loadedReviewed = {};
 
-      final Map<int, Property> loaded = {};
+    try {
       for (final r in reservations) {
-        if (!loaded.containsKey(r.propertyId)) {
-          loaded[r.propertyId] = await _propertyProvider.getById(r.propertyId);
+        if (!loadedProperties.containsKey(r.propertyId) && r.property != null) {
+          loadedProperties[r.propertyId] = r.property!;
         }
       }
 
       if (!mounted) return;
       setState(() {
-        _propertiesMap = loaded;
+        _propertiesMap = loadedProperties;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _metaError = e.toString();
+      });
+    }
+
+    try {
+      final reviews = await _reviewProvider.get(
+        filter: {
+          "userId": Session.userId,
+          "includeReservation": true,
+          "retrieveAll": true,
+          "includeTotalCount": false,
+        },
+      );
+
+      final reviewedReservationIds = reviews.items
+          .where((x) => x.reservationId != null)
+          .map((x) => x.reservationId!)
+          .toSet();
+
+      for (final r in reservations) {
+        if (r.id != null && r.status?.trim() == "Završeno") {
+          loadedReviewed[r.id!] = reviewedReservationIds.contains(r.id!);
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        _reviewedReservations.addAll(loadedReviewed);
         _metaLoading = false;
       });
     } catch (e) {
@@ -176,6 +218,150 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
         _metaLoading = false;
         _metaError = e.toString();
       });
+    }
+  }
+
+  Future<void> _showCancelReservationDialog(Reservation reservation) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return RentifyBaseDialog(
+          title: "Otkaži rezervaciju",
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 54,
+                color: Color(0xFFD97706),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Da li ste sigurni da želite otkazati ovu rezervaciju?",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF374151),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: Colors.black.withOpacity(0.12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        "Odustani",
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC62828),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        "Otkaži rezervaciju",
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          onClose: () => Navigator.pop(context, false),
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _cancelReservation(reservation);
+    }
+  }
+
+  Future<void> _cancelReservation(Reservation reservation) async {
+    final id = reservation.id;
+    if (id == null) return;
+
+    try {
+      if (!mounted) return;
+      setState(() => _cancellingReservationId = id);
+
+      await _reservationProvider.cancel(id);
+      await _refreshWithMeta();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Rezervacija je uspješno otkazana."),
+          backgroundColor: Color(0xFF2E7D32),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("$e"), backgroundColor: const Color(0xFFC62828)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _cancellingReservationId = null);
+      }
+    }
+  }
+
+  Future<void> _showReviewDialog(Reservation reservation) async {
+    final reservationId = reservation.id;
+    if (reservationId == null) return;
+
+    if (_reviewedReservations[reservationId] == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Recenzija je već poslana za ovu rezervaciju."),
+          backgroundColor: Color(0xFF6B7280),
+        ),
+      );
+      return;
+    }
+
+    final sent = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => _ReviewDialog(reservationId: reservationId),
+    );
+
+    if (!mounted) return;
+
+    if (sent == true) {
+      setState(() {
+        _reviewedReservations[reservationId] = true;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Recenzija je uspješno poslana."),
+          backgroundColor: Color(0xFF2E7D32),
+        ),
+      );
     }
   }
 
@@ -211,19 +397,19 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                 _searchCtrl.clear();
                 await _paging.search("");
                 if (!mounted) return;
-                await _loadPropertiesForPage();
+                await _loadMetaForPage();
               },
               hint: "Pretraga (nekretnina / period / tip...)",
             ),
-
             _StatusFilterBar(
               selectedStatus: _selectedStatus,
               onTapAll: () => _changeStatusFilter(null),
               onTapApproved: () => _changeStatusFilter("Odobreno"),
               onTapPending: () => _changeStatusFilter("Na čekanju"),
               onTapFinished: () => _changeStatusFilter("Završeno"),
+              onTapRejected: () => _changeStatusFilter("Odbijeno"),
+              onTapCancelled: () => _changeStatusFilter("Otkazano"),
             ),
-
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _refreshWithMeta,
@@ -249,7 +435,15 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                         separatorHeight: 12,
                         itemBuilder: (context, r) {
                           final p = _propertiesMap[r.propertyId];
-                          final status = ReservationStatusMapper.fromString(r.status);
+                          final status = ReservationStatusMapper.fromString(
+                            r.status,
+                          );
+
+                          final canReview =
+                              status == ReservationStatusUi.finished;
+                          final isReviewed =
+                              r.id != null &&
+                              _reviewedReservations[r.id!] == true;
 
                           return _ReservationCard(
                             propertyName: p?.name ?? "Učitavanje...",
@@ -263,6 +457,16 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                             createdAtText: _createdAtText(r.createdAt!),
                             status: status,
                             loadingMeta: _metaLoading && p == null,
+                            showCancelButton:
+                                status == ReservationStatusUi.approved,
+                            isCancelling: _cancellingReservationId == r.id,
+                            onCancel: () => _showCancelReservationDialog(r),
+                            showReviewButton: canReview,
+                            reviewButtonEnabled: canReview && !isReviewed,
+                            reviewButtonText: isReviewed
+                                ? "Recenzirano"
+                                : "Ostavi recenziju",
+                            onReview: () => _showReviewDialog(r),
                           );
                         },
                       ),
@@ -277,7 +481,10 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     );
   }
 
-  static String _periodText({required DateTime? start, required DateTime? end}) {
+  static String _periodText({
+    required DateTime? start,
+    required DateTime? end,
+  }) {
     String fmt(DateTime? d) {
       if (d == null) return "-";
       final dd = d.day.toString().padLeft(2, '0');
@@ -310,7 +517,196 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   }
 }
 
-/// ==================== STATUS FILTER ====================
+class _ReviewDialog extends StatefulWidget {
+  const _ReviewDialog({required this.reservationId});
+
+  final int reservationId;
+
+  @override
+  State<_ReviewDialog> createState() => _ReviewDialogState();
+}
+
+class _ReviewDialogState extends State<_ReviewDialog> {
+  final TextEditingController _commentController = TextEditingController();
+  int _rating = 0;
+  bool _sending = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submitReview() async {
+    final comment = _commentController.text.trim();
+
+    if (_rating <= 0) {
+      setState(() => _error = "Odaberite broj zvjezdica.");
+      return;
+    }
+
+    if (comment.isEmpty) {
+      setState(() => _error = "Komentar je obavezan.");
+      return;
+    }
+
+    setState(() {
+      _sending = true;
+      _error = null;
+    });
+
+    try {
+      await context.read<ReviewProvider>().insert({
+        "reservationId": widget.reservationId,
+        "starRate": _rating,
+        "comment": comment,
+      });
+
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _sending = false;
+        _error = "Greška pri slanju recenzije. $e";
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return RentifyBaseDialog(
+      title: "Ostavi recenziju",
+      width: 520,
+      onClose: () => Navigator.of(context).pop(false),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            "Označite broj zvjezdica i napišite kratak komentar.",
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF6E6E6E),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(5, (index) {
+              final starIndex = index + 1;
+              final selected = starIndex <= _rating;
+
+              return IconButton(
+                onPressed: _sending
+                    ? null
+                    : () {
+                        setState(() {
+                          _rating = starIndex;
+                          _error = null;
+                        });
+                      },
+                icon: Icon(
+                  selected ? Icons.star_rounded : Icons.star_border_rounded,
+                  color: selected ? const Color(0xFFF9A825) : Colors.grey,
+                  size: 34,
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 12),
+          TextField(
+            controller: _commentController,
+            minLines: 4,
+            maxLines: 6,
+            textInputAction: TextInputAction.newline,
+            decoration: InputDecoration(
+              hintText: "Napišite svoje iskustvo...",
+              filled: true,
+              fillColor: const Color(0xFFF7F7F7),
+              errorText: _error,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 14,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(
+                  color: Color(0xFF5F9F3B),
+                  width: 2,
+                ),
+              ),
+            ),
+            onChanged: (_) {
+              if (_error != null) {
+                setState(() => _error = null);
+              }
+            },
+          ),
+          const SizedBox(height: 18),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: _sending
+                      ? null
+                      : () => Navigator.of(context).pop(false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF6E6E6E),
+                    side: const BorderSide(color: Color(0xFFBDBDBD)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    "Odustani",
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _sending ? null : _submitReview,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF1976D2),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: _sending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          "Pošalji",
+                          style: TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _StatusFilterBar extends StatelessWidget {
   const _StatusFilterBar({
@@ -319,6 +715,8 @@ class _StatusFilterBar extends StatelessWidget {
     required this.onTapApproved,
     required this.onTapPending,
     required this.onTapFinished,
+    required this.onTapRejected,
+    required this.onTapCancelled,
   });
 
   final String? selectedStatus;
@@ -326,6 +724,8 @@ class _StatusFilterBar extends StatelessWidget {
   final VoidCallback onTapApproved;
   final VoidCallback onTapPending;
   final VoidCallback onTapFinished;
+  final VoidCallback onTapRejected;
+  final VoidCallback onTapCancelled;
 
   @override
   Widget build(BuildContext context) {
@@ -361,6 +761,20 @@ class _StatusFilterBar extends StatelessWidget {
               selected: selectedStatus == "Završeno",
               onTap: onTapFinished,
               selectedColor: const Color(0xFF1565C0),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Odbijene",
+              selected: selectedStatus == "Odbijeno",
+              onTap: onTapRejected,
+              selectedColor: const Color(0xFF6B7280),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Otkazane",
+              selected: selectedStatus == "Otkazano",
+              onTap: onTapCancelled,
+              selectedColor: const Color(0xFFC62828),
             ),
           ],
         ),
@@ -419,8 +833,6 @@ class _FilterChipButton extends StatelessWidget {
   }
 }
 
-/// ==================== CARD UI ====================
-
 class _ReservationCard extends StatelessWidget {
   const _ReservationCard({
     required this.propertyName,
@@ -429,6 +841,13 @@ class _ReservationCard extends StatelessWidget {
     required this.createdAtText,
     required this.status,
     this.loadingMeta = false,
+    this.showCancelButton = false,
+    this.isCancelling = false,
+    this.onCancel,
+    this.showReviewButton = false,
+    this.reviewButtonEnabled = false,
+    this.reviewButtonText = "Ostavi recenziju",
+    this.onReview,
   });
 
   final String propertyName;
@@ -437,6 +856,14 @@ class _ReservationCard extends StatelessWidget {
   final String createdAtText;
   final ReservationStatusUi status;
   final bool loadingMeta;
+  final bool showCancelButton;
+  final bool isCancelling;
+  final VoidCallback? onCancel;
+
+  final bool showReviewButton;
+  final bool reviewButtonEnabled;
+  final String reviewButtonText;
+  final VoidCallback? onReview;
 
   @override
   Widget build(BuildContext context) {
@@ -514,11 +941,7 @@ class _ReservationCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(
-                  status.alertIcon,
-                  size: 18,
-                  color: status.alertFg,
-                ),
+                Icon(status.alertIcon, size: 18, color: status.alertFg),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -541,6 +964,69 @@ class _ReservationCard extends StatelessWidget {
               ],
             ),
           ),
+          if (showCancelButton) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: isCancelling ? null : onCancel,
+                icon: isCancelling
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.cancel_rounded),
+                label: Text(
+                  isCancelling ? "Otkazivanje..." : "Otkaži",
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFC62828),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ],
+          if (showReviewButton) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: reviewButtonEnabled ? onReview : null,
+                icon: Icon(
+                  reviewButtonEnabled
+                      ? Icons.reviews_rounded
+                      : Icons.check_circle_rounded,
+                ),
+                label: Text(
+                  reviewButtonText,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: reviewButtonEnabled
+                      ? const Color(0xFF1976D2)
+                      : const Color(0xFFBDBDBD),
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: const Color(0xFFBDBDBD),
+                  disabledForegroundColor: Colors.white70,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -599,12 +1085,12 @@ class _MiniRow extends StatelessWidget {
   }
 }
 
-/// ==================== STATUS ====================
-
 enum ReservationStatusUi {
   approved,
   pending,
   finished,
+  rejected,
+  cancelled,
   unknown,
 }
 
@@ -619,6 +1105,12 @@ extension ReservationStatusMapper on ReservationStatusUi {
     if (s == "završeno" || s == "zavrseno") {
       return ReservationStatusUi.finished;
     }
+    if (s == "odbijeno") {
+      return ReservationStatusUi.rejected;
+    }
+    if (s == "otkazano") {
+      return ReservationStatusUi.cancelled;
+    }
 
     return ReservationStatusUi.unknown;
   }
@@ -631,6 +1123,10 @@ extension ReservationStatusMapper on ReservationStatusUi {
         return "Na čekanju";
       case ReservationStatusUi.finished:
         return "Završeno";
+      case ReservationStatusUi.rejected:
+        return "Odbijeno";
+      case ReservationStatusUi.cancelled:
+        return "Otkazano";
       case ReservationStatusUi.unknown:
         return "Nepoznato";
     }
@@ -644,6 +1140,10 @@ extension ReservationStatusMapper on ReservationStatusUi {
         return Colors.orange;
       case ReservationStatusUi.finished:
         return Colors.blue;
+      case ReservationStatusUi.rejected:
+        return const Color(0xFF6B7280);
+      case ReservationStatusUi.cancelled:
+        return Colors.red;
       case ReservationStatusUi.unknown:
         return Colors.grey;
     }
@@ -657,6 +1157,10 @@ extension ReservationStatusMapper on ReservationStatusUi {
         return const Color(0xFFFFF3E0);
       case ReservationStatusUi.finished:
         return const Color(0xFFE3F2FD);
+      case ReservationStatusUi.rejected:
+        return const Color(0xFFF3F4F6);
+      case ReservationStatusUi.cancelled:
+        return const Color(0xFFFFEBEE);
       case ReservationStatusUi.unknown:
         return const Color(0xFFF3F4F6);
     }
@@ -670,6 +1174,10 @@ extension ReservationStatusMapper on ReservationStatusUi {
         return const Color(0xFFFFD59A);
       case ReservationStatusUi.finished:
         return const Color(0xFF90CAF9);
+      case ReservationStatusUi.rejected:
+        return const Color(0xFFD1D5DB);
+      case ReservationStatusUi.cancelled:
+        return const Color(0xFFFFCDD2);
       case ReservationStatusUi.unknown:
         return const Color(0xFFD1D5DB);
     }
@@ -683,6 +1191,10 @@ extension ReservationStatusMapper on ReservationStatusUi {
         return const Color(0xFFEF6C00);
       case ReservationStatusUi.finished:
         return const Color(0xFF1565C0);
+      case ReservationStatusUi.rejected:
+        return const Color(0xFF6B7280);
+      case ReservationStatusUi.cancelled:
+        return const Color(0xFFC62828);
       case ReservationStatusUi.unknown:
         return const Color(0xFF6B7280);
     }
@@ -696,6 +1208,10 @@ extension ReservationStatusMapper on ReservationStatusUi {
         return Icons.hourglass_bottom_rounded;
       case ReservationStatusUi.finished:
         return Icons.task_alt_rounded;
+      case ReservationStatusUi.rejected:
+        return Icons.block_rounded;
+      case ReservationStatusUi.cancelled:
+        return Icons.cancel_rounded;
       case ReservationStatusUi.unknown:
         return Icons.info_outline_rounded;
     }
@@ -709,13 +1225,15 @@ extension ReservationStatusMapper on ReservationStatusUi {
         return "Rezervacija je na čekanju.";
       case ReservationStatusUi.finished:
         return "Rezervacija je završena.";
+      case ReservationStatusUi.rejected:
+        return "Rezervacija je odbijena.";
+      case ReservationStatusUi.cancelled:
+        return "Rezervacija je otkazana.";
       case ReservationStatusUi.unknown:
         return "Status rezervacije nije poznat.";
     }
   }
 }
-
-/// ==================== STATES ====================
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.text});
@@ -808,10 +1326,7 @@ class _SearchBar extends StatelessWidget {
             prefixIcon: const Icon(Icons.search),
             suffixIcon: controller.text.isEmpty
                 ? null
-                : IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: onClear,
-                  ),
+                : IconButton(icon: const Icon(Icons.clear), onPressed: onClear),
           ),
         ),
       ),

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:rentify_desktop/helper/snackbar_helper.dart';
 import 'package:rentify_desktop/models/best_owner_by_year.dart';
 import 'package:rentify_desktop/models/monthly_income.dart';
 import 'package:rentify_desktop/models/property_income.dart';
@@ -74,9 +75,7 @@ class _ReportScreenState extends State<ReportScreen> {
       await _loadBestOwner();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Greška: $e")));
+      SnackbarHelper.showError(context, e.toString());
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -202,9 +201,7 @@ class _ReportScreenState extends State<ReportScreen> {
     final selected = _selectedMonthlyIncome;
 
     if (selected == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Nema podataka za printanje.")),
-      );
+      SnackbarHelper.showInfo(context, "Nema podataka za printanje.");
       return;
     }
 
@@ -235,9 +232,7 @@ class _ReportScreenState extends State<ReportScreen> {
       await OpenFilex.open(file.path);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Ne mogu napraviti PDF: $e")));
+      SnackbarHelper.showError(context, "Ne mogu napraviti PDF: $e");
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -245,9 +240,7 @@ class _ReportScreenState extends State<ReportScreen> {
 
   Future<void> _printBestOwnerReport() async {
     if (_selectedYear == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Odaberite godinu.")));
+      SnackbarHelper.showInfo(context, "Odaberite godinu");
       return;
     }
 
@@ -273,9 +266,7 @@ class _ReportScreenState extends State<ReportScreen> {
       await OpenFilex.open(file.path);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Ne mogu napraviti PDF: $e")));
+      SnackbarHelper.showError(context, "Ne mogu napraviti PDF: $e");
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -468,7 +459,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    "Rentify Izvještaj najboljeg ownera",
+                    "Rentify Izvještaj najboljeg vlasnika",
                     style: pw.TextStyle(
                       fontSize: 20,
                       fontWeight: pw.FontWeight.bold,
@@ -534,7 +525,7 @@ class _ReportScreenState extends State<ReportScreen> {
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
                   pw.Text(
-                    "Najbolji owner godine",
+                    "Najbolji vlasnik godine",
                     style: pw.TextStyle(
                       fontSize: 16,
                       fontWeight: pw.FontWeight.bold,
@@ -571,7 +562,7 @@ class _ReportScreenState extends State<ReportScreen> {
                     headers: const ["Polje", "Vrijednost"],
                     data: [
                       ["Godina", bestOwner.year.toString()],
-                      ["Ime ownera", bestOwner.ownerName],
+                      ["Ime vlasnika", bestOwner.ownerName],
                       [
                         "Ukupno rezervacija",
                         bestOwner.totalReservations.toString(),
@@ -634,7 +625,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       child: _KpiCard(
                         title: _selectedTab == _ReportTab.income
                             ? "Ukupni mjesečni prihod"
-                            : "Najbolji owner u godini",
+                            : "Najbolji vlasnik u godini",
                         value: _selectedTab == _ReportTab.income
                             ? _km(kpiValue)
                             : (_bestOwner?.ownerName ?? "Nema podataka"),
@@ -729,9 +720,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     await _loadSelectedIncomeByProperty();
                                   } catch (e) {
                                     if (!mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text("Greška: $e")),
-                                    );
+                                    SnackbarHelper.showError(context, e.toString());
                                   } finally {
                                     if (mounted) {
                                       setState(() => _loading = false);
@@ -795,9 +784,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     await _loadSelectedIncomeByProperty();
                                   } catch (e) {
                                     if (!mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text("Greška: $e")),
-                                    );
+                                    SnackbarHelper.showError(context, e.toString());
                                   } finally {
                                     if (mounted) {
                                       setState(() => _loading = false);
@@ -876,9 +863,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     await _loadBestOwner();
                                   } catch (e) {
                                     if (!mounted) return;
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text("Greška: $e")),
-                                    );
+                                    SnackbarHelper.showError(context, e.toString());
                                   } finally {
                                     if (mounted) {
                                       setState(() => _loading = false);
@@ -899,7 +884,7 @@ class _ReportScreenState extends State<ReportScreen> {
                       label: Text(
                         _selectedTab == _ReportTab.income
                             ? "Printaj Izvještaj"
-                            : "Printaj Najboljeg Ownera",
+                            : "Printaj najboljeg vlasnika ",
                         style: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -1154,7 +1139,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     flex: 6,
                                     child: _SectionCard(
                                       title: "Šampion godine",
-                                      subtitle: "Owner sa najviše rezervacija",
+                                      subtitle: "Vlasnik sa najviše rezervacija",
                                       border: _border,
                                       headerColor: _greenSoft2,
                                       child: Padding(
@@ -1219,7 +1204,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                                     ),
                                                     const SizedBox(height: 18),
                                                     Text(
-                                                      "Najbolji owner za ${_bestOwner!.year}. godinu",
+                                                      "Najbolji vlasnik za ${_bestOwner!.year}. godinu",
                                                       textAlign:
                                                           TextAlign.center,
                                                       style: const TextStyle(
@@ -1312,7 +1297,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                                 children: [
                                                   _InfoTile(
                                                     icon: Icons.person_rounded,
-                                                    title: "Ime ownera",
+                                                    title: "Ime vlasnika",
                                                     value:
                                                         _bestOwner!.ownerName,
                                                     accent: _greenDark,
@@ -1357,15 +1342,6 @@ class _ReportScreenState extends State<ReportScreen> {
                                                           ),
                                                       border: Border.all(
                                                         color: _border,
-                                                      ),
-                                                    ),
-                                                    child: const Text(
-                                                      "Prikaz je usklađen sa bojama aplikacije i fokus je isključivo na vlasniku i ukupnom broju rezervacija.",
-                                                      style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        color: _muted,
-                                                        height: 1.45,
                                                       ),
                                                     ),
                                                   ),
@@ -1432,7 +1408,7 @@ class _TopSwitchBar extends StatelessWidget {
           const SizedBox(width: 8),
           Expanded(
             child: _SwitchButton(
-              title: "Najbolji owner",
+              title: "Najbolji vlasnik",
               icon: Icons.workspace_premium_rounded,
               active: selectedTab == _ReportTab.bestOwner,
               activeColor: _ReportScreenState._greenDark,
@@ -1688,24 +1664,7 @@ class _BestOwnerTab extends StatelessWidget {
                     soft: accentSoft,
                     border: border,
                   ),
-                  const Spacer(),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: accentSoft,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: border),
-                    ),
-                    child: Text(
-                      "Prikaz je usklađen sa bojama aplikacije i fokus je isključivo na vlasniku i ukupnom broju rezervacija.",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: muted,
-                        height: 1.45,
-                      ),
-                    ),
-                  ),
+                  const Spacer()
                 ],
               ),
             ),

@@ -1,20 +1,22 @@
+using DotNetEnv;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Mapster;
 using MapsterMapper;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using RabbitMQ.Client;
 using Rentify.Services;
-using Rentify.Services.Interfaces;
-using Rentify.Services.Services;
+using Rentify.Services.AppointmentStateMachine;
 using Rentify.Services.Exceptions;
+using Rentify.Services.Interfaces;
+using Rentify.Services.ReservationStateMachine;
+using Rentify.Services.Services;
 using Rentify.WebAPI.Authentication;
 using Rentify.WebAPI.Configuration;
 using Rentify.WebAPI.Services;
 using Stripe;
-using DotNetEnv;
-using Microsoft.AspNetCore.Diagnostics;
 
 var envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", ".env");
 if (System.IO.File.Exists(envPath))
@@ -108,6 +110,26 @@ builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<PushNotificationService>();
+
+// STATE MACHINE
+builder.Services.AddTransient<BaseReservationState>();
+builder.Services.AddTransient<InitialReservationState>();
+builder.Services.AddTransient<PendingReservationState>();
+builder.Services.AddTransient<ApprovedReservationState>();
+builder.Services.AddTransient<FinishedReservationState>();
+builder.Services.AddTransient<RejectedReservationState>();
+builder.Services.AddTransient<CancelledReservationState>();
+
+builder.Services.AddTransient<BaseAppointmentState>();
+builder.Services.AddTransient<InitialAppointmentState>();
+builder.Services.AddTransient<PendingAppointmentState>();
+builder.Services.AddTransient<ApprovedAppoitmentState>();
+builder.Services.AddTransient<FinishedAppointmentState>();
+builder.Services.AddTransient<RejectedAppointmentState>();
+builder.Services.AddTransient<CancelledAppointmentState>();
+
+//TOOLS
+builder.Services.AddHttpContextAccessor();
 
 // STRIPE
 var stripeSecretKey = GetRequiredEnv("STRIPE_SECRET_KEY");

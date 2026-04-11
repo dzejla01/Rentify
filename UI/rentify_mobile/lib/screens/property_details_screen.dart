@@ -33,6 +33,20 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     _loadFavoriteState();
   }
 
+  void _showSnackBar(String message, {bool isError = false}) {
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor:
+              isError ? const Color(0xFFC62828) : const Color(0xFF2E7D32),
+        ),
+      );
+  }
+
   Future<void> _loadFavoriteState() async {
     final userId = Session.userId;
     final propertyId = widget.property.id;
@@ -45,7 +59,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       final result = await favoriteProvider.get(
         filter: {
           "userId": userId,
+          "includeUser": true,
           "propertyId": propertyId,
+          "includeProperty": true,
           "page": 0,
           "pageSize": 1,
           "includeTotalCount": false,
@@ -71,9 +87,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final propertyId = widget.property.id;
 
     if (userId == null || propertyId == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Korisnik ili nekretnina nisu dostupni.")),
+      _showSnackBar(
+        "Korisnik ili nekretnina nisu dostupni.",
+        isError: true,
       );
       return;
     }
@@ -110,9 +126,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           _favoriteId = null;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Nekretnina je uklonjena iz favorita.")),
-        );
+        _showSnackBar("Nekretnina je uklonjena iz favorita.");
       } else {
         final inserted = await favoriteProvider.insert({
           "userId": userId,
@@ -125,15 +139,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           _favoriteId = inserted.id;
         });
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Nekretnina je dodana u favorite.")),
-        );
+        _showSnackBar("Nekretnina je dodana u favorite.");
       }
     } catch (_) {
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Greška pri radu sa favoritima.")),
+      _showSnackBar(
+        "Greška pri radu sa favoritima.",
+        isError: true,
       );
     } finally {
       if (mounted) {
@@ -147,9 +158,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final userId = Session.userId;
 
     if (propertyId == null || userId == null) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Korisnik ili nekretnina nisu dostupni.")),
+      _showSnackBar(
+        "Korisnik ili nekretnina nisu dostupni.",
+        isError: true,
       );
       return;
     }
@@ -173,10 +184,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     }
   }
 
-  Future<bool> _hasActiveMonthlyRent(
+  Future<bool> _hasReservationByStatusAndType(
     BuildContext context,
-    int propertyId,
-  ) async {
+    int propertyId, {
+    required bool isMonthly,
+    required String status,
+  }) async {
     final userId = Session.userId;
     if (userId == null) return false;
 
@@ -186,8 +199,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       filter: {
         "userId": userId,
         "propertyId": propertyId,
-        "isMonthly": true,
-        "status": "Odobreno",
+        "isMonthly": isMonthly,
+        "status": status,
         "page": 0,
         "pageSize": 1,
         "includeTotalCount": false,
@@ -195,6 +208,223 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
 
     return res.items.isNotEmpty;
+  }
+
+  Future<bool> _hasActiveMonthlyRent(
+    BuildContext context,
+    int propertyId,
+  ) async {
+    return _hasReservationByStatusAndType(
+      context,
+      propertyId,
+      isMonthly: true,
+      status: "Odobreno",
+    );
+  }
+
+  Future<bool> _hasPendingMonthlyRent(
+    BuildContext context,
+    int propertyId,
+  ) async {
+    return _hasReservationByStatusAndType(
+      context,
+      propertyId,
+      isMonthly: true,
+      status: "Na čekanju",
+    );
+  }
+
+  Future<bool> _hasPendingShortStay(
+    BuildContext context,
+    int propertyId,
+  ) async {
+    return _hasReservationByStatusAndType(
+      context,
+      propertyId,
+      isMonthly: false,
+      status: "Na čekanju",
+    );
+  }
+
+  Future<void> _handleReservationClick(Property property) async {
+    final pid = property.id;
+    if (pid == null) {
+      _showSnackBar("Nekretnina nije dostupna.", isError: true);
+      return;
+    }
+
+    final supportsShortStay = property.isRentingPerDay ?? false;
+
+    final hasPendingMonthly = await _hasPendingMonthlyRent(context, pid);
+    final hasPendingShortStay = await _hasPendingShortStay(context, pid);
+    final hasApprovedMonthly = await _hasActiveMonthlyRent(context, pid);
+
+    if (!mounted) return;
+
+    // SAMO NAJAMNINA
+    if (!supportsShortStay) {
+      if (hasPendingMonthly) {
+        _showSnackBar(
+          "Ne možete rezervisati najamninu jer već imate rezervaciju na čekanju za ovu nekretninu.",
+          isError: true,
+        );
+        return;
+      }
+
+      if (hasApprovedMonthly) {
+        _showSnackBar(
+          "Ne možete rezervisati najamninu jer već imate aktivnu najamninu za ovu nekretninu.",
+          isError: true,
+        );
+        return;
+      }
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => PropertyReservationUniversalScreen(
+            property: property,
+            type: ReservationType.monthly,
+            unavailableDates: const [],
+          ),
+        ),
+      );
+      return;
+    }
+
+    // PODRŽAVA OBA TIPA
+    final monthlyBlocked = hasPendingMonthly || hasApprovedMonthly;
+    final shortStayBlocked = hasPendingShortStay;
+
+    if (monthlyBlocked && shortStayBlocked) {
+      _showSnackBar(
+        "Rezervacije ove nekretnine vec postoje za oba slucaja, koje su ili na čekanju ili aktivne",
+        isError: true,
+      );
+      return;
+    }
+
+    String? monthlyDisabledHint;
+    if (hasPendingMonthly) {
+      monthlyDisabledHint =
+          "Rezervacija najamnine na čekanju za ovu nekretninu.";
+    } else if (hasApprovedMonthly) {
+      monthlyDisabledHint =
+          "Imate već aktivnu najamninu za ovu nekretninu.";
+    }
+
+    String? shortStayDisabledHint;
+    if (hasPendingShortStay) {
+      shortStayDisabledHint =
+          "Rezervacija kratkog boravka na čekanju za ovu nekretninu.";
+    }
+
+    final isMonthly = await _showReservationTypeDialog(
+      monthlyEnabled: !monthlyBlocked,
+      shortStayEnabled: !shortStayBlocked,
+      monthlyDisabledHint: monthlyDisabledHint,
+      shortStayDisabledHint: shortStayDisabledHint,
+    );
+
+    if (!mounted) return;
+    if (isMonthly == null) return;
+
+    final type =
+        isMonthly ? ReservationType.monthly : ReservationType.shortStay;
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PropertyReservationUniversalScreen(
+          property: property,
+          type: type,
+          unavailableDates: const [],
+        ),
+      ),
+    );
+  }
+
+  Future<bool?> _showReservationTypeDialog({
+    required bool monthlyEnabled,
+    required bool shortStayEnabled,
+    String? monthlyDisabledHint,
+    String? shortStayDisabledHint,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return RentifyBaseDialog(
+          title: "Odabir rezervacije",
+          width: 540,
+          onClose: () => Navigator.of(dialogContext).pop(null),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                "Odaberite da li želite rezervisati kao mjesečnu najamninu ili kao kratki boravak.",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF6E6E6E),
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Expanded(
+                    child: _ReservationChoiceCard(
+                      title: "Najamnina",
+                      subtitle: monthlyEnabled
+                          ? "Rezervacija po mjesecima."
+                          : (monthlyDisabledHint ?? "Opcija nije dostupna."),
+                      icon: Icons.calendar_month_rounded,
+                      enabled: monthlyEnabled,
+                      accent: const Color(0xFF5F9F3B),
+                      onTap: () => Navigator.of(dialogContext).pop(true),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _ReservationChoiceCard(
+                      title: "Kratki boravak",
+                      subtitle: shortStayEnabled
+                          ? "Rezervacija po danima."
+                          : (shortStayDisabledHint ?? "Opcija nije dostupna."),
+                      icon: Icons.nightlight_round,
+                      enabled: shortStayEnabled,
+                      accent: const Color(0xFF1565C0),
+                      onTap: () => Navigator.of(dialogContext).pop(false),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(null),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF6E6E6E),
+                    side: const BorderSide(color: Color(0xFFBDBDBD)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    "Odustani",
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -213,7 +443,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final dayPrice = property.pricePerDay;
 
     final isAvailable = property.isAvailable ?? false;
-    final isDayRent = property.isRentingPerDay ?? false;
+    final supportsShortStay = property.isRentingPerDay ?? false;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F8),
@@ -287,7 +517,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                               Expanded(
                                 child: _SmallStat(
                                   title: "Iznajmljivanje",
-                                  value: isDayRent ? "Po danu" : "Po mjesecu",
+                                  value: supportsShortStay
+                                      ? "Najamnina i kratki boravak"
+                                      : "Samo najamnina",
                                   icon: Icons.event_available_rounded,
                                   accent: rentifyGreenDark,
                                 ),
@@ -461,58 +693,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 child: ElevatedButton(
                   onPressed: !isAvailable
                       ? null
-                      : () async {
-                          final pid = property.id;
-                          final alreadyMonthly = pid == null
-                              ? false
-                              : await _hasActiveMonthlyRent(context, pid);
-
-                          if (!context.mounted) return;
-
-                          final isMonthly =
-                              await ConfirmDialogs.badGoodConfirmationWithDisable(
-                                context,
-                                title: "Odabir rezervacije",
-                                question:
-                                    "Da li želite rezervisati kao mjesečnu najamninu ili kratki boravak?",
-                                goodText: "Najamnina",
-                                badText: "Kratki boravak",
-                                goodEnabled: !alreadyMonthly,
-                                goodDisabledHint:
-                                    "Najamnina je onemogućena jer već imate aktivnu najamninu za ovu nekretninu.",
-                                barrierDismissible: true,
-                              );
-
-                          if (!context.mounted) return;
-                          if (isMonthly == null) return;
-
-                          final type = isMonthly
-                              ? ReservationType.monthly
-                              : ReservationType.shortStay;
-
-                          final payload = await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  PropertyReservationUniversalScreen(
-                                    property: property,
-                                    type: type,
-                                    unavailableDates: const [],
-                                  ),
-                            ),
-                          );
-
-                          if (!context.mounted) return;
-
-                          if (payload != null) {
-                            ConfirmDialogs.okConfirmation(
-                              context,
-                              title: "Rezervacija",
-                              message:
-                                  "Rezervacija je pripremljena.\n\nPodaci:\n$payload",
-                            );
-                          }
-                        },
+                      : () async => _handleReservationClick(property),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: rentifyGreenDark,
                     foregroundColor: Colors.white,
@@ -546,7 +727,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   if (!context.mounted) return;
 
                   if (payload != null) {
-                    ConfirmDialogs.okConfirmation(
+                    await ConfirmDialogs.okConfirmation(
                       context,
                       title: "Pregled uživo",
                       message: "Termin je pripremljen.\n\nPodaci:\n$payload",
@@ -564,6 +745,74 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                 ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/* ------------------- DIALOG ZA ODABIR TIPA REZERVACIJE ------------------- */
+
+class _ReservationChoiceCard extends StatelessWidget {
+  const _ReservationChoiceCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.enabled,
+    required this.accent,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool enabled;
+  final Color accent;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final fg = enabled ? const Color(0xFF2F2F2F) : const Color(0xFF9AA0A6);
+    final sub = enabled ? const Color(0xFF6E6E6E) : const Color(0xFF9AA0A6);
+
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(16),
+      child: Ink(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: enabled ? Colors.white : const Color(0xFFF5F5F5),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: enabled ? accent.withOpacity(0.25) : const Color(0xFFE0E0E0),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(icon, color: enabled ? accent : const Color(0xFFBDBDBD)),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: TextStyle(
+                fontWeight: FontWeight.w900,
+                color: fg,
+                fontSize: 15,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              subtitle,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                color: sub,
+                height: 1.35,
+                fontSize: 12.8,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -1175,7 +1424,7 @@ class _SmallStat extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 13,

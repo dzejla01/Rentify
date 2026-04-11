@@ -4,11 +4,9 @@ namespace Rentify.Model.RequestObjects
 {
     public class ReviewUpsertRequest
     {
-        [Required]
-        public int UserId { get; set; }
 
         [Required]
-        public int PropertyId { get; set; }
+        public int ReservationId { get; set; }
 
         [Required]
         [MinLength(1)]

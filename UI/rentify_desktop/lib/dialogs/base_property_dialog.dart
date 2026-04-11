@@ -1,10 +1,10 @@
 import 'dart:convert';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_desktop/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_desktop/helper/image_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/helper/tags.dart';
@@ -68,6 +68,17 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
   late bool _isActiveOnApp;
   late bool _isRentingPerDay;
 
+  List<PropertyImageDisplay> get _activeImages =>
+      _imagesDisplay.where((img) => !img.isDeleted).toList();
+
+  PropertyImageDisplay? get _currentActiveImage {
+    final activeImages = _activeImages;
+    if (activeImages.isEmpty) return null;
+
+    _currentImageIndex = _currentImageIndex.clamp(0, activeImages.length - 1);
+    return activeImages[_currentImageIndex];
+  }
+
   void _addError(String field, String message) {
     _fieldErrors[field] = message;
     setState(() {});
@@ -77,53 +88,72 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     _fieldErrors.clear();
   }
 
-  void _setMainImage(int index) {
+  void _removeImageErrorsIfValid() {
+    ErrorAutoRemoval.removeErrorOnListField<PropertyImageDisplay>(
+      field: 'images',
+      fieldErrors: _fieldErrors,
+      list: _activeImages,
+      setState: () => setState(() {}),
+    );
+
+    ErrorAutoRemoval.removeErrorOnListField<PropertyImageDisplay>(
+      field: 'mainImage',
+      fieldErrors: _fieldErrors,
+      list: _activeImages.where((img) => img.propertyImage.isMain).toList(),
+      setState: () => setState(() {}),
+    );
+  }
+
+  void _setMainImage(PropertyImageDisplay selectedImage) {
     setState(() {
-      for (int i = 0; i < _imagesDisplay!.length; i++) {
-        if (_imagesDisplay![i].propertyImage.isMain) {
-          _imagesDisplay![i].propertyImage.isMain = false;
-          _imagesDisplay![i].isUpdate = true;
+      for (final img in _activeImages) {
+        final shouldBeMain = identical(img, selectedImage);
+
+        if (img.propertyImage.isMain != shouldBeMain) {
+          img.propertyImage.isMain = shouldBeMain;
+
+          if (!img.isNew) {
+            img.isUpdate = true;
+          }
         }
       }
 
-      _imagesDisplay![index].propertyImage.isMain = true;
-      if (!_imagesDisplay![index].isNew) {
-        _imagesDisplay![index].isUpdate = true;
-      }
+      _removeImageErrorsIfValid();
+      _isEditedForCreateButton = true;
     });
   }
 
-  void _deleteImage(int index) {
+  void _deleteImage(PropertyImageDisplay imageDisplay) {
     setState(() {
-      _imagesDisplay![index].isDeleted = true;
+      final wasMain = imageDisplay.propertyImage.isMain;
+      imageDisplay.isDeleted = true;
 
-      if (_imagesDisplay![index].propertyImage.isMain) {
-        final firstNonDeleted = _imagesDisplay!.firstWhereOrNull(
-          (img) => !img.isDeleted,
-        );
+      if (wasMain) {
+        final firstNonDeleted = _activeImages.firstWhereOrNull((img) => true);
         if (firstNonDeleted != null) {
-          _setMainImage(_imagesDisplay!.indexOf(firstNonDeleted));
+          for (final img in _activeImages) {
+            final shouldBeMain = identical(img, firstNonDeleted);
+
+            if (img.propertyImage.isMain != shouldBeMain) {
+              img.propertyImage.isMain = shouldBeMain;
+
+              if (!img.isNew) {
+                img.isUpdate = true;
+              }
+            }
+          }
         }
       }
 
-      ErrorAutoRemoval.removeErrorOnListField(
-        field: 'images',
-        fieldErrors: _fieldErrors,
-        list: _imagesDisplay!.where((e) => !e.isDeleted).toList(),
-        setState: () => setState(() {}),
-      );
-
-      ErrorAutoRemoval.removeErrorOnListField(
-        field: 'mainImage',
-        fieldErrors: _fieldErrors,
-        list: _imagesDisplay!.where((e) => !e.isDeleted).toList(),
-        setState: () => setState(() {}),
-      );
-
-      if (_currentImageIndex >=
-          _imagesDisplay!.where((e) => !e.isDeleted).length) {
+      final activeImages = _activeImages;
+      if (activeImages.isEmpty) {
         _currentImageIndex = 0;
+      } else if (_currentImageIndex >= activeImages.length) {
+        _currentImageIndex = activeImages.length - 1;
       }
+
+      _removeImageErrorsIfValid();
+      _isEditedForCreateButton = true;
     });
   }
 
@@ -135,7 +165,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       id: 0,
       propertyId: widget.property?.id ?? 0,
       propertyImg: '',
-      isMain: _imagesDisplay!.isEmpty,
+      isMain: _activeImages.isEmpty,
     );
 
     final newDisplay = PropertyImageDisplay(
@@ -145,42 +175,39 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     );
 
     setState(() {
-      _imagesDisplay!.add(newDisplay);
-
-      ErrorAutoRemoval.removeErrorOnListField(
-        field: 'images',
-        fieldErrors: _fieldErrors,
-        list: _imagesDisplay!.where((e) => !e.isDeleted).toList(),
-        setState: () => setState(() {}),
-      );
-
-      ErrorAutoRemoval.removeErrorOnListField(
-        field: 'mainImage',
-        fieldErrors: _fieldErrors,
-        list: _imagesDisplay!.where((e) => !e.isDeleted).toList(),
-        setState: () => setState(() {}),
-      );
-
+      _imagesDisplay.add(newDisplay);
       _isEditedForCreateButton = true;
 
-      if (_imagesDisplay!.length == 1) {
-        _setMainImage(0);
+      if (_activeImages.length == 1) {
+        _setMainImage(newDisplay);
+      } else {
+        _removeImageErrorsIfValid();
       }
+
+      _currentImageIndex = _activeImages.length - 1;
     });
   }
 
   Future<void> _saveImages(int propertyId) async {
-    for (var imgDisplay in _imagesDisplay!) {
+    for (var imgDisplay in _imagesDisplay) {
       final img = imgDisplay.propertyImage;
 
       if (imgDisplay.isDeleted) {
-        if (!imgDisplay.isNew) {
+        final imagePath = img.propertyImg ?? '';
+        final isHttpImage =
+            imagePath.isNotEmpty && ImageHelper.isHttp(imagePath);
+
+        if (!imgDisplay.isNew && !isHttpImage && imagePath.isNotEmpty) {
           await ImageAppProvider.delete(
             folder: "properties",
-            fileName: imgDisplay.propertyImage.propertyImg!,
+            fileName: imagePath,
           );
         }
-        await _propertyImageProvider.delete(imgDisplay.propertyImage.id);
+
+        if (!imgDisplay.isNew && img.id != null && img.id! > 0) {
+          await _propertyImageProvider.delete(img.id!);
+        }
+
         continue;
       }
 
@@ -193,32 +220,51 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           img.propertyImg = uploadedFileName;
         }
 
-        await _propertyImageProvider.insert({
+        final inserted = await _propertyImageProvider.insert({
           'propertyId': propertyId,
           'propertyImg': img.propertyImg,
           'isMain': img.isMain,
         });
-      } else if (imgDisplay.isUpdate) {
+
+        if (inserted != null) {
+          imgDisplay.propertyImage = inserted;
+        }
+
+        imgDisplay.isNew = false;
+        imgDisplay.isUpdate = false;
+      } else if (imgDisplay.isUpdate && img.id != null && img.id! > 0) {
         await _propertyImageProvider.update(img.id!, {
           'propertyId': propertyId,
           'propertyImg': img.propertyImg,
           'isMain': img.isMain,
         });
+
+        imgDisplay.isUpdate = false;
       }
     }
 
     setState(() {
-      _imagesDisplay!.removeWhere((img) => img.isDeleted);
-      for (var img in _imagesDisplay!) {
+      _imagesDisplay.removeWhere((img) => img.isDeleted);
+
+      for (var img in _imagesDisplay) {
         img.isNew = false;
         img.isUpdate = false;
         img.isDeleted = false;
+      }
+
+      final activeImages = _activeImages;
+      if (activeImages.isEmpty) {
+        _currentImageIndex = 0;
+      } else if (_currentImageIndex >= activeImages.length) {
+        _currentImageIndex = activeImages.length - 1;
       }
     });
   }
 
   bool valid() {
     _clearErrors();
+
+    final activeImages = _activeImages;
 
     if (_isRentingPerDay) {
       ErrorAutoRemoval.removeErrorOnTextField(
@@ -241,61 +287,52 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
         3,
         "Naziv mora imati bar 3 karaktera",
       ),
-
       Rules.requiredText('city', fields.text('city'), "Grad je obavezan"),
-
       Rules.requiredText(
         'square',
         fields.text('square'),
         "Broj kvadrata je obavezan",
       ),
-
       Rules.requiredText(
         'details',
         fields.text('details'),
         "Detalji su obavezni",
       ),
-
       Rules.positiveNumber(
         'pricePerMonth',
         fields.text('pricePerMonth'),
         "Cijena mora biti validan broj veći od 0",
       ),
-
       Rules.requiredText(
         'pricePerMonth',
         fields.text('pricePerMonth'),
         "Cijena je obavezna",
       ),
-
       if (_isRentingPerDay)
         Rules.requiredText(
           'pricePerDay',
           fields.text('pricePerDay'),
           "Cijena je obavezna",
         ),
-
       Rules.positiveNumber(
         'pricePerDay',
         fields.text('pricePerDay'),
         "Cijena mora biti validan broj veći od 0",
       ),
-
       if (fields.text('location').isEmpty)
         Rules.requiredMapPoint(
           'location',
           _pickedPoint,
           "Morate odabrati lokaciju na mapi",
         ),
-
       Rules.atLeastOneImage(
         'images',
-        _imagesDisplay,
+        activeImages,
         "Morate dodati bar jednu sliku",
       ),
       Rules.mainImageRequired(
         'mainImage',
-        _imagesDisplay,
+        activeImages,
         "Morate označiti jednu glavnu sliku",
       ),
       Rules.atLeastOneTag(
@@ -306,9 +343,66 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     ], _addError);
 
     setState(() {});
-
     return isValid;
   }
+
+  // Future<void> saveChanges() async {
+  //   if (valid()) {
+  //     try {
+  //       double toDouble(String v) {
+  //         final s = v.trim().replaceAll(',', '.');
+  //         return double.tryParse(s) ?? 0.0;
+  //       }
+
+  //       final payload = <String, dynamic>{
+  //         'userId': Session.userId,
+  //         'name': fields.text('name').trim(),
+  //         'city': fields.text('city').trim(),
+  //         'location': fields.text('location').trim(),
+  //         'pricePerDay': _isRentingPerDay
+  //             ? double.tryParse(fields.controller('pricePerDay').text) ?? 0.0
+  //             : 0.0,
+  //         'pricePerMonth': toDouble(fields.text('pricePerMonth')),
+  //         'tags': _selectedTags.isEmpty ? null : _selectedTags,
+  //         'squareMeters': fields.text('square').trim().isEmpty
+  //             ? null
+  //             : fields.text('square').trim(),
+  //         'details': fields.text('details').trim().isEmpty
+  //             ? null
+  //             : fields.text('details').trim(),
+  //         'isAvailable': true,
+  //         'IsRentingPerDay': _isRentingPerDay,
+  //         'IsActiveOnApp': _isActiveOnApp,
+  //       };
+
+  //       int propertyId;
+
+  //       if (widget.isCreate) {
+  //         final created = await _propertyProvider.insert(payload);
+  //         propertyId = created.id;
+  //         SnackbarHelper.showSuccess(context, "Nekretnina je uspješno dodana");
+  //       } else {
+  //         await _propertyProvider.update(widget.property!.id, payload);
+  //         propertyId = widget.property!.id;
+  //         SnackbarHelper.showUpdate(context, "Nekretnina je uspješno uređena");
+  //       }
+
+  //       await _saveImages(propertyId);
+
+  //       if (!mounted) return;
+
+  //       setState(() {
+  //         _isEditing = false;
+  //         widget.onEditingChanged?.call(false);
+  //       });
+  //     } catch (e) {
+  //       debugPrint('saveChanges error: $e');
+  //       if (mounted) {
+  //         SnackbarHelper.showError(context, "Došlo je do greške pri spremanju");
+  //       }
+  //     }
+  //   }
+  // }
 
   Future<void> saveChanges() async {
     if (valid()) {
@@ -324,8 +418,8 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           'city': fields.text('city').trim(),
           'location': fields.text('location').trim(),
           'pricePerDay': _isRentingPerDay
-            ? double.tryParse(fields.controller('pricePerDay').text) ?? 0.0
-            : 0.0,
+              ? double.tryParse(fields.controller('pricePerDay').text) ?? 0.0
+              : 0.0,
           'pricePerMonth': toDouble(fields.text('pricePerMonth')),
           'tags': _selectedTags.isEmpty ? null : _selectedTags,
           'squareMeters': fields.text('square').trim().isEmpty
@@ -336,7 +430,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
               : fields.text('details').trim(),
           'isAvailable': true,
           'IsRentingPerDay': _isRentingPerDay,
-          'IsActiveOnApp': _isActiveOnApp
+          'IsActiveOnApp': _isActiveOnApp,
         };
 
         int propertyId;
@@ -344,24 +438,30 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
         if (widget.isCreate) {
           final created = await _propertyProvider.insert(payload);
           propertyId = created.id;
+
+          await _saveImages(propertyId);
+
+          if (!mounted) return;
+
           SnackbarHelper.showSuccess(context, "Nekretnina je uspješno dodana");
+
+          Navigator.pop(context, true);
+          return;
         } else {
           await _propertyProvider.update(widget.property!.id, payload);
           propertyId = widget.property!.id;
-          SnackbarHelper.showUpdate(context, "Nekretnina je uspješno uređena");
-        }
 
-        if (_imagesDisplay != null) {
           await _saveImages(propertyId);
+
+          if (!mounted) return;
+
+          SnackbarHelper.showUpdate(context, "Nekretnina je uspješno uređena");
+
+          setState(() {
+            _isEditing = false;
+            widget.onEditingChanged?.call(false);
+          });
         }
-
-        if (!mounted) return;
-
-        // Resetujemo _isEditing
-        setState(() {
-          _isEditing = false;
-          widget.onEditingChanged?.call(false);
-        });
       } catch (e) {
         debugPrint('saveChanges error: $e');
         if (mounted) {
@@ -370,6 +470,65 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       }
     }
   }
+
+  Future<void> _deleteProperty() async {
+    if (widget.property == null) return;
+
+    try {
+      final propertyId = widget.property!.id;
+
+      final imageResult = await _propertyImageProvider.get(
+        filter: {'propertyId': propertyId},
+      );
+
+      for (final image in imageResult.items) {
+        final imagePath = image.propertyImg ?? '';
+        final isHttpImage =
+            imagePath.isNotEmpty && ImageHelper.isHttp(imagePath);
+
+        if (!isHttpImage && imagePath.isNotEmpty) {
+          await ImageAppProvider.delete(
+            folder: 'properties',
+            fileName: imagePath,
+          );
+        }
+
+        if (image.id != null && image.id! > 0) {
+          await _propertyImageProvider.delete(image.id!);
+        }
+      }
+
+      await _propertyProvider.delete(propertyId);
+
+      if (!mounted) return;
+
+      SnackbarHelper.showDelete(context, "Nekretnina je uspješno obrisana");
+      Navigator.pop(context, true);
+    } catch (e) {
+      debugPrint('_deleteProperty error: $e');
+      if (mounted) {
+        SnackbarHelper.showError(
+          context,
+          "Došlo je do greške pri brisanju nekretnine",
+        );
+      }
+    }
+  }
+
+  Future<void> _confirmDeleteProperty() async {
+  final confirmed = await ConfirmDialogs.badGoodConfirmation(
+    context,
+    title: "Obriši nekretninu",
+    question:
+        "Da li ste sigurni da želite obrisati nekretninu \"${widget.property?.name ?? ''}\"?",
+    goodText: "Da, obriši",
+    badText: "Odustani",
+  );
+
+  if (confirmed) {
+    await _deleteProperty();
+  }
+}
 
   Future<void> _reverseGeocode(LatLng point) async {
     setState(() => _isReverseLoading = true);
@@ -415,6 +574,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     super.initState();
     creatingProviders();
     creatingTextFieldsAndOther();
+
     if (!widget.isCreate) {
       fillingTextFieldsAndOther();
       loadImages(widget.property!.id);
@@ -425,6 +585,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       _isActiveOnApp = false;
       _isRentingPerDay = false;
     }
+
     addingErrorAutoRemovals();
     isEditingOrNot();
   }
@@ -512,16 +673,14 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     ErrorAutoRemoval.removeErrorOnListField<PropertyImageDisplay>(
       field: 'images',
       fieldErrors: _fieldErrors,
-      list: _imagesDisplay ?? [],
+      list: _activeImages,
       setState: () => setState(() {}),
     );
 
     ErrorAutoRemoval.removeErrorOnListField<PropertyImageDisplay>(
       field: 'mainImage',
       fieldErrors: _fieldErrors,
-      list: _imagesDisplay != null
-          ? _imagesDisplay!.where((img) => img.propertyImage.isMain).toList()
-          : [],
+      list: _activeImages.where((img) => img.propertyImage.isMain).toList(),
       setState: () => setState(() {}),
     );
 
@@ -552,10 +711,21 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           .map((img) => PropertyImageDisplay(propertyImage: img))
           .toList();
 
-      if (_imagesDisplay!.isNotEmpty &&
-          !_imagesDisplay!.any((e) => e.propertyImage.isMain)) {
-        _imagesDisplay![0].propertyImage.isMain = true;
-        _imagesDisplay![0].isUpdate = true;
+      if (_activeImages.isNotEmpty &&
+          !_activeImages.any((e) => e.propertyImage.isMain)) {
+        _activeImages.first.propertyImage.isMain = true;
+        if (!_activeImages.first.isNew) {
+          _activeImages.first.isUpdate = true;
+        }
+      }
+
+      if (_activeImages.isEmpty) {
+        _currentImageIndex = 0;
+      } else {
+        _currentImageIndex = _currentImageIndex.clamp(
+          0,
+          _activeImages.length - 1,
+        );
       }
     });
   }
@@ -573,13 +743,14 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
 
     final bool isRentingPerDay =
         !widget.isCreate && (widget.property?.isRentingPerDay ?? false);
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
           width: 270,
           child: Container(
-            margin: EdgeInsets.only(top: 30, left: 20),
+            margin: const EdgeInsets.only(top: 30, left: 20),
             child: Padding(
               padding: const EdgeInsets.only(top: 20),
               child: Column(
@@ -607,7 +778,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
                             ),
                           ),
                         ),
-
                       if (_fieldErrors['mainImage'] != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
@@ -621,9 +791,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
                         ),
                     ],
                   ),
-
                   const SizedBox(height: 50),
-
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -638,9 +806,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
                           });
                         },
                       ),
-
                       const SizedBox(width: 8),
-
                       _buildToggleBadge(
                         text: "Po danu",
                         value: _isRentingPerDay,
@@ -659,17 +825,9 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
             ),
           ),
         ),
-
         const SizedBox(width: 18),
-
-        // vertical divider
         Container(width: 1, color: Colors.black.withOpacity(0.08)),
-
         const SizedBox(width: 18),
-
-        // =========================
-        // RIGHT: forma (padding + “urednije”)
-        // =========================
         Expanded(
           child: Padding(
             padding: const EdgeInsets.only(
@@ -687,48 +845,67 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
                 const SizedBox(height: 14),
                 _rowBottom(),
                 const SizedBox(height: 14),
-
                 if (!widget.isCreate)
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      if (!widget.isCreate)
-                        ElevatedButton(
-                          onPressed: _isEditing
-                              ? null
-                              : () {
-                                  setState(() {
-                                    _isEditing = true;
-                                    widget.onEditingChanged?.call(true);
-                                  });
-                                },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: HomeScreen.rentifyGreenDark,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 20,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              side: const BorderSide(
-                                color: HomeScreen.rentifyGreenDark,
-                                width: 1.8,
-                              ),
-                            ),
+                      ElevatedButton(
+                        onPressed: _confirmDeleteProperty,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 18,
+                            vertical: 20,
                           ),
-                          child: const Text(
-                            'Uredi nekretninu',
-                            style: TextStyle(fontWeight: FontWeight.w600),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-
-                      const SizedBox(width: 12),
-                      _saveButton(),
+                        child: const Text(
+                          'Obriši nekretninu',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          ElevatedButton(
+                            onPressed: _isEditing
+                                ? null
+                                : () {
+                                    setState(() {
+                                      _isEditing = true;
+                                      widget.onEditingChanged?.call(true);
+                                    });
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: HomeScreen.rentifyGreenDark,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 20,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: const BorderSide(
+                                  color: HomeScreen.rentifyGreenDark,
+                                  width: 1.8,
+                                ),
+                              ),
+                            ),
+                            child: const Text(
+                              'Uredi nekretninu',
+                              style: TextStyle(fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          _saveButton(),
+                        ],
+                      ),
                     ],
                   ),
-
                 if (widget.isCreate)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -743,13 +920,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
   }
 
   Widget _leftImageBlock() {
-    if (_imagesDisplay == null || _imagesDisplay!.isEmpty) {
-      return _imageContainer(child: _housePlaceholder());
-    }
-
-    final visibleImages = _imagesDisplay!
-        .where((img) => !img.isDeleted)
-        .toList();
+    final visibleImages = _activeImages;
 
     if (visibleImages.isEmpty) {
       return _imageContainer(child: _housePlaceholder());
@@ -770,8 +941,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
                   fit: BoxFit.cover,
                 ),
         ),
-
-        // ================= MAIN BADGE =================
         if (image.isMain)
           Positioned(
             top: 8,
@@ -788,8 +957,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
               ),
             ),
           ),
-
-        // ================= LEFT =================
         if (visibleImages.length > 1)
           Positioned(
             left: 4,
@@ -806,8 +973,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
               },
             ),
           ),
-
-        // ================= RIGHT =================
         if (visibleImages.length > 1)
           Positioned(
             right: 4,
@@ -895,38 +1060,34 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
   Widget _imageButtons() {
     if (!_isEditing) return const SizedBox();
 
+    final currentImage = _currentActiveImage;
+
     return Column(
       children: [
-        // Dugme za dodavanje nove slike
         ElevatedButton(
-        onPressed: _addNewImage,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: rentifyGreenDark,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          onPressed: _addNewImage,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: rentifyGreenDark,
+            foregroundColor: Colors.white,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: const Text(
+            "Dodaj sliku",
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
-        child: const Text(
-          "Dodaj sliku",
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-      ),
-
         const SizedBox(height: 8),
-
-        if (_imagesDisplay != null && _imagesDisplay!.isNotEmpty) ...[
+        if (currentImage != null) ...[
           ElevatedButton(
-            onPressed: () => _deleteImage(_currentImageIndex),
+            onPressed: () => _deleteImage(currentImage),
             child: const Text("Obriši sliku"),
           ),
-
           const SizedBox(height: 6),
-
-          // Dugme za postavljanje glavne slike
           ElevatedButton(
-            onPressed: () => _setMainImage(_currentImageIndex),
+            onPressed: () => _setMainImage(currentImage),
             child: const Text("Postavi kao glavnu"),
           ),
         ],
@@ -934,7 +1095,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     );
   }
 
-  // ---------- RIGHT ----------
   Widget _rowTop() {
     return Row(
       children: [
@@ -984,7 +1144,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // LEFT column (map + squares)
         Expanded(
           child: Column(
             children: [
@@ -1000,8 +1159,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           ),
         ),
         const SizedBox(width: 14),
-
-        // RIGHT column (details)
         Expanded(child: Column(children: [_tagSelector(), _detailsField()])),
       ],
     );
@@ -1016,8 +1173,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
-
-        // Odabrani taggovi
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -1043,9 +1198,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
             );
           }).toList(),
         ),
-
         const SizedBox(height: 8),
-
         if (_fieldErrors['tags'] != null)
           Padding(
             padding: const EdgeInsets.only(top: 4),
@@ -1054,7 +1207,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
               style: const TextStyle(color: Colors.red, fontSize: 12),
             ),
           ),
-
         if (_isEditing)
           RawAutocomplete<String>(
             textEditingController: _tagController,
@@ -1175,7 +1327,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
   }
 
   Widget _mapPlaceholder() {
-    // default centar (npr Sarajevo)
     final center = _pickedPoint ?? const LatLng(43.8563, 18.4131);
 
     return Column(
@@ -1186,8 +1337,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 6),
-
-        // MAPA
         Container(
           height: 140,
           width: double.infinity,
@@ -1286,9 +1435,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
                   ),
           ),
         ),
-
         const SizedBox(height: 10),
-
         TextField(
           controller: fields.controller('location'),
           readOnly: true,

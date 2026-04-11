@@ -5,6 +5,7 @@ namespace Rentify.Model.SearchObjects
 {
     public class PaymentSearchObject : BaseSearchObject
     {
+        public int? ReservationId { get; set; } 
         public int? UserId { get; set; }
         public int? PropertyId { get; set; }
         public bool? IsPayed { get; set; }

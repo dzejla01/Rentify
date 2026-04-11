@@ -7,45 +7,79 @@ using Rentify.Services.Interfaces;
 
 namespace Rentify.WebAPI.Controllers
 {
-
     public class AppointmentController
         : BaseCRUDController<AppointmentResponse, AppointmentSearchObject, AppointmentUpsertRequest, AppointmentUpsertRequest>
     {
-        IAppointmentService _Appservice;
+        private readonly IAppointmentService _appointmentService;
+
         public AppointmentController(IAppointmentService service) : base(service)
         {
-            _Appservice = service;
+            _appointmentService = service;
         }
 
-        [HttpGet("unavailable-dates")]
-        [Authorize(Roles = "Korisnik")]
-        public async Task<ActionResult<UnavailableAppointmentsResponse>> GetUnavailableDates(
-        int propertyId,
-        DateTime? from = null,
-        DateTime? to = null)
+        [HttpGet("unavailable-ap-dates")]
+        public async Task<UnavailableAppointmentsResponse> GetUnavailableAppointmentDates(
+            [FromQuery] int propertyId,
+            [FromQuery] DateTime? from,
+            [FromQuery] DateTime? to
+        )
         {
-            var result = await _Appservice
-                .GetUnavailableAppointmentDatesAsync(propertyId, from, to);
-
-            return Ok(result);
+            return await _appointmentService.GetUnavailableAppointmentDatesAsync(
+                propertyId, from, to
+            );
         }
 
-        [Authorize(Roles = "Korisnik")]
-        public override Task<AppointmentResponse> Create([FromBody] AppointmentUpsertRequest request)
+        [HttpGet("{id}/allowed-actions")]
+        [Authorize(Roles = "Vlasnik,Korisnik")]
+        public List<string> AllowedActions(int id)
         {
-            return base.Create(request);
+            return _appointmentService.AllowedActions(id);
         }
 
-        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}/approve")]
+        [Authorize(Roles = "Vlasnik")]
+        public async Task<AppointmentResponse> Approve(int id)
+        {
+            return await _appointmentService.ApproveAsync(id);
+        }
+
+        [HttpPut("{id}/finish")]
+        [Authorize(Roles = "Vlasnik")]
+        public async Task<AppointmentResponse> Finish(int id)
+        {
+            return await _appointmentService.FinishAsync(id);
+        }
+
+        [HttpPut("{id}/reject")]
+        [Authorize(Roles = "Vlasnik")]
+        public async Task<AppointmentResponse> Reject(int id)
+        {
+            return await _appointmentService.RejectAsync(id);
+        }
+
+        [HttpPut("{id}/cancel")]
+        [Authorize(Roles = "Vlasnik,Korisnik")]
+        public async Task<AppointmentResponse> Cancel(int id)
+        {
+            return await _appointmentService.CancelAsync(id);
+        }
+
+        [Authorize(Roles = "Vlasnik")]
         public override Task<bool> Delete(int id)
         {
             return base.Delete(id);
         }
 
-        [Authorize(Roles = "Vlasnik")]
+        [Authorize(Roles = "Vlasnik,Korisnik")]
         public override Task<AppointmentResponse?> Update(int id, [FromBody] AppointmentUpsertRequest request)
         {
-            return base.Update(id, request);
+            return _appointmentService.UpdateAsync(id, request);
+        }
+
+        [Authorize(Roles = "Korisnik")]
+        public override Task<AppointmentResponse> Create([FromBody] AppointmentUpsertRequest request)
+        {
+            return _appointmentService.CreateAsync(request);
         }
     }
 }

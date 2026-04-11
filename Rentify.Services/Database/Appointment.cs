@@ -21,7 +21,7 @@ namespace Rentify.Services.Database
         public int PropertyId { get; set; }
         public Property? Property { get; set; }
         public DateTime? DateAppointment { get; set; }
-        public bool? IsApproved { get; set; }
+        public string Status { get; set; }
 
     }
 }

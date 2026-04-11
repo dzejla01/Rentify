@@ -8,7 +8,7 @@ namespace Rentify.Model.SearchObjects
         public int? UserId { get; set; }
         public int? OwnerId { get; set; }
         public int? PropertyId { get; set; }
-        public bool? IsApproved { get; set; }
+        public string? Status { get; set; }
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
         public bool? IncludeUser {get; set;}

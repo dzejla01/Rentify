@@ -56,6 +56,9 @@ namespace Rentify.Services.Services
                 );
             }
 
+            if (search.ReservationId.HasValue)
+                query = query.Where(x => x.ReservationId == search.ReservationId);
+
             if (search.UserId.HasValue)
                 query = query.Where(x => x.Reservation.UserId == search.UserId.Value);
 

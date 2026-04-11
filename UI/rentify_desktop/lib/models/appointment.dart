@@ -14,7 +14,7 @@ class Appointment {
   final Property? property;
 
   final DateTime? dateAppointment;
-  final bool? isApproved;
+  final String status;
 
   Appointment({
     required this.id,
@@ -23,7 +23,7 @@ class Appointment {
     required this.propertyId,
     this.property,
     this.dateAppointment,
-    this.isApproved,
+    required this.status
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) =>

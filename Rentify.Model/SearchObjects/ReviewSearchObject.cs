@@ -4,8 +4,9 @@ namespace Rentify.Model.SearchObjects
 {
     public class ReviewSearchObject : BaseSearchObject
     {
-
-        public bool? IncludeUser { get; set; }
-        public bool? IncludeProperty { get; set; }
+        public int? OwnersPropertyId { get; set; }
+        public int? UserId { get; set; }
+        public int? ReservationId { get; set; }
+        public bool? IncludeReservation { get; set; }
     }
 }

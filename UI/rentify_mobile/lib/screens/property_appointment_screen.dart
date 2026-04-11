@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_mobile/helper/date_helper.dart';
+import 'package:rentify_mobile/helper/snackBar_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/providers/appoitment_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
@@ -15,7 +17,6 @@ class PropertyAppointmentUniversalScreen extends StatefulWidget {
   });
 
   final Property property;
-
   final List<DateTime> unavailableAppointments;
 
   @override
@@ -23,36 +24,41 @@ class PropertyAppointmentUniversalScreen extends StatefulWidget {
       _PropertyAppointmentUniversalScreenState();
 }
 
+enum DayAvailability { free, partial, full }
+
 class _PropertyAppointmentUniversalScreenState
     extends State<PropertyAppointmentUniversalScreen> {
   static const rentifyGreenDark = Color(0xFF5F9F3B);
 
-  DateTime _visibleMonth = DateTime(
-    DateTime.now().year,
-    DateTime.now().month,
-    1,
-  );
+  static const List<String> _timeSlots = [
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00",
+  ];
 
-  DateTime? _selectedDate; 
-  TimeOfDay? _selectedTime;
-
-  late final Set<DateTime> _unavailableDateTimes; 
-  late final Set<DateTime> _unavailableDates;
+  DateTime _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  DateTime? _selectedDate;
+  String? _selectedTime;
 
   bool _loadingUnavailable = false;
   bool _submitting = false;
 
+  final Set<DateTime> _unavailableDateTimes = {};
+  final Set<DateTime> _unavailableDates = {};
+  final Map<DateTime, Set<String>> _unavailableSlotsByDay = {};
+
+  Map<String, String> _fieldErrors = {};
+
   @override
   void initState() {
     super.initState();
-
-    _unavailableDateTimes = widget.unavailableAppointments
-        .map(_normalizeMinuteUtc)
-        .toSet();
-
-    _unavailableDates =
-    widget.unavailableAppointments.map(_normalizeDateUtc).toSet();
-
     _loadUnavailableAppointments();
   }
 
@@ -70,15 +76,36 @@ class _PropertyAppointmentUniversalScreenState
 
       if (!mounted) return;
 
+      final normalizedDateTimes = <DateTime>{};
+      final normalizedDates = <DateTime>{};
+      final unavailableSlotsByDay = <DateTime, Set<String>>{};
+
+      for (final dt in resp.dateTimes) {
+        final local = dt.toLocal();
+        final normalizedMinute = _normalizeMinute(local);
+        final normalizedDay = _normalizeDate(local);
+        final timeKey =
+            "${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}";
+
+        normalizedDateTimes.add(normalizedMinute);
+        normalizedDates.add(normalizedDay);
+        unavailableSlotsByDay.putIfAbsent(normalizedDay, () => <String>{}).add(timeKey);
+      }
+
       setState(() {
         _unavailableDateTimes
           ..clear()
-          ..addAll(resp.dateTimes.map(_normalizeMinuteUtc)); 
-          _unavailableDates
-    ..clear()
-    ..addAll(resp.dateTimes.map(_normalizeDateUtc));
+          ..addAll(normalizedDateTimes);
 
-  _loadingUnavailable = false;
+        _unavailableDates
+          ..clear()
+          ..addAll(normalizedDates);
+
+        _unavailableSlotsByDay
+          ..clear()
+          ..addAll(unavailableSlotsByDay);
+
+        _loadingUnavailable = false;
       });
     } catch (e) {
       if (!mounted) return;
@@ -91,12 +118,167 @@ class _PropertyAppointmentUniversalScreenState
     }
   }
 
-  bool _hasAnyBusyForDate(DateTime dateUtc) {
-  for (final t in _buildDefaultSlots()) {
-    if (_isSlotUnavailable(dateUtc, t)) return true;
+  DateTime _normalizeDate(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  DateTime _normalizeMinute(DateTime d) =>
+      DateTime(d.year, d.month, d.day, d.hour, d.minute);
+
+  String _fmtDate(DateTime d) => DateFormat("dd.MM.yyyy").format(d);
+
+  String _capitalize(String s) =>
+      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
+  DayAvailability _getDayAvailability(DateTime date) {
+    final day = _normalizeDate(date);
+    final booked = _unavailableSlotsByDay[day]?.length ?? 0;
+    const totalSlots = 10;
+
+    if (booked >= totalSlots) return DayAvailability.full;
+    if (booked > 0) return DayAvailability.partial;
+    return DayAvailability.free;
   }
-  return false;
-}
+
+  bool _isSlotUnavailable(DateTime day, String slot) {
+    final normalizedDay = _normalizeDate(day);
+    return _unavailableSlotsByDay[normalizedDay]?.contains(slot) ?? false;
+  }
+
+  void _onTapDate(DateTime date) {
+    final normalized = _normalizeDate(date);
+    final dayStatus = _getDayAvailability(normalized);
+
+    if (dayStatus == DayAvailability.full) return;
+
+    setState(() {
+      _selectedDate = normalized;
+      _selectedTime = null;
+      _fieldErrors.remove("dateAppointment");
+      _fieldErrors.remove("timeAppointment");
+    });
+  }
+
+  void _onTapTime(String slot) {
+    if (_selectedDate == null) return;
+    if (_isSlotUnavailable(_selectedDate!, slot)) return;
+
+    setState(() {
+      _selectedTime = slot;
+      _fieldErrors.remove("timeAppointment");
+    });
+  }
+
+  bool _validateForm() {
+    final errors = <String, String>{};
+
+    if (_selectedDate == null) {
+      errors["dateAppointment"] = "Datum termina je obavezan.";
+    }
+
+    if (_selectedTime == null) {
+      errors["timeAppointment"] = "Vrijeme termina je obavezno.";
+    }
+
+    if (_selectedDate != null && _selectedTime != null) {
+      final parts = _selectedTime!.split(":");
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+
+      final selectedDateTime = DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        hour,
+        minute,
+      );
+
+      if (_unavailableDateTimes.contains(_normalizeMinute(selectedDateTime))) {
+        errors["timeAppointment"] = "Odabrani termin više nije dostupan.";
+      }
+    }
+
+    setState(() {
+      _fieldErrors = errors;
+    });
+
+    if (errors.isNotEmpty) {
+      SnackbarHelper.showError(context, errors.values.first);
+      return false;
+    }
+
+    return true;
+  }
+
+  Future<void> _submit() async {
+    if (!_validateForm()) return;
+
+    try {
+      setState(() => _submitting = true);
+
+      final userId = Session.userId;
+      if (userId == null) {
+        await ConfirmDialogs.okConfirmation(
+          context,
+          title: "Greška",
+          message: "Niste prijavljeni.",
+        );
+        setState(() => _submitting = false);
+        return;
+      }
+
+      final parts = _selectedTime!.split(":");
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+
+      final appointmentLocal = DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        hour,
+        minute,
+      );
+
+      final payload = <String, dynamic>{
+        "userId": userId,
+        "propertyId": widget.property.id,
+        "dateAppointment": appointmentLocal.toUtc().toIso8601String(),
+        "status": "Na čekanju",
+      };
+
+      await Provider.of<AppoitmentProvider>(
+        context,
+        listen: false,
+      ).insert(payload);
+
+      if (!mounted) return;
+      setState(() => _submitting = false);
+
+      await ConfirmDialogs.okConfirmation(
+        context,
+        title: "Termin",
+        message:
+            "Zahtjev za termin je uspješno poslan.\n\nNa sekciji Termini možete vidjeti da li je vlasnik odobrio vaš termin.",
+      );
+
+      if (!mounted) return;
+
+      Navigator.of(
+        context,
+      ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      SnackbarHelper.showError(context, e.toString());
+    }
+  }
+
+  void _reset() {
+    setState(() {
+      _selectedDate = null;
+      _selectedTime = null;
+      _fieldErrors = {};
+      _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,42 +299,13 @@ class _PropertyAppointmentUniversalScreenState
           children: [
             _PropertyMiniHeader(property: widget.property),
             const SizedBox(height: 12),
-
-            _Card(
-              title: "Odaberi datum",
-              subtitle: _loadingUnavailable
-                  ? "Učitavam zauzete termine..."
-                  : "Sivo = prošlo • Crveno = dan bez termina (sve zauzeto)",
-              child: Column(
-                children: [
-                  _calendarHeader(),
-                  const SizedBox(height: 10),
-                  _weekdayRow(),
-                  const SizedBox(height: 8),
-                  _calendarGrid(),
-                  const SizedBox(height: 10),
-                  _MiniInfo(
-                    label: "Odabrani datum",
-                    value: _selectedDate == null
-                        ? "—"
-                        : _fmtDate(_selectedDate!),
-                  ),
-                ],
-              ),
-            ),
-
+            _calendarCard(),
             const SizedBox(height: 12),
-
-            _Card(
-              title: "Odaberi termin",
-              subtitle: _selectedDate == null
-                  ? "Prvo odaberi datum."
-                  : "Zauzeti termini su onemogućeni.",
-              child: _selectedDate == null
-                  ? const _EmptyHint(text: "Odaberi datum da vidiš termine.")
-                  : _timeSlots(),
-            ),
-
+            _timeSlotsCard(),
+            if (_fieldErrors.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _validationCard(),
+            ],
             const SizedBox(height: 12),
             _summaryCard(),
           ],
@@ -162,23 +315,116 @@ class _PropertyAppointmentUniversalScreenState
     );
   }
 
-  // ------------------ Calendar ------------------
+  Widget _calendarCard() {
+    return _Card(
+      title: "Odaberi datum",
+      subtitle: _loadingUnavailable
+          ? "Učitavam zauzete termine..."
+          : "Crveno = svi termini zauzeti • Žuto = djelimično popunjeno • Sivo = prošlo",
+      child: Column(
+        children: [
+          _calendarHeader(),
+          const SizedBox(height: 10),
+          _weekdayRow(),
+          const SizedBox(height: 8),
+          _calendarGrid(),
+          const SizedBox(height: 12),
+          _MiniInfo(
+            label: "Odabrani datum",
+            value: _selectedDate == null ? "—" : _fmtDate(_selectedDate!),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _timeSlotsCard() {
+    return _Card(
+      title: "Odaberi termin",
+      subtitle: _selectedDate == null
+          ? "Prvo odaberite datum."
+          : "Zauzeti termini su onemogućeni.",
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _timeSlots.length,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 4,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 1.6,
+        ),
+        itemBuilder: (context, index) {
+          final slot = _timeSlots[index];
+          final isUnavailable = _selectedDate == null
+              ? false
+              : _isSlotUnavailable(_selectedDate!, slot);
+          final isSelected = _selectedTime == slot;
+          final canTap = _selectedDate != null && !isUnavailable;
+
+          Color bg = Colors.white;
+          Color fg = const Color(0xFF2F2F2F);
+          BorderSide border = const BorderSide(color: Color(0x11000000));
+
+          if (_selectedDate == null) {
+            bg = const Color(0xFFF2F3F4);
+            fg = const Color(0xFFB0B0B0);
+          } else if (isUnavailable) {
+            bg = const Color(0xFFFFF3E0);
+            fg = const Color(0xFFEF6C00);
+            border = const BorderSide(color: Color(0x33EF6C00));
+          }
+
+          if (isSelected) {
+            bg = rentifyGreenDark;
+            fg = Colors.white;
+            border = BorderSide.none;
+          }
+
+          return GestureDetector(
+            onTap: canTap ? () => _onTapTime(slot) : null,
+            child: Container(
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.fromBorderSide(border),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                slot,
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  color: fg,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   Widget _calendarHeader() {
     final monthName = DateFormat.MMMM("bs").format(_visibleMonth);
     final year = _visibleMonth.year;
 
+    final currentMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    final canGoPrev = !_visibleMonth.isAtSameMomentAs(currentMonth) &&
+        !_visibleMonth.isBefore(currentMonth);
+
     return Row(
       children: [
         _IconBtn(
           icon: Icons.chevron_left_rounded,
-          onTap: () => setState(() {
-            _visibleMonth = DateTime(
-              _visibleMonth.year,
-              _visibleMonth.month - 1,
-              1,
-            );
-          }),
+          onTap: !canGoPrev
+              ? () {}
+              : () => setState(() {
+                    _visibleMonth = DateTime(
+                      _visibleMonth.year,
+                      _visibleMonth.month - 1,
+                      1,
+                    );
+                  }),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -227,12 +473,10 @@ class _PropertyAppointmentUniversalScreenState
   Widget _calendarGrid() {
     final firstDay = _visibleMonth;
     final daysInMonth = DateUtils.getDaysInMonth(firstDay.year, firstDay.month);
-
     final leading = firstDay.weekday - 1;
     final totalCells = leading + daysInMonth;
     final rows = (totalCells / 7.0).ceil();
-
-    final today = _normalizeDateUtc(DateTime.now());
+    final today = _normalizeDate(DateTime.now());
 
     return Column(
       children: List.generate(rows, (r) {
@@ -247,20 +491,18 @@ class _PropertyAppointmentUniversalScreenState
                 return const Expanded(child: SizedBox(height: 44));
               }
 
-              // ✅ date-only u UTC da nema pomjeranja dana
-              final date = _normalizeDateUtc(
-                DateTime.utc(firstDay.year, firstDay.month, dayNum),
+              final date = _normalizeDate(
+                DateTime(firstDay.year, firstDay.month, dayNum),
               );
 
               final isPast = date.isBefore(today);
-
+              final dayStatus = _getDayAvailability(date);
               final isSelected =
-                  _selectedDate != null &&
-                  _normalizeDateUtc(_selectedDate!) == date;
+                  _selectedDate != null && _normalizeDate(_selectedDate!) == date;
 
-              final hasBusy = _unavailableDates.contains(date);
-
-              final canTap = !_loadingUnavailable && !isPast;
+              final isFull = dayStatus == DayAvailability.full;
+              final isPartial = dayStatus == DayAvailability.partial;
+              final canTap = !_loadingUnavailable && !isPast && !isFull;
 
               Color bg = Colors.white;
               Color fg = const Color(0xFF2F2F2F);
@@ -269,10 +511,14 @@ class _PropertyAppointmentUniversalScreenState
               if (isPast) {
                 fg = const Color(0xFFB0B0B0);
                 bg = const Color(0xFFF2F3F4);
-              } else if (hasBusy) {
+              } else if (isFull) {
                 fg = const Color(0xFFE53935);
                 bg = const Color(0xFFFFE8E8);
                 border = const BorderSide(color: Color(0x33E53935));
+              } else if (isPartial) {
+                fg = const Color(0xFFEF6C00);
+                bg = const Color(0xFFFFF3E0);
+                border = const BorderSide(color: Color(0x33EF6C00));
               }
 
               if (isSelected) {
@@ -283,14 +529,7 @@ class _PropertyAppointmentUniversalScreenState
 
               return Expanded(
                 child: GestureDetector(
-                  onTap: !canTap
-                      ? null
-                      : () {
-                          setState(() {
-                            _selectedDate = date;
-                            _selectedTime = null;
-                          });
-                        },
+                  onTap: canTap ? () => _onTapDate(date) : null,
                   child: Container(
                     height: 44,
                     margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -302,7 +541,10 @@ class _PropertyAppointmentUniversalScreenState
                     alignment: Alignment.center,
                     child: Text(
                       dayNum.toString(),
-                      style: TextStyle(fontWeight: FontWeight.w900, color: fg),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        color: fg,
+                      ),
                     ),
                   ),
                 ),
@@ -314,91 +556,14 @@ class _PropertyAppointmentUniversalScreenState
     );
   }
 
-  // ------------------ Time slots ------------------
-
-  Widget _timeSlots() {
-    final slots = _buildDefaultSlots(); // 09:00 - 18:00
-
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: slots.map((t) {
-        final disabled = _isSlotUnavailable(_selectedDate!, t);
-        final selected =
-            _selectedTime != null &&
-            _selectedTime!.hour == t.hour &&
-            _selectedTime!.minute == t.minute;
-
-        Color bg = const Color(0xFFF6F7F8);
-        Color fg = const Color(0xFF2F2F2F);
-        BorderSide border = const BorderSide(color: Color(0x11000000));
-
-        if (disabled) {
-          bg = const Color(0xFFFFE8E8);
-          fg = const Color(0xFFE53935);
-          border = const BorderSide(color: Color(0x33E53935));
-        }
-
-        if (selected) {
-          bg = rentifyGreenDark;
-          fg = Colors.white;
-          border = BorderSide.none;
-        }
-
-        return GestureDetector(
-          onTap: disabled
-              ? null
-              : () => setState(() {
-                  _selectedTime = t;
-                }),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.fromBorderSide(border),
-            ),
-            child: Text(
-              _fmtTime(t),
-              style: TextStyle(fontWeight: FontWeight.w900, color: fg),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  List<TimeOfDay> _buildDefaultSlots() {
-    final List<TimeOfDay> out = [];
-    for (int h = 9; h <= 18; h++) {
-      out.add(TimeOfDay(hour: h, minute: 0));
-    }
-    return out;
-  }
-
-  bool _isSlotUnavailable(DateTime dateUtc, TimeOfDay t) {
-    // dateUtc je već UTC date-only
-    final dtUtc = DateTime.utc(
-      dateUtc.year,
-      dateUtc.month,
-      dateUtc.day,
-      t.hour,
-      t.minute,
-    );
-    return _unavailableDateTimes.contains(_normalizeMinuteUtc(dtUtc));
-  }
-
-  bool _allSlotsBusyForDate(DateTime dateUtc) {
-    final slots = _buildDefaultSlots();
-    if (slots.isEmpty) return false;
-    return slots.every((t) => _isSlotUnavailable(dateUtc, t));
-  }
-
-  // ------------------ Summary + Bottom ------------------
-
   Widget _summaryCard() {
-    final dateText = _selectedDate == null ? "—" : _fmtDate(_selectedDate!);
-    final timeText = _selectedTime == null ? "—" : _fmtTime(_selectedTime!);
+    final line1 = _selectedDate == null
+        ? "Datum: —"
+        : "Datum: ${_fmtDate(_selectedDate!)}";
+
+    final line2 = _selectedTime == null
+        ? "Termin: —"
+        : "Termin: $_selectedTime";
 
     return _Card(
       title: "Sažetak",
@@ -406,7 +571,7 @@ class _PropertyAppointmentUniversalScreenState
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "Datum: $dateText",
+            line1,
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               color: Color(0xFF2F2F2F),
@@ -414,7 +579,7 @@ class _PropertyAppointmentUniversalScreenState
           ),
           const SizedBox(height: 6),
           Text(
-            "Termin: $timeText",
+            line2,
             style: const TextStyle(
               fontWeight: FontWeight.w800,
               color: Color(0xFF7A7A7A),
@@ -425,9 +590,45 @@ class _PropertyAppointmentUniversalScreenState
     );
   }
 
-  Widget _bottomBar() {
-    final canReserve = _selectedDate != null && _selectedTime != null;
+  Widget _validationCard() {
+    final values = _fieldErrors.values.toList();
 
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF4F4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0x33D32F2F)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Provjerite unesene podatke",
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              color: Color(0xFFD32F2F),
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...values.map(
+            (e) => Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                "• $e",
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF7A1C1C),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _bottomBar() {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
       decoration: const BoxDecoration(
@@ -464,7 +665,7 @@ class _PropertyAppointmentUniversalScreenState
             child: SizedBox(
               height: 48,
               child: ElevatedButton(
-                onPressed: (!canReserve || _submitting) ? null : _reserve,
+                onPressed: _submitting ? null : _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: rentifyGreenDark,
                   foregroundColor: Colors.white,
@@ -477,125 +678,15 @@ class _PropertyAppointmentUniversalScreenState
                     ? const SizedBox(
                         width: 22,
                         height: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
                       )
                     : const Text(
-                        "Rezerviši",
+                        "Pošalji zahtjev",
                         style: TextStyle(fontWeight: FontWeight.w900),
                       ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _reset() {
-    setState(() {
-      _selectedDate = null;
-      _selectedTime = null;
-      _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
-    });
-  }
-
-  Future<void> _reserve() async {
-    try {
-      setState(() => _submitting = true);
-
-      final userId = Session.userId;
-      if (userId == null) throw Exception("Niste prijavljeni.");
-
-      final d = _selectedDate!;
-      final t = _selectedTime!;
-
-      final dtUtc = DateTime.utc(d.year, d.month, d.day, t.hour, t.minute);
-
-      final payload = <String, dynamic>{
-        "userId": userId,
-        "propertyId": widget.property.id,
-        "dateAppointment": dtUtc.toIso8601String(),
-      };
-
-      await Provider.of<AppoitmentProvider>(
-        context,
-        listen: false,
-      ).insert(payload);
-
-      if (!mounted) return;
-
-      setState(() => _submitting = false);
-
-      await ConfirmDialogs.okConfirmation(
-        context,
-        title: "Pregled uživo",
-        message:
-            "Zahtjev za termin je uspješno poslan.\n\nNa sekciji Pregledi možete vidjeti da li je domaćin odobrio termin.",
-      );
-
-      if (!mounted) return;
-
-      Navigator.of(
-        context,
-      ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _submitting = false);
-
-      ConfirmDialogs.okConfirmation(
-        context,
-        title: "Greška",
-        message: e.toString(),
-      );
-    }
-  }
-
-  // ------------------ helpers (UTC safe) ------------------
-
-  DateTime _normalizeDateUtc(DateTime d) {
-    final u = d.toUtc();
-    return DateTime.utc(u.year, u.month, u.day);
-  }
-
-  DateTime _normalizeMinuteUtc(DateTime d) {
-    final u = d.toUtc();
-    return DateTime.utc(u.year, u.month, u.day, u.hour, u.minute);
-  }
-
-  String _fmtDate(DateTime d) => DateFormat("dd.MM.yyyy").format(d.toLocal());
-
-  String _fmtTime(TimeOfDay t) =>
-      "${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}";
-
-  String _capitalize(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
-}
-
-/* ===================== Small UI Widgets (isto kao kod tebe) ===================== */
-
-class _EmptyHint extends StatelessWidget {
-  const _EmptyHint({required this.text});
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF6F7F8),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0x11000000)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.info_outline_rounded, color: Color(0xFF7A7A7A)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF7A7A7A),
               ),
             ),
           ),
@@ -607,12 +698,13 @@ class _EmptyHint extends StatelessWidget {
 
 class _PropertyMiniHeader extends StatelessWidget {
   const _PropertyMiniHeader({required this.property});
+
   final Property property;
 
   @override
   Widget build(BuildContext context) {
-    final title = (property.name ?? "").trim();
-    final city = (property.city ?? "").trim();
+    final title = property.name.trim();
+    final city = property.city.trim();
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -668,6 +760,7 @@ class _PropertyMiniHeader extends StatelessWidget {
 
 class _Card extends StatelessWidget {
   const _Card({required this.title, this.subtitle, required this.child});
+
   final String title;
   final String? subtitle;
   final Widget child;
@@ -718,6 +811,7 @@ class _Card extends StatelessWidget {
 
 class _IconBtn extends StatelessWidget {
   const _IconBtn({required this.icon, required this.onTap});
+
   final IconData icon;
   final VoidCallback onTap;
 
@@ -742,6 +836,7 @@ class _IconBtn extends StatelessWidget {
 
 class _MiniInfo extends StatelessWidget {
   const _MiniInfo({required this.label, required this.value});
+
   final String label;
   final String value;
 

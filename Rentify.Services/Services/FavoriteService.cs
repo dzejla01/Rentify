@@ -18,8 +18,8 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Favorite> ApplyFilter(IQueryable<Favorite> query,FavoriteSearchObject search)
         {
-            query = query.Include(x => x.User)
-                         .Include(x => x.Property);
+            //query = query.Include(x => x.User)
+            //             .Include(x => x.Property);
 
             if (search.UserId.HasValue)
                 query = query.Where(x => x.UserId == search.UserId.Value);
@@ -37,6 +37,9 @@ namespace Rentify.Services.Services
 
             if (search.IncludeProperty.HasValue)
                 query = query.Include(x => x.Property);
+
+            if (search.IncludePropertyOwner.HasValue)
+                query = query.Include(x => x.Property).ThenInclude(x => x.User);
 
             return base.AddInclude(query, search);
         }

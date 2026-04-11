@@ -38,7 +38,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     try {
       final result = await _favoriteProvider.get(
-        filter: {"userId": Session.userId},
+        filter: {"userId": Session.userId, "includeUser": true, "includePropertyOwner": true},
       );
 
       if (!mounted) return;

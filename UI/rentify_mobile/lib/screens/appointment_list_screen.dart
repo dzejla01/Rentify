@@ -34,6 +34,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
 
   bool _metaLoading = false;
   String? _metaError;
+  String? _selectedStatus;
 
   @override
   void initState() {
@@ -60,6 +61,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
           "pageSize": pageSize,
           "includeTotalCount": includeTotalCount,
           if (filter != null && filter.trim().isNotEmpty) "FTS": filter.trim(),
+          if (_selectedStatus != null) "status": _selectedStatus,
           ...?extra,
         };
 
@@ -94,6 +96,18 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
       if (!mounted) return;
       await _loadPropertiesForPage();
     });
+  }
+
+  Future<void> _changeStatusFilter(String? status) async {
+    if (!mounted) return;
+
+    setState(() {
+      _selectedStatus = status;
+    });
+
+    await _paging.refresh();
+    if (!mounted) return;
+    await _loadPropertiesForPage();
   }
 
   Future<void> _loadPropertiesForPage() async {
@@ -136,19 +150,19 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
       userUsername: Session.username ?? "Nepoznato",
       userImageAsset: Session.userImage,
       onLogout: () async {
-  await Session.odjava(
-    deviceTokenProvider: context.read<DeviceTokenProvider>(),
-    authProvider: context.read<AuthProvider>(),
-  );
+        await Session.odjava(
+          deviceTokenProvider: context.read<DeviceTokenProvider>(),
+          authProvider: context.read<AuthProvider>(),
+        );
 
-  if (!context.mounted) return;
+        if (!context.mounted) return;
 
-  Navigator.pushNamedAndRemoveUntil(
-    context,
-    AppRoutes.login,
-    (route) => false,
-  );
-},
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.login,
+          (route) => false,
+        );
+      },
       child: Container(
         color: const Color(0xFFF6F7FB),
         child: Column(
@@ -164,6 +178,17 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
               },
               hint: "Pretraga (nekretnina / datum...)",
             ),
+
+            _StatusFilterBar(
+              selectedStatus: _selectedStatus,
+              onTapAll: () => _changeStatusFilter(null),
+              onTapApproved: () => _changeStatusFilter("Odobreno"),
+              onTapPending: () => _changeStatusFilter("Na čekanju"),
+              onTapFinished: () => _changeStatusFilter("Završeno"),
+              onTapRejected: () => _changeStatusFilter("Odbijeno"),
+              onTapCancelled: () => _changeStatusFilter("Otkazano"),
+            ),
+
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _refreshWithMeta,
@@ -189,9 +214,8 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                         separatorHeight: 12,
                         itemBuilder: (context, a) {
                           final p = _propertiesMap[a.propertyId];
-                          final status = StatusMapper.fromApproved(a.isApproved);
+                          final status = StatusMapper.fromStatus(a.status);
 
-                          // ako ti appointment nema createdAt, samo stavi "-" (ili ukloni)
                           final createdAtText = _maybeCreatedAtText(a);
 
                           return _AppointmentCard(
@@ -225,10 +249,8 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
     return "$dd.$mm.$yy • $hh:$mi";
   }
 
-  // ✅ sigurno: ako appointment nema createdAt, prikazi "-"
   static String _maybeCreatedAtText(Appointment a) {
     try {
-      // ako tvoj model ima createdAt polje:
       final dynamic any = a as dynamic;
       final DateTime? createdAt = any.createdAt as DateTime?;
       if (createdAt == null) return "-";
@@ -254,7 +276,130 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
   }
 }
 
-/// ==================== CARD UI (kao rezervacije) ====================
+class _StatusFilterBar extends StatelessWidget {
+  const _StatusFilterBar({
+    required this.selectedStatus,
+    required this.onTapAll,
+    required this.onTapApproved,
+    required this.onTapPending,
+    required this.onTapFinished,
+    required this.onTapRejected,
+    required this.onTapCancelled,
+  });
+
+  final String? selectedStatus;
+  final VoidCallback onTapAll;
+  final VoidCallback onTapApproved;
+  final VoidCallback onTapPending;
+  final VoidCallback onTapFinished;
+  final VoidCallback onTapRejected;
+  final VoidCallback onTapCancelled;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            _FilterChipButton(
+              label: "Sve",
+              selected: selectedStatus == null,
+              onTap: onTapAll,
+              selectedColor: const Color(0xFF5F9F3B),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Odobreni",
+              selected: selectedStatus == "Odobreno",
+              onTap: onTapApproved,
+              selectedColor: const Color(0xFF2E7D32),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Na čekanju",
+              selected: selectedStatus == "Na čekanju",
+              onTap: onTapPending,
+              selectedColor: const Color(0xFFEF6C00),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Završeni",
+              selected: selectedStatus == "Završeno",
+              onTap: onTapFinished,
+              selectedColor: const Color(0xFF1565C0),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Odbijeni",
+              selected: selectedStatus == "Odbijeno",
+              onTap: onTapRejected,
+              selectedColor: const Color(0xFF6B7280),
+            ),
+            const SizedBox(width: 8),
+            _FilterChipButton(
+              label: "Otkazani",
+              selected: selectedStatus == "Otkazano",
+              onTap: onTapCancelled,
+              selectedColor: const Color(0xFFC62828),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterChipButton extends StatelessWidget {
+  const _FilterChipButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.selectedColor,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color selectedColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? selectedColor : Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? selectedColor : Colors.black.withOpacity(0.08),
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: selectedColor.withOpacity(0.18),
+                    blurRadius: 14,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : const Color(0xFF374151),
+            fontWeight: FontWeight.w900,
+            fontSize: 12.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _AppointmentCard extends StatelessWidget {
   const _AppointmentCard({
@@ -290,7 +435,6 @@ class _AppointmentCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // header row: icon + name + status pill
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -341,10 +485,7 @@ class _AppointmentCard extends StatelessWidget {
               _StatusPill(status: status),
             ],
           ),
-
           const SizedBox(height: 12),
-
-          // alert-like status row
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
@@ -384,56 +525,86 @@ class _AppointmentCard extends StatelessWidget {
 
   static IconData _alertIcon(_Status s) {
     switch (s) {
-      case _Status.accepted:
+      case _Status.approved:
         return Icons.check_circle_rounded;
       case _Status.pending:
         return Icons.hourglass_bottom_rounded;
+      case _Status.finished:
+        return Icons.task_alt_rounded;
       case _Status.rejected:
+        return Icons.block_rounded;
+      case _Status.cancelled:
         return Icons.cancel_rounded;
+      case _Status.unknown:
+        return Icons.info_outline_rounded;
     }
   }
 
   static String _alertText(_Status s) {
     switch (s) {
-      case _Status.accepted:
-        return "Termin je odobren";
+      case _Status.approved:
+        return "Termin je odobren.";
       case _Status.pending:
-        return "Termin je na čekanju";
+        return "Termin je na čekanju.";
+      case _Status.finished:
+        return "Termin je završen.";
       case _Status.rejected:
-        return "Termin je odbijen";
+        return "Termin je odbijen.";
+      case _Status.cancelled:
+        return "Termin je otkazan.";
+      case _Status.unknown:
+        return "Status termina nije poznat.";
     }
   }
 
   static Color _alertBg(_Status s) {
     switch (s) {
-      case _Status.accepted:
+      case _Status.approved:
         return const Color(0xFFEAF6E5);
       case _Status.pending:
         return const Color(0xFFFFF3E0);
+      case _Status.finished:
+        return const Color(0xFFE3F2FD);
       case _Status.rejected:
-        return const Color(0xFFFFE5E5);
+        return const Color(0xFFF3F4F6);
+      case _Status.cancelled:
+        return const Color(0xFFFFEBEE);
+      case _Status.unknown:
+        return const Color(0xFFF3F4F6);
     }
   }
 
   static Color _alertBorder(_Status s) {
     switch (s) {
-      case _Status.accepted:
+      case _Status.approved:
         return const Color(0xFFBFE6B2);
       case _Status.pending:
         return const Color(0xFFFFD59A);
+      case _Status.finished:
+        return const Color(0xFF90CAF9);
       case _Status.rejected:
-        return const Color(0xFFFFBDBD);
+        return const Color(0xFFD1D5DB);
+      case _Status.cancelled:
+        return const Color(0xFFFFCDD2);
+      case _Status.unknown:
+        return const Color(0xFFD1D5DB);
     }
   }
 
   static Color _alertFg(_Status s) {
     switch (s) {
-      case _Status.accepted:
+      case _Status.approved:
         return const Color(0xFF2E7D32);
       case _Status.pending:
         return const Color(0xFFEF6C00);
+      case _Status.finished:
+        return const Color(0xFF1565C0);
       case _Status.rejected:
-        return const Color(0xFFE53935);
+        return const Color(0xFF6B7280);
+      case _Status.cancelled:
+        return const Color(0xFFC62828);
+      case _Status.unknown:
+        return const Color(0xFF6B7280);
     }
   }
 }
@@ -490,41 +661,62 @@ class _MiniRow extends StatelessWidget {
   }
 }
 
-/// ==================== STATUS ====================
-
-enum _Status { accepted, pending, rejected }
+enum _Status {
+  approved,
+  pending,
+  finished,
+  rejected,
+  cancelled,
+  unknown,
+}
 
 extension StatusMapper on _Status {
-  static _Status fromApproved(bool? isApproved) {
-    if (isApproved == true) return _Status.accepted;
-    if (isApproved == false) return _Status.rejected;
-    return _Status.pending;
+  static _Status fromStatus(String? status) {
+    final s = (status ?? "").trim().toLowerCase();
+
+    if (s == "odobreno") return _Status.approved;
+    if (s == "na čekanju" || s == "na cekanju") return _Status.pending;
+    if (s == "završeno" || s == "zavrseno") return _Status.finished;
+    if (s == "odbijeno") return _Status.rejected;
+    if (s == "otkazano") return _Status.cancelled;
+
+    return _Status.unknown;
   }
 
   String get label {
     switch (this) {
-      case _Status.accepted:
-        return "Prihvaćeno";
+      case _Status.approved:
+        return "Odobreno";
       case _Status.pending:
         return "Na čekanju";
+      case _Status.finished:
+        return "Završeno";
       case _Status.rejected:
         return "Odbijeno";
+      case _Status.cancelled:
+        return "Otkazano";
+      case _Status.unknown:
+        return "Nepoznato";
     }
   }
 
   Color get color {
     switch (this) {
-      case _Status.accepted:
+      case _Status.approved:
         return Colors.green;
       case _Status.pending:
         return Colors.orange;
+      case _Status.finished:
+        return Colors.blue;
       case _Status.rejected:
-        return const Color(0xFFE53935);
+        return const Color(0xFF6B7280);
+      case _Status.cancelled:
+        return const Color(0xFFC62828);
+      case _Status.unknown:
+        return Colors.grey;
     }
   }
 }
-
-/// ==================== STATES ====================
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({required this.text});

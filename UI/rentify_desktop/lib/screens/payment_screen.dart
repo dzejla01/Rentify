@@ -78,8 +78,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
         _isLoadingUsers = false;
         _loadError = "Greška pri učitavanju korisnika.";
       });
-
-      debugPrint("Greška pri učitavanju korisnika: $e");
     }
   }
 

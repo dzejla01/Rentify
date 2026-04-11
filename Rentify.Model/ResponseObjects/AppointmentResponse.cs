@@ -12,6 +12,6 @@ namespace Rentify.Model.ResponseObjects
         public PropertyResponse? Property {get; set;}
 
         public DateTime? DateAppointment { get; set; }
-        public bool? IsApproved { get; set; }
+        public string Status { get; set; }
     }
 }

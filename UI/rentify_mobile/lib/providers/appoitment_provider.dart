@@ -17,32 +17,30 @@ class AppoitmentProvider extends BaseProvider<Appointment> {
   }
 
   Future<UnavailableAppointmentsResponse> getUnavailableDates({
-    required int propertyId,
-    DateTime? from,
-    DateTime? to,
-  }) async {
+  required int propertyId,
+  DateTime? from,
+  DateTime? to,
+}) async {
+  final queryParams = <String, String>{
+    "propertyId": propertyId.toString(),
+    if (from != null) "from": DateHelper.toDateOnly(from),
+    if (to != null) "to": DateHelper.toDateOnly(to),
+  };
 
-    final queryParams = <String, String>{
-      "propertyId": propertyId.toString(),
-      if (from != null) "from": DateHelper.toDateOnly(from),
-      if (to != null) "to": DateHelper.toDateOnly(to),
-    };
+  final uri = Uri.parse(
+    "${ApiConfig.apiBase}/api/Appointment/unavailable-ap-dates",
+  ).replace(queryParameters: queryParams);
 
-    final uri = Uri.parse(
-      "${ApiConfig.apiBase}/api/Appointment/unavailable-dates",
-    ).replace(queryParameters: queryParams);
+  final response = await http.get(
+    uri,
+    headers: HttpHelper.getHeaders(),
+  );
 
-    final response = await http.get(
-      uri,
-      headers: HttpHelper.getHeaders()
-    );
+  HttpHelper.checkResponse(response);
 
-    HttpHelper.checkResponse(response);
-
-    final data = jsonDecode(response.body);
-    return UnavailableAppointmentsResponse.fromJson(data);
-  }
-
+  final data = jsonDecode(response.body);
+  return UnavailableAppointmentsResponse.fromJson(data);
+}
 }
 
 

@@ -58,6 +58,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
             bool includeTotalCount = true,
           }) async {
             final f = <String, dynamic>{
+              "reservationId": widget.reservation.id,
               "userId": widget.user.id,
               "propertyId": widget.property.id,
               "page": page,
@@ -101,6 +102,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     try {
       final res = await _paymentProvider.get(
         filter: {
+          "reservationId": widget.reservation.id,
           "userId": widget.user.id,
           "propertyId": widget.property.id,
           "retrieveAll": true,
@@ -131,32 +133,40 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   }
 
   Payment? _lastPaidPayment() {
-    final paid = _allPayments.where((p) => p.isPayed == true).toList();
-    if (paid.isEmpty) return null;
+  final paid = _allPayments.where((p) => p.isPayed == true).toList();
+  if (paid.isEmpty) return null;
 
-    paid.sort((a, b) {
-      final y = b.yearNumber.compareTo(a.yearNumber);
-      if (y != 0) return y;
-      final m = b.monthNumber.compareTo(a.monthNumber);
-      if (m != 0) return m;
-      return b.id.compareTo(a.id);
-    });
+  paid.sort((a, b) {
+    final y = b.yearNumber.compareTo(a.yearNumber);
+    if (y != 0) return y;
+    final m = b.monthNumber.compareTo(a.monthNumber);
+    if (m != 0) return m;
+    return b.id.compareTo(a.id);
+  });
 
-    return paid.first;
+  return paid.first;
+}
+
+(int month, int year) _nextBillPeriod() {
+  final lastPaid = _lastPaidPayment();
+
+  if (lastPaid == null) {
+    final reservationStart = widget.reservation.startDateOfRenting;
+
+    if (reservationStart != null) {
+      return (reservationStart.month, reservationStart.year);
+    }
+
+    final now = DateTime.now();
+    return (now.month, now.year);
   }
+
+  return _nextMonthYear(lastPaid.monthNumber, lastPaid.yearNumber);
+}
 
   (int month, int year) _nextMonthYear(int month, int year) {
     if (month == 12) return (1, year + 1);
     return (month + 1, year);
-  }
-
-  (int month, int year) _nextBillPeriod() {
-    final lastPaid = _lastPaidPayment();
-    if (lastPaid == null) {
-      final now = DateTime.now();
-      return (now.month, now.year);
-    }
-    return _nextMonthYear(lastPaid.monthNumber, lastPaid.yearNumber);
   }
 
   bool _isPeriodStarted(int month, int year) {

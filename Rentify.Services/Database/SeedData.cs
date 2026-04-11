@@ -116,10 +116,8 @@ public static class SeedData
             renters: users.Where(x => !x.IsVlasnik).ToList(),
             properties: properties
         );
-        var reviews = GenerateReviews(
-            renters: users.Where(x => !x.IsVlasnik).ToList(),
-            properties: properties
-        );
+        var reviews = GenerateReviews(reservations);
+        
         var questions = GenerateQuestions(
             renters: users.Where(x => !x.IsVlasnik).ToList(),
             properties: properties
@@ -175,11 +173,47 @@ public static class SeedData
         int nextId = 1;
         int usernameCounter = 10;
 
-        // 10 ownera
-        for (int i = 0; i < 10; i++)
+        // 🔥 GLAVNI OWNER
+        users.Add(new User
         {
-            var firstName = FirstNames[i % FirstNames.Length];
-            var lastName = LastNames[i % LastNames.Length];
+            Id = nextId++,
+            FirstName = "Darko",
+            LastName = "Hodzic",
+            Email = "owner1@rentify.dev",
+            Username = "owner1",
+            PasswordHash = hashBase64,
+            PasswordSalt = saltBase64,
+            IsVlasnik = true,
+            IsActive = true,
+            IsLoggingFirstTime = false
+        });
+
+        usedUsernames.Add("owner1");
+        usedEmails.Add("owner1@rentify.dev");
+
+        // 🔥 GLAVNI USER
+        users.Add(new User
+        {
+            Id = nextId++,
+            FirstName = "Ajla",
+            LastName = "Delic",
+            Email = "user1@rentify.dev",
+            Username = "user1",
+            PasswordHash = hashBase64,
+            PasswordSalt = saltBase64,
+            IsVlasnik = false,
+            IsActive = true,
+            IsLoggingFirstTime = false
+        });
+
+        usedUsernames.Add("user1");
+        usedEmails.Add("user1@rentify.dev");
+
+        // 🔹 OSTALI OWNERI
+        for (int i = 0; i < 9; i++) // već imamo jednog
+        {
+            var firstName = FirstNames[(i + 2) % FirstNames.Length];
+            var lastName = LastNames[(i * 3 + 2) % LastNames.Length];
 
             var username = BuildUniqueUsername(firstName, lastName, usernameCounter, usedUsernames);
             var email = BuildUniqueEmail(firstName, lastName, usernameCounter, usedEmails);
@@ -201,36 +235,30 @@ public static class SeedData
             usernameCounter++;
         }
 
-        // 100 rentera
-        int generatedRenters = 0;
-
-        foreach (var firstName in FirstNames)
+        // 🔹 OSTALI USERI
+        for (int i = 0; i < 100; i++)
         {
-            foreach (var lastName in LastNames)
+            var firstName = FirstNames[(i + 5) % FirstNames.Length];
+            var lastName = LastNames[(i * 7 + 5) % LastNames.Length];
+
+            var username = BuildUniqueUsername(firstName, lastName, usernameCounter, usedUsernames);
+            var email = BuildUniqueEmail(firstName, lastName, usernameCounter, usedEmails);
+
+            users.Add(new User
             {
-                if (generatedRenters >= 100)
-                    return users;
+                Id = nextId++,
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                Username = username,
+                PasswordHash = hashBase64,
+                PasswordSalt = saltBase64,
+                IsVlasnik = false,
+                IsActive = true,
+                IsLoggingFirstTime = false
+            });
 
-                var username = BuildUniqueUsername(firstName, lastName, usernameCounter, usedUsernames);
-                var email = BuildUniqueEmail(firstName, lastName, usernameCounter, usedEmails);
-
-                users.Add(new User
-                {
-                    Id = nextId++,
-                    FirstName = firstName,
-                    LastName = lastName,
-                    Email = email,
-                    Username = username,
-                    PasswordHash = hashBase64,
-                    PasswordSalt = saltBase64,
-                    IsVlasnik = false,
-                    IsActive = true,
-                    IsLoggingFirstTime = false
-                });
-
-                usernameCounter++;
-                generatedRenters++;
-            }
+            usernameCounter++;
         }
 
         return users;
@@ -256,7 +284,10 @@ public static class SeedData
         {
             var owner = owners[ownerIndex];
 
-            for (int i = 0; i < 5; i++)
+            // owner1 dobija vise nekretnina za demo
+            int propertyCount = owner.Username == "owner1" ? 10 : 4;
+
+            for (int i = 0; i < propertyCount; i++)
             {
                 var city = Cities[(ownerIndex + i) % Cities.Length];
                 var adjective = PropertyAdjectives[(propertyId + i) % PropertyAdjectives.Length];
@@ -273,13 +304,13 @@ public static class SeedData
                     PricePerDay = 45 + ((propertyId * 3) % 45),
                     PricePerMonth = 950 + ((propertyId * 80) % 1200),
                     Tags = new List<string>
-                    {
-                        city.ToLowerInvariant(),
-                        adjective.ToLowerInvariant(),
-                        "modern",
-                        "comfortable"
-                    },
-                    SquareMeters = (35 + (propertyId % 40)),
+                {
+                    city.ToLowerInvariant(),
+                    adjective.ToLowerInvariant(),
+                    "modern",
+                    "comfortable"
+                },
+                    SquareMeters = 35 + (propertyId % 40),
                     Details = $"Automatski generisana nekretnina broj {propertyId} u gradu {city}.",
                     IsAvailable = propertyId % 7 != 0,
                     IsRentingPerDay = true,
@@ -332,30 +363,322 @@ public static class SeedData
 
         var ownerIds = ownerPropertyMap.Keys.OrderBy(x => x).ToList();
 
-        foreach (var (year, month) in months)
+        var demoRenter = renters.FirstOrDefault(x => x.Username == "user1") ?? renters.First();
+
+        var otherRenters = renters
+            .Where(x => x.Id != demoRenter.Id)
+            .OrderBy(x => x.Id)
+            .ToList();
+
+        var demoOwnerProperties = properties
+            .Where(x => x.UserId == 1) // owner1
+            .OrderBy(x => x.Id)
+            .ToList();
+
+        if (demoOwnerProperties.Count < 10)
         {
-            // 25 rezervacija po mjesecu = 16 mjeseci * 25 = 400 rezervacija
-            // 2025 favorizuje prvog ownera za report
-            // 2026 favorizuje drugog ownera da statistika bude zanimljivija
+            demoOwnerProperties = properties.OrderBy(x => x.Id).Take(10).ToList();
+        }
+
+        var nonOwner1Properties = properties
+            .Where(x => x.UserId != 1)
+            .OrderBy(x => x.Id)
+            .ToList();
+
+        if (nonOwner1Properties.Count < 8)
+        {
+            nonOwner1Properties = properties
+                .OrderBy(x => x.Id)
+                .Skip(2)
+                .Take(8)
+                .ToList();
+        }
+
+        // =========================================
+        // DEMO REZERVACIJE ZA OWNER1
+        // owner1 nekretnine, ali različiti useri
+        // =========================================
+
+        // JAN 2026
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[0].Id,
+            PropertyId = demoOwnerProperties[0].Id,
+            IsMonthly = true,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2025, 12, 20, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 3, 1, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[1].Id,
+            PropertyId = demoOwnerProperties[1].Id,
+            IsMonthly = false,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 1, 8, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 1, 12, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 1, 18, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        // FEB 2026
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[2].Id,
+            PropertyId = demoOwnerProperties[2].Id,
+            IsMonthly = true,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 1, 28, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 2, 1, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[3].Id,
+            PropertyId = demoOwnerProperties[3].Id,
+            IsMonthly = false,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 2, 4, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 2, 7, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 2, 13, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        // MAR 2026
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[4].Id,
+            PropertyId = demoOwnerProperties[4].Id,
+            IsMonthly = true,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 2, 24, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 3, 1, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[5].Id,
+            PropertyId = demoOwnerProperties[5].Id,
+            IsMonthly = false,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 3, 5, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 3, 9, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 3, 15, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        // APR 2026
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[6].Id,
+            PropertyId = demoOwnerProperties[6].Id,
+            IsMonthly = true,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 3, 25, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[7].Id,
+            PropertyId = demoOwnerProperties[7].Id,
+            IsMonthly = false,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 4, 3, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 4, 8, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 4, 14, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        // Owner1 mora imati i odobreno / na čekanju / odbijeno / otkazano
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[8].Id,
+            PropertyId = demoOwnerProperties[8].Id,
+            IsMonthly = true,
+            Status = "Odobreno",
+            CreatedAt = new DateTime(2026, 4, 10, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 4, 15, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 6, 15, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[9].Id,
+            PropertyId = demoOwnerProperties[9].Id,
+            IsMonthly = false,
+            Status = "Na čekanju",
+            CreatedAt = new DateTime(2026, 4, 22, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 5, 12, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 5, 17, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[10].Id,
+            PropertyId = demoOwnerProperties[0].Id,
+            IsMonthly = false,
+            Status = "Odbijeno",
+            CreatedAt = new DateTime(2026, 4, 11, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 4, 20, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 4, 25, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = otherRenters[11].Id,
+            PropertyId = demoOwnerProperties[1].Id,
+            IsMonthly = true,
+            Status = "Otkazano",
+            CreatedAt = new DateTime(2026, 3, 18, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        // =========================================
+        // DEMO REZERVACIJE ZA USER1
+        // user1 rezerviše i kod drugih ownera
+        // =========================================
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = demoRenter.Id,
+            PropertyId = nonOwner1Properties[0].Id,
+            IsMonthly = false,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2025, 11, 10, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2025, 11, 15, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2025, 11, 20, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = demoRenter.Id,
+            PropertyId = nonOwner1Properties[1].Id,
+            IsMonthly = true,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 1, 14, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 1, 20, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 3, 20, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = demoRenter.Id,
+            PropertyId = nonOwner1Properties[2].Id,
+            IsMonthly = false,
+            Status = "Odobreno",
+            CreatedAt = new DateTime(2026, 4, 9, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 4, 25, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 4, 30, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = demoRenter.Id,
+            PropertyId = nonOwner1Properties[3].Id,
+            IsMonthly = false,
+            Status = "Na čekanju",
+            CreatedAt = new DateTime(2026, 4, 24, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 5, 18, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 5, 23, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = demoRenter.Id,
+            PropertyId = nonOwner1Properties[4].Id,
+            IsMonthly = true,
+            Status = "Otkazano",
+            CreatedAt = new DateTime(2026, 3, 10, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = demoRenter.Id,
+            PropertyId = nonOwner1Properties[5].Id,
+            IsMonthly = false,
+            Status = "Odbijeno",
+            CreatedAt = new DateTime(2026, 4, 5, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 4, 21, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 4, 26, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = demoRenter.Id,
+            PropertyId = nonOwner1Properties[6].Id,
+            IsMonthly = false,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 2, 14, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 2, 18, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 2, 24, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        reservations.Add(new Reservation
+        {
+            Id = reservationId++,
+            UserId = demoRenter.Id,
+            PropertyId = nonOwner1Properties[7].Id,
+            IsMonthly = true,
+            Status = "Završeno",
+            CreatedAt = new DateTime(2026, 3, 1, 10, 0, 0, DateTimeKind.Utc),
+            StartDateOfRenting = new DateTime(2026, 3, 5, 10, 0, 0, DateTimeKind.Utc),
+            EndDateOfRenting = new DateTime(2026, 4, 5, 10, 0, 0, DateTimeKind.Utc)
+        });
+
+        // 200 ukupno rezervacija raspoređenih kroz 16 mjeseci
+        // 8 mjeseci će imati 13 rezervacija, 8 mjeseci po 12 rezervacija
+        // => 8*13 + 8*12 = 200
+        for (int monthIndex = 0; monthIndex < months.Count; monthIndex++)
+        {
+            var (year, month) = months[monthIndex];
+
+            int reservationsThisMonth = monthIndex < 8 ? 13 : 12;
+
+            // 2025 favorizuje prvog ownera
+            // 2026 favorizuje drugog ownera
             var dominantOwnerId = year == 2025
                 ? ownerIds[0]
                 : ownerIds.Count > 1 ? ownerIds[1] : ownerIds[0];
 
-            for (int i = 0; i < 16; i++)
+            for (int i = 0; i < reservationsThisMonth; i++)
             {
                 int ownerId;
-                if (i < 10)
+                if (i < Math.Ceiling(reservationsThisMonth * 0.6))
                     ownerId = dominantOwnerId;
                 else
-                    ownerId = ownerIds[(i + month) % ownerIds.Count];
+                    ownerId = ownerIds[(monthIndex + i) % ownerIds.Count];
 
                 var ownerProperties = ownerPropertyMap[ownerId];
-                var property = ownerProperties[i % ownerProperties.Count];
-                var renter = renters[(reservationId + i + month) % renters.Count];
+                var property = ownerProperties[(i + monthIndex) % ownerProperties.Count];
+                var renter = renters[(reservationId * 3 + i + monthIndex) % renters.Count];
 
                 bool isMonthly = i % 3 != 0;
-                int day = Math.Min(1 + i, DateTime.DaysInMonth(year, month));
 
+                int day = Math.Min(2 + (i * 2), DateTime.DaysInMonth(year, month));
                 var createdAt = new DateTime(year, month, day, 10, 0, 0, DateTimeKind.Utc);
                 var startDate = createdAt.AddDays(2);
 
@@ -365,7 +688,18 @@ public static class SeedData
 
                 string status;
 
-                if (endDate < SeminarReferenceDate)
+                bool isCancelled = reservationId % 11 == 0;
+                bool isRejected = reservationId % 13 == 0;
+
+                if (isCancelled)
+                {
+                    status = "Otkazano";
+                }
+                else if (isRejected)
+                {
+                    status = "Odbijeno";
+                }
+                else if (endDate < SeminarReferenceDate)
                 {
                     status = "Završeno";
                 }
@@ -485,7 +819,19 @@ public static class SeedData
         {
             var renter = renters[i % renters.Count];
             var property = properties[(i * 2) % properties.Count];
-            bool? approved = i % 5 == 0 ? null : (i % 2 == 0);
+
+            string status;
+
+            if (i % 7 == 0)
+                status = "Na čekanju";
+            else if (i % 5 == 0)
+                status = "Odbijeno";
+            else if (i % 3 == 0)
+                status = "Otkazano";
+            else if (i % 2 == 0)
+                status = "Završeno";
+            else
+                status = "Odobreno";
 
             appointments.Add(new Appointment
             {
@@ -501,28 +847,32 @@ public static class SeedData
                     0,
                     DateTimeKind.Utc
                 ),
-                IsApproved = approved
+                Status = status
             });
         }
 
         return appointments;
     }
 
-    private static List<Review> GenerateReviews(List<User> renters, List<Property> properties)
+    private static List<Review> GenerateReviews(List<Reservation> reservations)
     {
         var reviews = new List<Review>();
         int reviewId = 1;
 
-        for (int i = 0; i < 50; i++)
+        var eligibleReservations = reservations
+            .Where(r => r.Status == "Završeno")
+            .OrderBy(r => r.Id)
+            .Take(50)
+            .ToList();
+
+        for (int i = 0; i < eligibleReservations.Count; i++)
         {
-            var renter = renters[i % renters.Count];
-            var property = properties[(i * 3) % properties.Count];
+            var reservation = eligibleReservations[i];
 
             reviews.Add(new Review
             {
                 Id = reviewId++,
-                UserId = renter.Id,
-                PropertyId = property.Id,
+                ReservationId = reservation.Id,
                 StarRate = 3 + (i % 3),
                 Comment = ReviewComments[i % ReviewComments.Length]
             });

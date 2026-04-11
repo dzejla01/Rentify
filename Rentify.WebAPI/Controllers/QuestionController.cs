@@ -29,7 +29,7 @@ namespace Rentify.API.Controllers
             return base.Delete(id);
         }
 
-        [Authorize(Roles = "Korisnik")]
+        [Authorize(Roles = "Vlasnik,Korisnik")]
         public override Task<QuestionResponse?> Update(int id, [FromBody] QuestionUpsertRequest request)
         {
             return base.Update(id, request);

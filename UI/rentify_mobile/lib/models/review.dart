@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:rentify_mobile/models/reservation.dart';
 
 import 'user.dart';
-import 'property.dart';
 
 part 'review.g.dart';
 
@@ -9,11 +9,8 @@ part 'review.g.dart';
 class Review {
   final int id;
 
-  final int userId;
-  final User? user;
-
-  final int propertyId;
-  final Property? property;
+  final int reservationId;
+  final Reservation? reservation;
 
   final String comment;
 
@@ -21,12 +18,10 @@ class Review {
 
   Review({
     required this.id,
-    required this.userId,
-    this.user,
-    required this.propertyId,
-    this.property,
+    required this.reservationId,
     required this.comment,
     required this.starRate,
+    this.reservation
   });
 
   factory Review.fromJson(Map<String, dynamic> json) =>

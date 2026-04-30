@@ -43,6 +43,28 @@ Nakon `git clone`, u repozitoriju se nalazi **šifrirani fajl**:
 
 Env-postavke.7z
 
+
+## ▶️ Pokretanje Stripe
+
+Instalirajte Stripe CLI:
+https://docs.stripe.com/stripe-cli/install
+
+Provjerite instalaciju:
+stripe --version
+
+Ulogujte se na Stripe dashboard:
+https://dashboard.stripe.com/login
+
+Email: usertestni089@gmail.com
+Password: USTestniER@!
+
+U terminalu pokrenite:
+stripe login
+
+Pokrenite listener:
+stripe listen --forward-to http://localhost:5002/api/payment/webhook
+
+
 ### Koraci:
 
 🔐 **Šifra arhive:** `FIT`
@@ -78,8 +100,6 @@ Kada su `.env` i `firebase` fajl pravilno postavljen, u terminalu (root folder p
 
 
 docker compose up -d --build
-
-
 
 
 ## ▶️ Pokretanje aplikacije

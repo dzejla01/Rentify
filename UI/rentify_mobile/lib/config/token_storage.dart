@@ -31,23 +31,4 @@ class TokenStorage {
   static Future<void> clear() async {
     await _storage.delete(key: _key);
   }
-
-  // -----------------
-  // TAGGS
-  // -----------------
-  // static Future<void> saveTaggs(List<String> taggs) async {
-  //   await _storage.write(key: _taggsKey, value: jsonEncode(taggs));
-  // }
-
-  // static Future<List<String>> readTaggs() async {
-  //   final raw = await _storage.read(key: _taggsKey);
-  //   if (raw == null || raw.trim().isEmpty) return [];
-  //   final decoded = jsonDecode(raw);
-  //   if (decoded is List) return decoded.map((e) => e.toString()).toList();
-  //   return [];
-  // }
-
-  // static Future<void> clearTaggs() async {
-  //   await _storage.delete(key: _taggsKey);
-  // }
 }

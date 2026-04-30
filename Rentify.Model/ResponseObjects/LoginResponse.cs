@@ -1,5 +1,4 @@
-﻿// Rentify.Model/Responses/LoginResponse.cs
-using Rentify.Model.ResponseObjects;
+﻿using Rentify.Model.ResponseObjects;
 using System;
 using System.Collections.Generic;
 

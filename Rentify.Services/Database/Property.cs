@@ -24,7 +24,6 @@ namespace Rentify.Services.Database
         public List<string> Tags { get; set; }
         public double SquareMeters { get; set; }
         public string Details { get; set; }
-        public bool IsAvailable { get; set; }
         public bool IsRentingPerDay {get; set;}
         public bool IsActiveOnApp { get; set; }
     }

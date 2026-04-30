@@ -74,7 +74,7 @@ class BaseMobileScreen extends StatelessWidget {
             builder: (context) => IconButton(
               tooltip: "Menu",
               icon: const Icon(Icons.menu_rounded, size: 28),
-              onPressed: () => Scaffold.of(context).openEndDrawer(), // ✅ bitno
+              onPressed: () => Scaffold.of(context).openEndDrawer(), 
             ),
           ),
           const SizedBox(width: 10),
@@ -92,7 +92,7 @@ class BaseMobileScreen extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
-            // Header
+            
             Container(
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
@@ -139,10 +139,8 @@ class BaseMobileScreen extends StatelessWidget {
               ),
             ),
 
-            // linija ispod headera
             const Divider(height: 1),
 
-            // Menu stavke
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 6),
@@ -241,7 +239,6 @@ class BaseMobileScreen extends StatelessWidget {
               ),
             ),
 
-            // Footer mali
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
               child: Row(

@@ -34,13 +34,11 @@ class _PropertyReservationUniversalScreenState
     extends State<PropertyReservationUniversalScreen> {
   static const rentifyGreenDark = Color(0xFF5F9F3B);
 
-  // --- MONTHLY state ---
   DateTime _visibleMonthYear = DateTime(DateTime.now().year, 1, 1);
   DateTime? _monthlyStart;
   DateTime? _monthlyEnd;
   late final Set<DateTime> _unavailableMonths;
 
-  // --- SHORT STAY state ---
   DateTime _visibleMonth = DateTime(
     DateTime.now().year,
     DateTime.now().month,
@@ -200,7 +198,6 @@ class _PropertyReservationUniversalScreenState
     );
   }
 
-  // ------------------ MONTHLY HELPERS ------------------
 
   DateTime _normalizeMonth(DateTime d) => DateTime(d.year, d.month, 1);
 
@@ -253,7 +250,6 @@ class _PropertyReservationUniversalScreenState
     }
   }
 
-  // ------------------ MONTHLY UI ------------------
 
   Widget _monthlyPickerCard() {
     final nowMonth = _normalizeMonth(DateTime.now());
@@ -401,7 +397,6 @@ class _PropertyReservationUniversalScreenState
     );
   }
 
-  // ------------------ SHORT STAY UI ------------------
 
   Widget _shortStayCalendarCard() {
     return _Card(
@@ -630,7 +625,6 @@ class _PropertyReservationUniversalScreenState
     return false;
   }
 
-  // ------------------ VALIDATION ------------------
 
   bool _validateForm() {
     final errors = <String, String>{};
@@ -786,7 +780,6 @@ class _PropertyReservationUniversalScreenState
     );
   }
 
-  // ------------------ SUMMARY + BOTTOM ------------------
 
   Widget _summaryCard() {
     final priceMonth = widget.property.pricePerMonth;
@@ -1021,7 +1014,6 @@ class _PropertyReservationUniversalScreenState
     }
   }
 
-  // ------------------ helpers ------------------
 
   DateTime _normalizeDate(DateTime d) => DateTime(d.year, d.month, d.day);
 

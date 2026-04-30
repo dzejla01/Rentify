@@ -24,6 +24,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   late final UniversalPagingProvider<Question> _paging;
 
   bool _isSaving = false;
+  bool? _selectedAnsweredFilter; 
 
   static const Color primary = Color(0xFF5F9F3B);
   static const Color border = Color(0xFFE0E0E0);
@@ -40,27 +41,32 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
 
     _paging = UniversalPagingProvider<Question>(
       pageSize: 6,
-      fetcher:
-          ({
-            required int page,
-            required int pageSize,
-            String? filter,
-            bool includeTotalCount = true,
-          }) async {
-            final map = <String, dynamic>{
-              "page": page,
-              "pageSize": pageSize,
-              "includeTotalCount": includeTotalCount,
-              "includeAnswer": true,
-              "ownerId": Session.userId,
-            };
+      fetcher: ({
+        required int page,
+        required int pageSize,
+        String? filter,
+        bool includeTotalCount = true,
+      }) async {
+        final map = <String, dynamic>{
+          "page": page,
+          "pageSize": pageSize,
+          "includeTotalCount": includeTotalCount,
+          "includeAnswer": true,
+          "ownerId": Session.userId,
+          "includeProperty": true,
+          "includeUser": true,
+        };
 
-            if (filter != null && filter.isNotEmpty) {
-              map["FTS"] = filter;
-            }
+        if (filter != null && filter.isNotEmpty) {
+          map["FTS"] = filter;
+        }
 
-            return await _questionProvider.get(filter: map);
-          },
+        if (_selectedAnsweredFilter != null) {
+          map["isAnswered"] = _selectedAnsweredFilter;
+        }
+
+        return await _questionProvider.get(filter: map);
+      },
     );
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -83,9 +89,19 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     return result.items.isEmpty ? null : result.items.first;
   }
 
+  Future<void> _setAnsweredFilter(bool? value) async {
+    setState(() {
+      _selectedAnsweredFilter = value;
+    });
+
+    await _paging.loadPage(
+      pageNumber: 0,
+      filter: _searchController.text.trim(),
+    );
+  }
+
   Future<void> _openDialog(Question q) async {
     final existing = await _getAnswer(q.id);
-
     final controller = TextEditingController(text: existing?.content ?? "");
 
     await showDialog(
@@ -121,7 +137,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Container(
+                SizedBox(
                   height: 100,
                   child: TextField(
                     controller: controller,
@@ -255,6 +271,76 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     controller.dispose();
   }
 
+  Widget _buildStatusFilters() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _StatusChip(
+          label: "Sve",
+          selected: _selectedAnsweredFilter == null,
+          onTap: () => _setAnsweredFilter(null),
+          color: const Color(0xFF5F9F3B),
+        ),
+        _StatusChip(
+          label: "Odgovoreno",
+          selected: _selectedAnsweredFilter == true,
+          onTap: () => _setAnsweredFilter(true),
+          color: Colors.green,
+        ),
+        _StatusChip(
+          label: "Na čekanju",
+          selected: _selectedAnsweredFilter == false,
+          onTap: () => _setAnsweredFilter(false),
+          color: const Color(0xFF5F9F3B),
+        ),
+      ],
+    );
+  }
+
+  Widget _footer() {
+    final totalPages = _paging.totalCount == 0
+        ? 1
+        : ((_paging.totalCount + _paging.pageSize - 1) ~/ _paging.pageSize);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildStatusFilters(),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Ukupno: ${_paging.totalCount}",
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            Row(
+              children: [
+                IconButton(
+                  onPressed: (!_paging.hasPreviousPage || _paging.isLoading)
+                      ? null
+                      : () async => await _paging.previousPage(),
+                  icon: const Icon(Icons.chevron_left),
+                ),
+                Text(
+                  "${_paging.page + 1} / $totalPages",
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                IconButton(
+                  onPressed: (!_paging.hasNextPage || _paging.isLoading)
+                      ? null
+                      : () async => await _paging.nextPage(),
+                  icon: const Icon(Icons.chevron_right),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildBody() {
     if (_paging.isLoading && _paging.items.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -277,8 +363,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
       itemCount: _paging.items.length,
       itemBuilder: (context, i) {
         final q = _paging.items[i];
-        final fullName = "${q.user?.firstName ?? ''} ${q.user?.lastName ?? ''}"
-            .trim();
+        final fullName =
+            "${q.user?.firstName ?? ''} ${q.user?.lastName ?? ''}".trim();
         final hasAnswer = q.isAnswered == true;
 
         return Container(
@@ -290,156 +376,106 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
             border: Border.all(color: border),
           ),
           child: Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    Text(
-      q.property?.name ?? "",
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-      style: const TextStyle(
-        fontWeight: FontWeight.w700,
-        fontSize: 14,
-        color: text,
-        height: 1.4,
-      ),
-    ),
-    const SizedBox(height: 8),
-    Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Text(
-            q.content ?? "",
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-              color: text,
-              height: 1.4,
-            ),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                q.property?.name ?? "",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: text,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      q.content,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: text,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: hasAnswer
+                          ? const Color(0xFFEAF6E3)
+                          : const Color(0xFFFFF4DA),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      hasAnswer ? "Odgovoreno" : "Na čekanju",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: hasAnswer ? primary : const Color(0xFFB28704),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Korisnik: ${fullName.isEmpty ? 'Nepoznato' : fullName}",
+                style: const TextStyle(color: subText, fontSize: 13),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "Datum: ${q.createdAt.day.toString().padLeft(2, '0')}.${q.createdAt.month.toString().padLeft(2, '0')}.${q.createdAt.year}",
+                style: const TextStyle(color: subText, fontSize: 13),
+              ),
+              if (hasAnswer && q.answer != null) ...[
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: border),
+                  ),
+                  child: Text(
+                    q.answer!.content,
+                    style: const TextStyle(
+                      color: text,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () => _openDialog(q),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(hasAnswer ? "Uredi odgovor" : "Odgovori"),
+                ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 10,
-            vertical: 6,
-          ),
-          decoration: BoxDecoration(
-            color: hasAnswer
-                ? const Color(0xFFEAF6E3)
-                : const Color(0xFFFFF4DA),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Text(
-            hasAnswer ? "Odgovoreno" : "Na čekanju",
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: hasAnswer ? primary : const Color(0xFFB28704),
-            ),
-          ),
-        ),
-      ],
-    ),
-    const SizedBox(height: 10),
-    Text(
-      "Korisnik: ${fullName.isEmpty ? 'Nepoznato' : fullName}",
-      style: const TextStyle(color: subText, fontSize: 13),
-    ),
-    const SizedBox(height: 6),
-    Text(
-      "Datum: ${q.createdAt.day.toString().padLeft(2, '0')}.${q.createdAt.month.toString().padLeft(2, '0')}.${q.createdAt.year}",
-      style: const TextStyle(color: subText, fontSize: 13),
-    ),
-    if (hasAnswer) ...[
-      const SizedBox(height: 12),
-      Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: border),
-        ),
-        child: Text(
-          q.answer!.content,
-          style: const TextStyle(
-            color: text,
-            fontSize: 13,
-            height: 1.4,
-          ),
-        ),
-      ),
-    ],
-    const SizedBox(height: 12),
-    Align(
-      alignment: Alignment.centerRight,
-      child: ElevatedButton(
-        onPressed: () => _openDialog(q),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        child: Text(hasAnswer ? "Uredi odgovor" : "Odgovori"),
-      ),
-    ),
-  ],
-),
         );
       },
-    );
-  }
-
-  Widget _buildPagingControls() {
-    final totalPages = _paging.totalCount == 0
-        ? 1
-        : ((_paging.totalCount + _paging.pageSize - 1) ~/ _paging.pageSize);
-
-    final currentPage = _paging.totalCount == 0 ? 0 : _paging.page + 1;
-
-    return Row(
-      children: [
-        Text(
-          "Stranica $currentPage / $totalPages",
-          style: const TextStyle(
-            fontSize: 13,
-            color: subText,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        const Spacer(),
-        OutlinedButton.icon(
-          onPressed: (!_paging.hasPreviousPage || _paging.isLoading)
-              ? null
-              : () async => await _paging.previousPage(),
-          icon: const Icon(Icons.chevron_left_rounded),
-          label: const Text("Prethodna"),
-          style: OutlinedButton.styleFrom(
-            side: const BorderSide(color: border),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        ElevatedButton.icon(
-          onPressed: (!_paging.hasNextPage || _paging.isLoading)
-              ? null
-              : () async => await _paging.nextPage(),
-          icon: const Icon(Icons.chevron_right_rounded),
-          label: const Text("Sljedeća"),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: primary,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -497,12 +533,52 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                   const SizedBox(height: 16),
                   Expanded(child: _buildBody()),
                   const SizedBox(height: 16),
-                  _buildPagingControls(),
+                  _footer(),
                 ],
               ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _StatusChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? color : Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? color : Colors.black.withOpacity(0.08),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : const Color(0xFF374151),
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ),
     );
   }

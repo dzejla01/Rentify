@@ -37,14 +37,23 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
   final _fields = Fields.fromNames(["title", "amount", "comment"]);
   final _dateToPayCtrl = TextEditingController();
   final _warningDateCtrl = TextEditingController();
+  final _secondWarningDateCtrl = TextEditingController();
 
   DateTime? _dateToPay;
   DateTime? _warningDateToPay;
+  DateTime? _secondWarningDate;
 
   Map<String, String?> _errors = {};
 
-  bool get _isReadOnly =>
-      widget.payment.isPayed == true; 
+  String get _paymentStatus => (widget.payment.paymentStatus ?? "").trim();
+
+  bool get _canEdit {
+    return _paymentStatus == "Na čekanju" ||
+        _paymentStatus == "Otkazano" ||
+        _paymentStatus == "Neuspješno";
+  }
+
+  bool get _isReadOnly => !_canEdit;
 
   @override
   void initState() {
@@ -58,17 +67,22 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
   void _fillFromPayment(Payment p) {
     _fields.controller("title").text = p.name;
     _fields.controller("amount").text = p.price.toStringAsFixed(2);
-    _fields.controller("comment").text = p.comment;
+    _fields.controller("comment").text = p.comment ?? "";
 
     _dateToPay = p.dateToPay;
     _warningDateToPay = p.warningDateToPay;
 
-    _dateToPayCtrl.text = _dateToPay != null
-        ? DateHelper.format(_dateToPay!)
-        : "";
-    _warningDateCtrl.text = _warningDateToPay != null
-        ? DateHelper.format(_warningDateToPay!)
-        : "";
+    _dateToPayCtrl.text =
+        _dateToPay != null ? DateHelper.format(_dateToPay!) : "";
+    _warningDateCtrl.text =
+        _warningDateToPay != null ? DateHelper.format(_warningDateToPay!) : "";
+
+    if (p.secondWarningDate != null) {
+      _secondWarningDate = p.secondWarningDate;
+      _secondWarningDateCtrl.text = DateHelper.format(_secondWarningDate!);
+    } else if (_warningDateToPay != null) {
+      _syncSecondWarningDate();
+    }
   }
 
   void _attachAutoRemoval() {
@@ -96,11 +110,23 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
     );
   }
 
+  void _syncSecondWarningDate() {
+    if (_warningDateToPay == null) {
+      _secondWarningDate = null;
+      _secondWarningDateCtrl.clear();
+      return;
+    }
+
+    _secondWarningDate = _warningDateToPay!.add(const Duration(days: 3));
+    _secondWarningDateCtrl.text = DateHelper.format(_secondWarningDate!);
+  }
+
   @override
   void dispose() {
     _fields.dispose();
     _dateToPayCtrl.dispose();
     _warningDateCtrl.dispose();
+    _secondWarningDateCtrl.dispose();
     super.dispose();
   }
 
@@ -112,14 +138,12 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
     DateTime last;
 
     if (widget.isMonthly) {
-      // ✅ najamnina: zaključaj na payment month/year
       final m = widget.payment.monthNumber;
       final y = widget.payment.yearNumber;
 
       first = DateTime(y, m, 1);
       last = DateTime(y, m + 1, 0);
     } else {
-      // ✅ kratki boravak: bez ograničenja (široko)
       final now = DateTime.now();
       first = DateTime(now.year - 2, 1, 1);
       last = DateTime(now.year + 2, 12, 31);
@@ -143,6 +167,8 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
   Future<void> _submit() async {
     if (_isReadOnly) return;
 
+    _errors = {};
+
     final rules = <FieldRule>[
       Rules.requiredText("title", _fields.text("title"), "Naziv je obavezan."),
       Rules.minLength(
@@ -151,25 +177,9 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
         3,
         "Naziv mora imati barem 3 karaktera.",
       ),
-      Rules.requiredText(
-        "comment",
-        _fields.text("comment"),
-        "Komentar je obavezan.",
-      ),
       FieldRule(
         "dateToPay",
         () => _dateToPay == null ? "Rok plaćanja je obavezan." : null,
-      ),
-      FieldRule(
-        "warningDateToPay",
-        () => _warningDateToPay == null ? "Warning datum je obavezan." : null,
-      ),
-
-      FieldRule(
-        "dateToPay",
-        () => _dateToPay == null
-            ? "Rok plaćanja je obavezan."
-            : null,
       ),
       FieldRule(
         "warningDateToPay",
@@ -224,12 +234,11 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
         );
 
         if (warning.isAtSameMomentAs(due)) {
-          return "Rok plaćana ne smije biti isti kao warning datum.";
+          return "Rok plaćanja ne smije biti isti kao warning datum.";
         }
 
         return null;
       }),
-      
       if (!widget.isMonthly)
         Rules.positiveNumber(
           "amount",
@@ -242,57 +251,70 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
       _errors[field] = message;
       setState(() {});
     });
+
     if (!isValid) return;
 
     try {
       final req = <String, dynamic>{
-        // "userId": widget.payment.userId,
-        // "propertyId": widget.payment.propertyId,
         "reservationId": widget.payment.reservation!.id,
         "price": widget.isMonthly
-            ? (widget.payment.price)
+            ? widget.payment.price
             : (double.tryParse(_fields.text("amount").replaceAll(",", ".")) ??
-                  (widget.payment.price)),
-
-        "name": _fields.text("title"),
-        "isPayed": widget.payment.isPayed == true,
-        "comment": _fields.text("comment"),
+                widget.payment.price),
+        "name": _fields.text("title").trim(),
+        "paymentStatus": widget.payment.paymentStatus,
+        "comment": _fields.text("comment").trim().isEmpty
+            ? null
+            : _fields.text("comment").trim(),
         "monthNumber": widget.isMonthly ? widget.payment.monthNumber : 0,
         "yearNumber": widget.isMonthly ? widget.payment.yearNumber : 0,
         "dateToPay": DateHelper.toUtcIsoNullable(_dateToPay),
         "warningDateToPay": DateHelper.toUtcIsoNullable(_warningDateToPay),
+        "secondWarningDate": DateHelper.toUtcIsoNullable(_secondWarningDate),
       };
 
       if (!widget.isMonthly) {
         req["price"] =
             double.tryParse(_fields.text("amount").replaceAll(",", ".")) ??
-            widget.payment.price;
+                widget.payment.price;
       }
 
       await _paymentProvider.update(widget.payment.id, req);
 
+      if (!mounted) return;
       SnackbarHelper.showSuccess(context, "Zahtjev uspješno ažuriran.");
       Navigator.pop(context, true);
     } catch (e) {
+      if (!mounted) return;
       SnackbarHelper.showError(context, "Greška prilikom ažuriranja zahtjeva.");
     }
   }
 
   InputDecoration _decoration(String key) => InputDecoration(
-    border: const OutlineInputBorder(),
-    errorText: _errors[key],
-    isDense: true,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-  );
+        border: const OutlineInputBorder(),
+        errorText: _errors[key],
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      );
+
+  String _lockedMessage() {
+    switch (_paymentStatus) {
+      case "Plaćeno":
+        return "Ova uplata je zaključana jer je plaćena.";
+      case "Neplaćeno":
+        return "Ova uplata je zaključana jer je označena kao neplaćena.";
+      case "Procesiranje":
+        return "Ova uplata se trenutno procesira i ne može se uređivati.";
+      default:
+        return "Ova uplata se ne može uređivati.";
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final periodText = widget.isMonthly
         ? "(${widget.payment.monthNumber}.${widget.payment.yearNumber})"
         : "(kratki boravak)";
-
-    final isAmountEnabled =
-        !_isReadOnly && !widget.isMonthly; // ✅ short stay enabled
 
     return RentifyBasePage(
       title:
@@ -310,6 +332,15 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 8),
+              Text(
+                "Status: ${widget.payment.paymentStatus ?? "Nepoznato"}",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: _isReadOnly ? Colors.red.shade700 : Colors.green.shade700,
+                ),
+              ),
               const SizedBox(height: 20),
 
               const Text("Naziv:*"),
@@ -325,7 +356,7 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
               const Text("Iznos:*"),
               const SizedBox(height: 5),
               TextField(
-                enabled: false,
+                enabled: !widget.isMonthly && !_isReadOnly,
                 controller: _fields.controller("amount"),
                 keyboardType: TextInputType.number,
                 decoration: _decoration("amount"),
@@ -342,22 +373,23 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
                 onTap: _isReadOnly
                     ? null
                     : () => _pickDate(
-                        initial: _dateToPay,
-                        onPicked: (d) {
-                          setState(() {
-                            _dateToPay = d;
-                            _dateToPayCtrl.text = DateHelper.format(d);
-                            _errors.remove("dateToPay");
+                          initial: _dateToPay,
+                          onPicked: (d) {
+                            setState(() {
+                              _dateToPay = d;
+                              _dateToPayCtrl.text = DateHelper.format(d);
+                              _errors.remove("dateToPay");
 
-                            // Ako warning ode iza roka, očisti ga
-                            if (_warningDateToPay != null &&
-                                _warningDateToPay!.isAfter(d)) {
-                              _warningDateToPay = null;
-                              _warningDateCtrl.clear();
-                            }
-                          });
-                        },
-                      ),
+                              if (_warningDateToPay != null &&
+                                  _warningDateToPay!.isBefore(d)) {
+                                _warningDateToPay = null;
+                                _warningDateCtrl.clear();
+                                _secondWarningDate = null;
+                                _secondWarningDateCtrl.clear();
+                              }
+                            });
+                          },
+                        ),
                 decoration: _decoration("dateToPay").copyWith(
                   hintText: "Odaberite datum",
                   suffixIcon: IconButton(
@@ -365,21 +397,23 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
                     onPressed: _isReadOnly
                         ? null
                         : () => _pickDate(
-                            initial: _dateToPay,
-                            onPicked: (d) {
-                              setState(() {
-                                _dateToPay = d;
-                                _dateToPayCtrl.text = DateHelper.format(d);
-                                _errors.remove("dateToPay");
+                              initial: _dateToPay,
+                              onPicked: (d) {
+                                setState(() {
+                                  _dateToPay = d;
+                                  _dateToPayCtrl.text = DateHelper.format(d);
+                                  _errors.remove("dateToPay");
 
-                                if (_warningDateToPay != null &&
-                                    _warningDateToPay!.isAfter(d)) {
-                                  _warningDateToPay = null;
-                                  _warningDateCtrl.clear();
-                                }
-                              });
-                            },
-                          ),
+                                  if (_warningDateToPay != null &&
+                                      _warningDateToPay!.isBefore(d)) {
+                                    _warningDateToPay = null;
+                                    _warningDateCtrl.clear();
+                                    _secondWarningDate = null;
+                                    _secondWarningDateCtrl.clear();
+                                  }
+                                });
+                              },
+                            ),
                   ),
                 ),
               ),
@@ -395,15 +429,16 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
                 onTap: _isReadOnly
                     ? null
                     : () => _pickDate(
-                        initial: _warningDateToPay ?? _dateToPay,
-                        onPicked: (d) {
-                          setState(() {
-                            _warningDateToPay = d;
-                            _warningDateCtrl.text = DateHelper.format(d);
-                            _errors.remove("warningDateToPay");
-                          });
-                        },
-                      ),
+                          initial: _warningDateToPay ?? _dateToPay,
+                          onPicked: (d) {
+                            setState(() {
+                              _warningDateToPay = d;
+                              _warningDateCtrl.text = DateHelper.format(d);
+                              _errors.remove("warningDateToPay");
+                              _syncSecondWarningDate();
+                            });
+                          },
+                        ),
                 decoration: _decoration("warningDateToPay").copyWith(
                   hintText: "Odaberite datum",
                   suffixIcon: IconButton(
@@ -411,30 +446,44 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
                     onPressed: _isReadOnly
                         ? null
                         : () => _pickDate(
-                            initial: _warningDateToPay ?? _dateToPay,
-                            onPicked: (d) {
-                              setState(() {
-                                _warningDateToPay = d;
-                                _warningDateCtrl.text = DateHelper.format(d);
-                                _errors.remove("warningDateToPay");
-                              });
-                            },
-                          ),
+                              initial: _warningDateToPay ?? _dateToPay,
+                              onPicked: (d) {
+                                setState(() {
+                                  _warningDateToPay = d;
+                                  _warningDateCtrl.text = DateHelper.format(d);
+                                  _errors.remove("warningDateToPay");
+                                  _syncSecondWarningDate();
+                                });
+                              },
+                            ),
                   ),
                 ),
               ),
 
               const SizedBox(height: 20),
 
-              const Text("Komentar:*"),
+              const Text("Drugi warning datum:"),
+              const SizedBox(height: 5),
+              TextField(
+                enabled: false,
+                controller: _secondWarningDateCtrl,
+                readOnly: true,
+                decoration: _decoration("secondWarningDate").copyWith(
+                  hintText: "Automatski se postavlja 3 dana nakon warning datuma",
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              const Text("Komentar:"),
               const SizedBox(height: 5),
               TextField(
                 enabled: !_isReadOnly,
                 controller: _fields.controller("comment"),
                 maxLines: 5,
-                decoration: _decoration(
-                  "comment",
-                ).copyWith(contentPadding: const EdgeInsets.all(10)),
+                decoration: _decoration("comment").copyWith(
+                  contentPadding: const EdgeInsets.all(10),
+                ),
               ),
 
               const SizedBox(height: 30),
@@ -452,9 +501,9 @@ class _PaymentEditingScreenState extends State<PaymentEditingScreen> {
                   ),
                 )
               else
-                const Text(
-                  "Ova uplata je zaključana jer je plaćena.",
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                Text(
+                  _lockedMessage(),
+                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
             ],
           ),

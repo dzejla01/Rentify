@@ -248,12 +248,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   Future<void> _handleReservationClick(Property property) async {
     final pid = property.id;
-    if (pid == null) {
-      _showSnackBar("Nekretnina nije dostupna.", isError: true);
-      return;
-    }
 
-    final supportsShortStay = property.isRentingPerDay ?? false;
+    final supportsShortStay = property.isRentingPerDay;
 
     final hasPendingMonthly = await _hasPendingMonthlyRent(context, pid);
     final hasPendingShortStay = await _hasPendingShortStay(context, pid);
@@ -261,7 +257,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
     if (!mounted) return;
 
-    // SAMO NAJAMNINA
     if (!supportsShortStay) {
       if (hasPendingMonthly) {
         _showSnackBar(
@@ -292,7 +287,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       return;
     }
 
-    // PODRŽAVA OBA TIPA
     final monthlyBlocked = hasPendingMonthly || hasApprovedMonthly;
     final shortStayBlocked = hasPendingShortStay;
 
@@ -441,9 +435,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
     final monthPrice = property.pricePerMonth;
     final dayPrice = property.pricePerDay;
-
-    final isAvailable = property.isAvailable ?? false;
-    final supportsShortStay = property.isRentingPerDay ?? false;
+    final supportsShortStay = property.isRentingPerDay;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7F8),
@@ -465,33 +457,6 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            title.isEmpty ? "Nekretnina" : title,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w900,
-                              color: Color(0xFF2F2F2F),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        _Badge(
-                          text: isAvailable ? "Dostupno" : "Nedostupno",
-                          bg: isAvailable
-                              ? const Color(0xFFE7F6EA)
-                              : const Color(0xFFFFE8E8),
-                          fg: isAvailable
-                              ? const Color(0xFF1B7A2B)
-                              : const Color(0xFFB00020),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-
                     _InfoCard(
                       child: Column(
                         children: [
@@ -558,17 +523,19 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                                   icon: Icons.calendar_month_rounded,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: _PriceBox(
-                                  title: "Po noći",
-                                  value: dayPrice == null
-                                      ? "—"
-                                      : "${dayPrice.toStringAsFixed(0)} KM",
-                                  accent: rentifyGreenDark,
-                                  icon: Icons.nightlight_round,
+                              if (supportsShortStay) ...[
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: _PriceBox(
+                                    title: "Po noći",
+                                    value: dayPrice == null
+                                        ? "—"
+                                        : "${dayPrice.toStringAsFixed(0)} KM",
+                                    accent: rentifyGreenDark,
+                                    icon: Icons.nightlight_round,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ],
@@ -691,9 +658,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               child: SizedBox(
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: !isAvailable
-                      ? null
-                      : () async => _handleReservationClick(property),
+                  onPressed: () async => _handleReservationClick(property),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: rentifyGreenDark,
                     foregroundColor: Colors.white,
@@ -1520,29 +1485,6 @@ class _TagChip extends StatelessWidget {
           fontSize: 12,
           color: Color(0xFF2F2F2F),
         ),
-      ),
-    );
-  }
-}
-
-class _Badge extends StatelessWidget {
-  const _Badge({required this.text, required this.bg, required this.fg});
-  final String text;
-  final Color bg;
-  final Color fg;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0x11000000)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: fg),
       ),
     );
   }

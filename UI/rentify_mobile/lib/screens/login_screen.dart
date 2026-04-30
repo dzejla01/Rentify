@@ -158,7 +158,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         children: [
                           const SizedBox(height: 4),
 
-                          // Logo + naslov
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

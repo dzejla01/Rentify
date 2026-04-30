@@ -1,6 +1,5 @@
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
-using Rentify.Model;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Services.Database;
@@ -13,15 +12,16 @@ namespace Rentify.Services.AppointmentStateMachine
         public PendingAppointmentState(
             IServiceProvider serviceProvider,
             RentifyDbContext context,
-            IMapper mapper) : base(serviceProvider, context, mapper)
+            IMapper mapper
+        ) : base(serviceProvider, context, mapper)
         {
         }
 
         public override async Task<AppointmentResponse> UpdateAsync(int id, AppointmentUpsertRequest request)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            var entity = await _context.Appointments.FindAsync(id);
             if (entity == null)
-                throw new UserException("Rezervacija nije pronađena.");
+                throw new UserException("Termin nije pronađen.");
 
             _mapper.Map(request, entity);
 
@@ -31,95 +31,26 @@ namespace Rentify.Services.AppointmentStateMachine
 
         public override async Task<AppointmentResponse> ToApprovedAsync(int id)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            var entity = await _context.Appointments.FindAsync(id);
             if (entity == null)
-                throw new UserException("Rezervacija nije pronađena.");
+                throw new UserException("Termin nije pronađen.");
 
-            if (!entity.StartDateOfRenting.HasValue || !entity.EndDateOfRenting.HasValue)
-                throw new UserException("Rezervacija nema definisan period.");
+            if (!entity.DateAppointment.HasValue)
+                throw new UserException("Termin nema definisan datum.");
 
-            var start = entity.StartDateOfRenting.Value;
-            var end = entity.EndDateOfRenting.Value;
+            var hasConflict = await _context.Appointments
+                .AsNoTracking()
+                .Where(x => x.Id != entity.Id)
+                .Where(x => x.PropertyId == entity.PropertyId)
+                .Where(x => x.Status == "Odobreno")
+                .Where(x => x.DateAppointment != null)
+                .AnyAsync(x => x.DateAppointment == entity.DateAppointment);
 
-            if (entity.IsMonthly)
+            if (hasConflict)
             {
-                var hasApprovedMonthlyConflict = await _context.Reservations
-                    .AsNoTracking()
-                    .Where(r => r.Id != entity.Id)
-                    .Where(r => r.PropertyId == entity.PropertyId)
-                    .Where(r => r.IsMonthly == true)
-                    .Where(r => r.Status == "Odobreno")
-                    .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
-                    .AnyAsync(r =>
-                        start <= r.EndDateOfRenting!.Value &&
-                        end >= r.StartDateOfRenting!.Value
-                    );
-
-                if (hasApprovedMonthlyConflict)
-                {
-                    throw new UserException(
-                        "Najamnina se ne može odobriti jer već postoji odobrena najamnina za ovu nekretninu u odabranom periodu."
-                    );
-                }
-
-                var hasApprovedShortStayConflict = await _context.Reservations
-                    .AsNoTracking()
-                    .Where(r => r.Id != entity.Id)
-                    .Where(r => r.PropertyId == entity.PropertyId)
-                    .Where(r => r.IsMonthly == false)
-                    .Where(r => r.Status == "Odobreno")
-                    .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
-                    .AnyAsync(r =>
-                        start < r.EndDateOfRenting!.Value &&
-                        end > r.StartDateOfRenting!.Value
-                    );
-
-                if (hasApprovedShortStayConflict)
-                {
-                    throw new UserException(
-                        "Najamnina se ne može odobriti jer već postoji odobren kratki boravak za ovu nekretninu u tom periodu."
-                    );
-                }
-            }
-            else
-            {
-                var hasApprovedShortStayConflict = await _context.Reservations
-                    .AsNoTracking()
-                    .Where(r => r.Id != entity.Id)
-                    .Where(r => r.PropertyId == entity.PropertyId)
-                    .Where(r => r.IsMonthly == false)
-                    .Where(r => r.Status == "Odobreno")
-                    .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
-                    .AnyAsync(r =>
-                        start < r.EndDateOfRenting!.Value &&
-                        end > r.StartDateOfRenting!.Value
-                    );
-
-                if (hasApprovedShortStayConflict)
-                {
-                    throw new UserException(
-                        "Kratki boravak se ne može odobriti jer već postoji odobren kratki boravak za ovu nekretninu u tom periodu."
-                    );
-                }
-
-                var hasApprovedMonthlyConflict = await _context.Reservations
-                    .AsNoTracking()
-                    .Where(r => r.Id != entity.Id)
-                    .Where(r => r.PropertyId == entity.PropertyId)
-                    .Where(r => r.IsMonthly == true)
-                    .Where(r => r.Status == "Odobreno")
-                    .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
-                    .AnyAsync(r =>
-                        start <= r.EndDateOfRenting!.Value &&
-                        end >= r.StartDateOfRenting!.Value
-                    );
-
-                if (hasApprovedMonthlyConflict)
-                {
-                    throw new UserException(
-                        "Kratki boravak se ne može odobriti jer već postoji odobrena najamnina za ovu nekretninu u tom periodu."
-                    );
-                }
+                throw new UserException(
+                    "Termin se ne može odobriti jer već postoji odobren termin za ovu nekretninu u tom terminu."
+                );
             }
 
             entity.Status = "Odobreno";
@@ -130,9 +61,9 @@ namespace Rentify.Services.AppointmentStateMachine
 
         public override async Task<AppointmentResponse> ToFinishedAsync(int id)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            var entity = await _context.Appointments.FindAsync(id);
             if (entity == null)
-                throw new UserException("Rezervacija nije pronađena.");
+                throw new UserException("Termin nije pronađen.");
 
             entity.Status = "Završeno";
 
@@ -142,9 +73,9 @@ namespace Rentify.Services.AppointmentStateMachine
 
         public override async Task<AppointmentResponse> ToRejectedAsync(int id)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            var entity = await _context.Appointments.FindAsync(id);
             if (entity == null)
-                throw new UserException("Rezervacija nije pronađena.");
+                throw new UserException("Termin nije pronađen.");
 
             entity.Status = "Odbijeno";
 
@@ -154,9 +85,9 @@ namespace Rentify.Services.AppointmentStateMachine
 
         public override async Task<AppointmentResponse> ToCancelledAsync(int id)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            var entity = await _context.Appointments.FindAsync(id);
             if (entity == null)
-                throw new UserException("Rezervacija nije pronađena.");
+                throw new UserException("Termin nije pronađen.");
 
             entity.Status = "Otkazano";
 

@@ -10,7 +10,6 @@ namespace Rentify.Model.SearchObjects
         public string? Status { get; set; }
         public int? OwnerId {get; set;}
 
-        // Include
         public bool? IncludeUser {get; set;}
         public bool? IncludeProperty {get; set;}
     }

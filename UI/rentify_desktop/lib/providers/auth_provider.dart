@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:rentify_desktop/config/api_config.dart';
 import 'package:rentify_desktop/helper/http_helper.dart';
 
 import '../models/login_request.dart';
@@ -8,7 +9,7 @@ import '../models/login_response.dart';
 import '../utils/session.dart';
 
 class AuthProvider with ChangeNotifier {
-  static const String apiUrl = "http://localhost:5103/api/User/login";
+  static String apiUrl = "${ApiConfig.apiBase}/api/User/login";
 
   Future<String> prijava(LoginRequest request) async {
     final url = Uri.parse(apiUrl);

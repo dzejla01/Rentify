@@ -104,13 +104,13 @@ Ovo je **najbrži način** za testiranje aplikacije bez dodatne konfiguracije.
 ### 🖥️ Desktop aplikacija
 
 **Admin**
-- Username: `owner2`
+- Username: `owner1`
 - Password: `Test123!`
 
 ## Email testiranje
 
 Za testiranje dolaska maila na email dummy korisnika
-"Nikola Jovic (owner2)" koristite:
+"Darko Hodzic (owner1)" koristite:
 
 - **Email:** `owner.testni@gmail.com`
 - **Password:** `ownertestni123`

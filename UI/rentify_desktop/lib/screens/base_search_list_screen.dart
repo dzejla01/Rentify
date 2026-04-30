@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class RentifyColors {
-  static const primary = Color(0xFF5F9F3B); // tamnija zelena
-  static const primaryLight = Color(0xFFEAF6E5); // svijetlo zelena pozadina
+  static const primary = Color(0xFF5F9F3B);  
+  static const primaryLight = Color(0xFFEAF6E5); 
   static const surface = Colors.white;
   static const border = Color(0xFFDFE6DA);
   static const text = Color(0xFF1F2A1F);
@@ -19,16 +19,13 @@ class BaseColumn<T> {
 class BaseSearchAndTable<T> extends StatelessWidget {
   final String title;
 
-  /// Top bar
   final String searchHint;
   final void Function(String value)? onSearchChanged;
   final VoidCallback? onClearSearch;
 
-  /// ADD button (optional)
   final String? addButtonText;
   final VoidCallback? onAdd;
 
-  /// Table
   final List<BaseColumn<T>> columns;
   final List<T> items;
 
@@ -106,7 +103,6 @@ Widget build(BuildContext context) {
 
         const SizedBox(height: 18),
 
-        // TABLE HEADER
         Container(
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
           decoration: BoxDecoration(
@@ -147,7 +143,6 @@ Widget build(BuildContext context) {
 
         const SizedBox(height: 6),
 
-        // TABLE BODY
         Expanded(
           child: items.isEmpty
               ? const Center(

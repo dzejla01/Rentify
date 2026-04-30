@@ -11,8 +11,8 @@ namespace Rentify.Model.SearchObjects
         public bool? IsPayed { get; set; }
         public int? MonthNumber { get; set;}
         public int? YearNumber { get; set; }
-
         public string? ReservationStatus { get; set;}
+        public string? PaymentStatus { get; set; }
 
         public bool? IncludeUser {get; set;}
         public bool? IncludeProperty {get; set;}

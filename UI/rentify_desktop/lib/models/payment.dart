@@ -8,7 +8,6 @@ part 'payment.g.dart';
 @JsonSerializable()
 class Payment {
   final int id;
-  // ako bude se vracalo ovdj ide userid user, prpertyid, property
   final int reservationId;
   Reservation? reservation;
   final String name;
@@ -16,9 +15,10 @@ class Payment {
   final double price;
   final int monthNumber;
   final int yearNumber;
-  final bool isPayed;
+  final String paymentStatus;
   DateTime? dateToPay;
-  DateTime? warningDateToPay;  
+  DateTime? warningDateToPay;
+  DateTime? secondWarningDate;
 
   Payment({
     required this.id,
@@ -27,11 +27,12 @@ class Payment {
     required this.name,
     required this.comment,
     required this.price,
-    required this.isPayed,
+    required this.paymentStatus,
     required this.monthNumber,
     required this.yearNumber,
     this.dateToPay,
     this.warningDateToPay,
+    this.secondWarningDate
   });
 
   factory Payment.fromJson(Map<String, dynamic> json) =>

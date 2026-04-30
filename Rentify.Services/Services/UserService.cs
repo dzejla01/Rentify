@@ -40,13 +40,19 @@ namespace Rentify.Services
 
         protected override IQueryable<User> ApplyFilter(IQueryable<User> query, UserSearchObject search)
         {
-            if (!string.IsNullOrWhiteSpace(search.NameFTS))
+            var nameFts = !string.IsNullOrWhiteSpace(search.NameFTS)
+                ? search.NameFTS
+                : search.FTS;
+
+            if (!string.IsNullOrWhiteSpace(nameFts))
             {
-                var s = search.NameFTS.Trim().ToLower();
+                var s = string.Join(" ", nameFts.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
                 query = query.Where(x =>
                     x.FirstName.ToLower().Contains(s) ||
                     x.LastName.ToLower().Contains(s) ||
+                    (x.FirstName + " " + x.LastName).ToLower().Contains(s) ||
+                    (x.LastName + " " + x.FirstName).ToLower().Contains(s) ||
                     x.Username.ToLower().Contains(s) ||
                     x.Email.ToLower().Contains(s));
             }

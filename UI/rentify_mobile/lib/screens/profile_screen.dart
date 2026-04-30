@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/helper/date_helper.dart';
 import 'package:rentify_mobile/helper/image_helper.dart';
+import 'package:rentify_mobile/helper/snackBar_helper.dart';
 import 'package:rentify_mobile/helper/text_editing_controller_helper.dart';
 import 'package:rentify_mobile/models/user.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
@@ -138,44 +139,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _validateForm() {
     _fieldErrors.clear();
 
-    final isValid = ValidationEngine.validate([
-      Rules.requiredText(
-        'firstName',
-        fields.text('firstName'),
-        'Ime je obavezno.',
-      ),
-      Rules.minLength(
-        'firstName',
-        fields.text('firstName'),
-        2,
-        'Ime mora imati najmanje 2 karaktera.',
-      ),
-      Rules.requiredText(
-        'lastName',
-        fields.text('lastName'),
-        'Prezime je obavezno.',
-      ),
-      Rules.minLength(
-        'lastName',
-        fields.text('lastName'),
-        2,
-        'Prezime mora imati najmanje 2 karaktera.',
-      ),
-      Rules.email('email', fields.text('email')),
-      Rules.username('username', fields.text('username')),
-      Rules.phone(
-        'phoneNumber',
-        fields.text('phoneNumber'),
-        required: true,
-      ),
-      Rules.requiredText(
-        'birthDate',
-        fields.text('birthDate'),
-        'Datum rođenja je obavezan.',
-      ),
-    ], (field, message) {
-      _fieldErrors[field] = message;
-    });
+    final isValid = ValidationEngine.validate(
+      [
+        Rules.requiredText(
+          'firstName',
+          fields.text('firstName'),
+          'Ime je obavezno.',
+        ),
+        Rules.minLength(
+          'firstName',
+          fields.text('firstName'),
+          2,
+          'Ime mora imati najmanje 2 karaktera.',
+        ),
+        Rules.requiredText(
+          'lastName',
+          fields.text('lastName'),
+          'Prezime je obavezno.',
+        ),
+        Rules.minLength(
+          'lastName',
+          fields.text('lastName'),
+          2,
+          'Prezime mora imati najmanje 2 karaktera.',
+        ),
+        Rules.email('email', fields.text('email')),
+        Rules.username('username', fields.text('username')),
+        Rules.phone('phoneNumber', fields.text('phoneNumber'), required: true),
+        Rules.requiredText(
+          'birthDate',
+          fields.text('birthDate'),
+          'Datum rođenja je obavezan.',
+        ),
+      ],
+      (field, message) {
+        _fieldErrors[field] = message;
+      },
+    );
 
     setState(() {});
     return isValid;
@@ -250,16 +250,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Profil je uspješno sačuvan.")),
-      );
+      SnackbarHelper.showUpdate(context, "Profil je uspješno sačuvan");
 
       await _loadUser();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text("Greška: $e")));
+      SnackbarHelper.showUpdate(context, "$e");
     }
   }
 
@@ -271,85 +267,82 @@ class _ProfileScreenState extends State<ProfileScreen> {
       userUsername: Session.username ?? "Nepoznato",
       userImageAsset: Session.userImage,
       onLogout: () async {
-  await Session.odjava(
-    deviceTokenProvider: context.read<DeviceTokenProvider>(),
-    authProvider: context.read<AuthProvider>(),
-  );
+        await Session.odjava(
+          deviceTokenProvider: context.read<DeviceTokenProvider>(),
+          authProvider: context.read<AuthProvider>(),
+        );
 
-  if (!context.mounted) return;
+        if (!context.mounted) return;
 
-  Navigator.pushNamedAndRemoveUntil(
-    context,
-    AppRoutes.login,
-    (route) => false,
-  );
-},
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.login,
+          (route) => false,
+        );
+      },
       child: Container(
         color: const Color(0xFFF6F7FB),
         child: _loading
             ? const Center(child: CircularProgressIndicator())
             : (_error != null)
-                ? _ErrorState(message: _error!, onRetry: _loadUser)
-                : _user == null
-                    ? _ErrorState(
-                        message: "Korisnik nije učitan.",
-                        onRetry: _loadUser,
-                      )
-                    : Column(
-                        children: [
-                          Expanded(
-                            child: ListView(
-                              padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                              children: [
-                                _HeaderCard(
-                                  user: _user!,
-                                  pickedImage: _pickedImage,
-                                  onChangeImage: _pickImage,
-                                ),
-                                const SizedBox(height: 12),
-                                _FormCard(
-                                  fields: fields,
-                                  fieldErrors: _fieldErrors,
-                                  onAnyChanged: () => setState(() {}),
-                                ),
-                                const SizedBox(height: 14),
-                              ],
-                            ),
+            ? _ErrorState(message: _error!, onRetry: _loadUser)
+            : _user == null
+            ? _ErrorState(message: "Korisnik nije učitan.", onRetry: _loadUser)
+            : Column(
+                children: [
+                  Expanded(
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                      children: [
+                        _HeaderCard(
+                          user: _user!,
+                          pickedImage: _pickedImage,
+                          onChangeImage: _pickImage,
+                        ),
+                        const SizedBox(height: 12),
+                        _FormCard(
+                          fields: fields,
+                          fieldErrors: _fieldErrors,
+                          onAnyChanged: () => setState(() {}),
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.06),
+                          blurRadius: 18,
+                          offset: const Offset(0, -8),
+                        ),
+                      ],
+                    ),
+                    child: SizedBox(
+                      height: 48,
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _hasChanges() ? _save : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: rentifyGreenDark,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
                           ),
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.06),
-                                  blurRadius: 18,
-                                  offset: const Offset(0, -8),
-                                ),
-                              ],
-                            ),
-                            child: SizedBox(
-                              height: 48,
-                              width: double.infinity,
-                              child: ElevatedButton(
-                                onPressed: _hasChanges() ? _save : null,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: rentifyGreenDark,
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                ),
-                                child: const Text(
-                                  "Sačuvaj",
-                                  style: TextStyle(fontWeight: FontWeight.w900),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
+                        child: const Text(
+                          "Sačuvaj",
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
                       ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -373,10 +366,7 @@ class _HeaderCard extends StatelessWidget {
     Widget avatar;
 
     if (pickedImage != null) {
-      avatar = Image.file(
-        pickedImage!,
-        fit: BoxFit.cover,
-      );
+      avatar = Image.file(pickedImage!, fit: BoxFit.cover);
     } else {
       avatar = Image.network(
         ImageHelper.safeUserImageUrl(user.userImage),

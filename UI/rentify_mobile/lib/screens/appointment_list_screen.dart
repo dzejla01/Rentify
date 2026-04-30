@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/dialogs/base_dialogs.dart';
 import 'package:rentify_mobile/providers/appoitment_provider.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
@@ -35,6 +36,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
   bool _metaLoading = false;
   String? _metaError;
   String? _selectedStatus;
+  int? _cancellingAppointmentId;
 
   @override
   void initState() {
@@ -142,6 +144,113 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
     }
   }
 
+  Future<void> _showCancelAppointmentDialog(Appointment appointment) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return RentifyBaseDialog(
+          title: "Otkaži termin",
+          width: 460,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 54,
+                color: Color(0xFFD97706),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                "Da li ste sigurni da želite otkazati ovaj termin?",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF374151),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        side: BorderSide(color: Colors.black.withOpacity(0.12)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        "Odustani",
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC62828),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        "Otkaži termin",
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          onClose: () => Navigator.pop(context, false),
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await _cancelAppointment(appointment);
+    }
+  }
+
+  Future<void> _cancelAppointment(Appointment appointment) async {
+    final id = appointment.id;
+
+    try {
+      if (!mounted) return;
+      setState(() => _cancellingAppointmentId = id);
+
+      await _appointmentProvider.cancel(id);
+      await _refreshWithMeta();
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Termin je uspješno otkazan."),
+          backgroundColor: Color(0xFF2E7D32),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("$e"), backgroundColor: const Color(0xFFC62828)),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _cancellingAppointmentId = null);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BaseMobileScreen(
@@ -224,6 +333,9 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                             createdAtText: createdAtText,
                             status: status,
                             loadingMeta: _metaLoading && p == null,
+                            showCancelButton: status == _Status.approved,
+                            isCancelling: _cancellingAppointmentId == a.id,
+                            onCancel: () => _showCancelAppointmentDialog(a),
                           );
                         },
                       ),
@@ -408,6 +520,9 @@ class _AppointmentCard extends StatelessWidget {
     required this.createdAtText,
     required this.status,
     this.loadingMeta = false,
+    this.showCancelButton = false,
+    this.isCancelling = false,
+    this.onCancel,
   });
 
   final String propertyName;
@@ -415,6 +530,9 @@ class _AppointmentCard extends StatelessWidget {
   final String createdAtText;
   final _Status status;
   final bool loadingMeta;
+  final bool showCancelButton;
+  final bool isCancelling;
+  final VoidCallback? onCancel;
 
   @override
   Widget build(BuildContext context) {
@@ -518,6 +636,38 @@ class _AppointmentCard extends StatelessWidget {
               ],
             ),
           ),
+          if (showCancelButton) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: isCancelling ? null : onCancel,
+                icon: isCancelling
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.cancel_rounded),
+                label: Text(
+                  isCancelling ? "Otkazivanje..." : "Otkaži",
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFC62828),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

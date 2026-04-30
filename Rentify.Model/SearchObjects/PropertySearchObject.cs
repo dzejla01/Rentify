@@ -5,7 +5,7 @@
         public int? UserId { get; set; } 
         public string? Name { get; set; }
         public string? City { get; set; }
-        public bool? IsAvailable { get; set; }
+        public bool? IsActiveOnApp { get; set; }
         public decimal? MinPriceMonth { get; set; }
         public decimal? MaxPriceMonth { get; set; }
         public decimal? MinPriceDays { get; set; }

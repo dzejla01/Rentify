@@ -35,6 +35,11 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Property> ApplyFilter(IQueryable<Property> query, PropertySearchObject search)
         {
+            if (search.IsActiveOnApp.HasValue)
+            {
+                query = query.Where(x => x.IsActiveOnApp == search.IsActiveOnApp);
+            }
+
             if (!string.IsNullOrWhiteSpace(search.Name))
             {
                 var name = search.Name.Trim().ToLower();
@@ -45,6 +50,21 @@ namespace Rentify.Services.Services
             {
                 var city = search.City.Trim().ToLower();
                 query = query.Where(x => x.City.ToLower().Contains(city));
+            }
+
+            if (!string.IsNullOrWhiteSpace(search.FTS))
+            {
+                var fts = string.Join(" ", search.FTS.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+                query = query.Where(x =>
+                    x.Name.ToLower().Contains(fts)
+                    || x.City.ToLower().Contains(fts)
+                    || x.Location.ToLower().Contains(fts)
+                    || x.Details.ToLower().Contains(fts)
+                    || x.User.FirstName.ToLower().Contains(fts)
+                    || x.User.LastName.ToLower().Contains(fts)
+                    || (x.User.FirstName + " " + x.User.LastName).ToLower().Contains(fts)
+                    || (x.User.LastName + " " + x.User.FirstName).ToLower().Contains(fts));
             }
 
             if (search.UserId.HasValue)
@@ -88,7 +108,7 @@ namespace Rentify.Services.Services
                 .ToListAsync();
 
             var candidates = await _context.Properties.Include(p => p.User)
-                .Where(p => p.IsActiveOnApp && p.IsAvailable && !reservedPropertyIds.Contains(p.Id))
+                .Where(p => p.IsActiveOnApp && !reservedPropertyIds.Contains(p.Id))
                 .ToListAsync();
 
             if (candidates.Count == 0)
@@ -122,7 +142,6 @@ namespace Rentify.Services.Services
                 }));
             }
 
-            // Ako su svi tagovi prazni -> fallback
             if (inputs.All(x => string.IsNullOrWhiteSpace(x.TagsText)))
             {
                 var fallback = candidates

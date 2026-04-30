@@ -346,64 +346,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
     return isValid;
   }
 
-  // Future<void> saveChanges() async {
-  //   if (valid()) {
-  //     try {
-  //       double toDouble(String v) {
-  //         final s = v.trim().replaceAll(',', '.');
-  //         return double.tryParse(s) ?? 0.0;
-  //       }
-
-  //       final payload = <String, dynamic>{
-  //         'userId': Session.userId,
-  //         'name': fields.text('name').trim(),
-  //         'city': fields.text('city').trim(),
-  //         'location': fields.text('location').trim(),
-  //         'pricePerDay': _isRentingPerDay
-  //             ? double.tryParse(fields.controller('pricePerDay').text) ?? 0.0
-  //             : 0.0,
-  //         'pricePerMonth': toDouble(fields.text('pricePerMonth')),
-  //         'tags': _selectedTags.isEmpty ? null : _selectedTags,
-  //         'squareMeters': fields.text('square').trim().isEmpty
-  //             ? null
-  //             : fields.text('square').trim(),
-  //         'details': fields.text('details').trim().isEmpty
-  //             ? null
-  //             : fields.text('details').trim(),
-  //         'isAvailable': true,
-  //         'IsRentingPerDay': _isRentingPerDay,
-  //         'IsActiveOnApp': _isActiveOnApp,
-  //       };
-
-  //       int propertyId;
-
-  //       if (widget.isCreate) {
-  //         final created = await _propertyProvider.insert(payload);
-  //         propertyId = created.id;
-  //         SnackbarHelper.showSuccess(context, "Nekretnina je uspješno dodana");
-  //       } else {
-  //         await _propertyProvider.update(widget.property!.id, payload);
-  //         propertyId = widget.property!.id;
-  //         SnackbarHelper.showUpdate(context, "Nekretnina je uspješno uređena");
-  //       }
-
-  //       await _saveImages(propertyId);
-
-  //       if (!mounted) return;
-
-  //       setState(() {
-  //         _isEditing = false;
-  //         widget.onEditingChanged?.call(false);
-  //       });
-  //     } catch (e) {
-  //       debugPrint('saveChanges error: $e');
-  //       if (mounted) {
-  //         SnackbarHelper.showError(context, "Došlo je do greške pri spremanju");
-  //       }
-  //     }
-  //   }
-  // }
-
   Future<void> saveChanges() async {
     if (valid()) {
       try {

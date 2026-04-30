@@ -28,32 +28,38 @@ class _PropertyScreenState extends State<PropertyScreen> {
     _propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
 
     _propertyPaging = UniversalPagingProvider<Property>(
-      fetcher:
-          ({
-            required int page,
-            required int pageSize,
-            String? filter,
-            bool includeTotalCount = true,
-          }) async {
-            final backendFilter = {
-              "userId": Session.userId!,
-              "page": page,
-              "pageSize": pageSize,
-              "includeTotalCount": includeTotalCount,
-              if (filter != null && filter.isNotEmpty) "name": filter,
-            };
+      fetcher: ({
+        required int page,
+        required int pageSize,
+        String? filter,
+        bool includeTotalCount = true,
+      }) async {
+        final backendFilter = {
+          "userId": Session.userId!,
+          "page": page,
+          "pageSize": pageSize,
+          "includeTotalCount": includeTotalCount,
+          if (filter != null && filter.isNotEmpty) "name": filter,
+        };
 
-            final result = await _propertyProvider.get(filter: backendFilter);
+        final result = await _propertyProvider.get(filter: backendFilter);
 
-            return SearchResult<Property>(
-              totalCount: result.totalCount ?? result.items.length,
-              items: result.items,
-            );
-          },
+        return SearchResult<Property>(
+          totalCount: result.totalCount ?? result.items.length,
+          items: result.items,
+        );
+      },
       pageSize: 5,
     );
 
     _propertyPaging.loadPage();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _propertyPaging.dispose();
+    super.dispose();
   }
 
   Future<void> _onSearchChanged(String value) async {
@@ -71,49 +77,112 @@ class _PropertyScreenState extends State<PropertyScreen> {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [_searchField(), _addNewPropertyButton()],
+              children: [
+                _searchField(),
+                _addNewPropertyButton(),
+              ],
             ),
             const SizedBox(height: 20),
             Expanded(
               child: PaginatedTable<Property>(
                 provider: _propertyPaging,
                 header: const [
-                  SizedBox(width: 220, child: Text('Naziv nekretnine')),
-                  SizedBox(width: 240, child: Text('Lokacija')),
-                  SizedBox(width: 100, child: Text('Dostupna')),
-                  SizedBox(width: 100, child: Text('Aktivna')),
-                  SizedBox(width: 120, child: Text('Pregled')),
-                ],
-                rowBuilder: (property) => [
-                  SizedBox(width: 220, child: Text(property.name)),
-                  SizedBox(width: 240, child: Text(property.location, maxLines: 2)),
-                  SizedBox(width: 100, child: _checkIcon(property.isAvailable)),
+                  SizedBox(
+                    width: 220,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Naziv nekretnine',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 240,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Lokacija',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
                   SizedBox(
                     width: 100,
-                    child: _checkIcon(property.isActiveOnApp),
+                    child: Center(
+                      child: Text(
+                        'Aktivna',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
                   ),
                   SizedBox(
                     width: 120,
-                    child: OutlinedButton(
-                      onPressed: () async {
-                        final result = await Navigator.pushNamed(
-                          context,
-                          AppRoutes.propertyDetails,
-                          arguments: {'property': property, 'isCreate': false},
-                        );
-                        if (result == true) {
-                          await _propertyPaging.refresh();
-                        }
-                      },
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(
-                          color: Color(0xFFA9C64A),
-                          width: 2,
-                        ),
+                    child: Center(
+                      child: Text(
+                        'Pregled',
+                        style: TextStyle(fontWeight: FontWeight.w700),
                       ),
-                      child: const Text(
-                        'Detalji',
-                        style: TextStyle(color: Color(0xFF5F9F3B)),
+                    ),
+                  ),
+                ],
+                rowBuilder: (property) => [
+                  SizedBox(
+                    width: 220,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        property.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 240,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        property.location,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 100,
+                    child: Center(
+                      child: _checkIcon(property.isActiveOnApp),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 120,
+                    child: Center(
+                      child: OutlinedButton(
+                        onPressed: () async {
+                          final result = await Navigator.pushNamed(
+                            context,
+                            AppRoutes.propertyDetails,
+                            arguments: {
+                              'property': property,
+                              'isCreate': false,
+                            },
+                          );
+
+                          if (result == true) {
+                            await _propertyPaging.refresh();
+                          }
+                        },
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(
+                            color: Color(0xFFA9C64A),
+                            width: 2,
+                          ),
+                        ),
+                        child: const Text(
+                          'Detalji',
+                          style: TextStyle(color: Color(0xFF5F9F3B)),
+                        ),
                       ),
                     ),
                   ),
@@ -137,7 +206,9 @@ class _PropertyScreenState extends State<PropertyScreen> {
           prefixIcon: const Icon(Icons.search),
           filled: true,
           fillColor: const Color(0xFFF7F7F7),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(30)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
         ),
       ),
     );
@@ -160,8 +231,13 @@ class _PropertyScreenState extends State<PropertyScreen> {
         backgroundColor: const Color(0xFFA9C64A),
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        textStyle: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
       child: const Text('Dodajte nekretninu'),
     );

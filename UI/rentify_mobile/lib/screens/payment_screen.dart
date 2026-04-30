@@ -4,23 +4,16 @@ import 'package:provider/provider.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
-
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/screens/payment_list_screen.dart';
 import 'package:rentify_mobile/screens/payment_preview_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
-import 'package:rentify_mobile/models/search_result.dart';
-import 'package:rentify_mobile/helper/univerzal_pagging_helper.dart';
-
 import 'package:rentify_mobile/models/reservation.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/payment.dart';
-
 import 'package:rentify_mobile/providers/reservation_provider.dart';
 import 'package:rentify_mobile/providers/property_provider.dart';
 import 'package:rentify_mobile/providers/payment_provider.dart';
-
-import 'package:rentify_mobile/widgets/swipe_widget.dart';
 
 class PaymentScreen extends StatefulWidget {
   const PaymentScreen({super.key});
@@ -31,7 +24,7 @@ class PaymentScreen extends StatefulWidget {
 
 enum _PaymentTab {
   active,
-  finished,
+  inactive,
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
@@ -39,22 +32,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
   late PropertyProvider _propertyProvider;
   late PaymentProvider _paymentProvider;
 
-  late UniversalPagingProvider<Reservation> _reservationPaging;
-
   final _searchCtrl = TextEditingController();
   Timer? _debounce;
 
-  Map<int, Property> _propertiesMap = {};
-  Map<int, Payment?> _lastPaymentByReservationId = {};
+  List<Reservation> _allReservations = [];
+  List<Reservation> _filteredReservations = [];
 
-  bool _metaLoading = false;
-  String? _metaError;
-  bool _metaQueued = false;
+  Map<int, Property> _propertiesMap = {};
+  Map<int, List<Payment>> _paymentsByReservationId = {};
+
+  bool _isLoading = true;
+  String? _loadError;
 
   _PaymentTab _selectedTab = _PaymentTab.active;
-
-  String get _statusFilter =>
-      _selectedTab == _PaymentTab.active ? "Odobreno" : "Završeno";
 
   @override
   void initState() {
@@ -64,93 +54,37 @@ class _PaymentScreenState extends State<PaymentScreen> {
     _propertyProvider = context.read<PropertyProvider>();
     _paymentProvider = context.read<PaymentProvider>();
 
-    _reservationPaging = UniversalPagingProvider<Reservation>(
-      pageSize: 5,
-      fetcher: ({
-        required int page,
-        required int pageSize,
-        String? filter,
-        Map<String, dynamic>? extra,
-        bool includeTotalCount = true,
-      }) async {
-        final userId = Session.userId;
-        if (userId == null) {
-          return SearchResult<Reservation>()
-            ..items = []
-            ..totalCount = 0;
-        }
-
-        final f = <String, dynamic>{
-          "userId": userId,
-          "status": _statusFilter,
-          "page": page,
-          "pageSize": pageSize,
-          "includeTotalCount": includeTotalCount,
-          if (filter != null && filter.trim().isNotEmpty) "FTS": filter.trim(),
-          ...?extra,
-        };
-
-        return await _reservationProvider.get(filter: f);
-      },
-    );
-
-    _reservationPaging.addListener(_onPagingChanged);
-
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _refreshWithMeta();
+      await _loadData();
     });
   }
 
-  void _onPagingChanged() {
-    if (!mounted) return;
-
-    if (!_reservationPaging.isLoading) {
-      if (_metaQueued) return;
-      _metaQueued = true;
-
-      Future.microtask(() async {
-        _metaQueued = false;
-        await _loadAuxForCurrentPage();
-      });
-    }
-  }
-
-  Future<void> _refreshWithMeta() async {
-    await _reservationPaging.refresh();
-    if (!mounted) return;
-    await _loadAuxForCurrentPage();
-  }
-
-  void _onSearchChanged(String value) {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 350), () async {
-      await _reservationPaging.search(value);
-
-      if (!mounted) return;
-      await _loadAuxForCurrentPage();
-    });
-  }
-
-  Future<void> _changeTab(_PaymentTab tab) async {
-    if (_selectedTab == tab) return;
-
+  Future<void> _loadData() async {
     setState(() {
-      _selectedTab = tab;
-      _propertiesMap = {};
-      _lastPaymentByReservationId = {};
-    });
-
-    await _refreshWithMeta();
-  }
-
-  Future<void> _loadAuxForCurrentPage() async {
-    setState(() {
-      _metaLoading = true;
-      _metaError = null;
+      _isLoading = true;
+      _loadError = null;
     });
 
     try {
-      final reservations = _reservationPaging.items;
+      final userId = Session.userId;
+      if (userId == null) {
+        throw Exception("Nema userId u sesiji.");
+      }
+
+      final reservationResult = await _reservationProvider.get(
+        filter: {
+          "userId": userId,
+          "retrieveAll": true,
+          "page": 0,
+          "pageSize": 1000,
+          "includeTotalCount": false,
+        },
+      );
+
+      final reservations = reservationResult.items.where((r) {
+        final status = (r.status ?? "").trim();
+        return status != "Odbijeno";
+      }).toList();
 
       final Map<int, Property> loadedProperties = {};
       for (final r in reservations) {
@@ -160,47 +94,167 @@ class _PaymentScreenState extends State<PaymentScreen> {
         }
       }
 
-      final userId = Session.userId;
-      if (userId == null) throw Exception("Nema userId u sesiji.");
-
       final paymentResult = await _paymentProvider.get(
         filter: {
           "userId": userId,
           "retrieveAll": true,
+          "page": 0,
+          "pageSize": 1000,
           "includeTotalCount": false,
         },
       );
 
-      final payments = paymentResult.items;
+      final Map<int, List<Payment>> paymentsByReservationId = {};
+      for (final payment in paymentResult.items) {
+        final reservationId = payment.reservation?.id;
+        if (reservationId == null) continue;
 
-      final Map<int, Payment?> lastMap = {};
-      for (final r in reservations) {
-        final list = payments
-            .where((p) => p.reservation?.id == r.id)
-            .toList()
-          ..sort((a, b) => b.id.compareTo(a.id));
-
-        lastMap[r.id] = list.isNotEmpty ? list.first : null;
+        paymentsByReservationId.putIfAbsent(reservationId, () => []);
+        paymentsByReservationId[reservationId]!.add(payment);
       }
 
+      for (final entry in paymentsByReservationId.entries) {
+        entry.value.sort((a, b) {
+          final aDate = a.dateToPay ?? DateTime(1900);
+          final bDate = b.dateToPay ?? DateTime(1900);
+
+          final byDate = bDate.compareTo(aDate);
+          if (byDate != 0) return byDate;
+
+          return b.id.compareTo(a.id);
+        });
+      }
+
+      reservations.sort((a, b) {
+        final propertyA = loadedProperties[a.propertyId]?.name.toLowerCase() ?? "";
+        final propertyB = loadedProperties[b.propertyId]?.name.toLowerCase() ?? "";
+
+        final byProperty = propertyA.compareTo(propertyB);
+        if (byProperty != 0) return byProperty;
+
+        final aStart = a.startDateOfRenting ?? DateTime(1900);
+        final bStart = b.startDateOfRenting ?? DateTime(1900);
+        return bStart.compareTo(aStart);
+      });
+
       if (!mounted) return;
+
       setState(() {
+        _allReservations = reservations;
+        _filteredReservations = reservations;
         _propertiesMap = loadedProperties;
-        _lastPaymentByReservationId = lastMap;
-        _metaLoading = false;
+        _paymentsByReservationId = paymentsByReservationId;
+        _isLoading = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _metaLoading = false;
-        _metaError = e.toString();
+        _isLoading = false;
+        _loadError = e.toString();
       });
     }
   }
 
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 350), _applySearch);
+  }
+
+  void _applySearch() {
+    final query = _searchCtrl.text.trim().toLowerCase();
+
+    final filtered = _allReservations.where((reservation) {
+      final property = _propertiesMap[reservation.propertyId];
+      final propertyName = (property?.name ?? "").toLowerCase();
+      final reservationType =
+          reservation.isMonthly == true ? "najamnina" : "kratki boravak";
+      final reservationStatus = (reservation.status ?? "").toLowerCase();
+
+      final latestPayment = _getLatestPaymentForReservation(reservation.id);
+      final paymentStatus = (latestPayment?.paymentStatus ?? "").toLowerCase();
+
+      return propertyName.contains(query) ||
+          reservationType.contains(query) ||
+          reservationStatus.contains(query) ||
+          paymentStatus.contains(query);
+    }).toList();
+
+    if (!mounted) return;
+    setState(() {
+      _filteredReservations = filtered;
+    });
+  }
+
+  Future<void> _changeTab(_PaymentTab tab) async {
+    if (_selectedTab == tab) return;
+    setState(() {
+      _selectedTab = tab;
+    });
+  }
+
+  List<Reservation> _visibleReservations() {
+    if (_selectedTab == _PaymentTab.active) {
+      return _filteredReservations.where((r) => r.status == "Odobreno").toList();
+    }
+
+    return _filteredReservations
+        .where((r) => r.status == "Završeno" || r.status == "Otkazano")
+        .toList();
+  }
+
+  Payment? _getLatestPaymentForReservation(int reservationId) {
+    final payments = _paymentsByReservationId[reservationId];
+    if (payments == null || payments.isEmpty) return null;
+    return payments.first;
+  }
+
+  bool _hasMonthlyUnpaidLastInstallment(Reservation reservation) {
+    if (reservation.isMonthly != true) return false;
+
+    final latestPayment = _getLatestPaymentForReservation(reservation.id);
+    if (latestPayment == null) return false;
+
+    return latestPayment.paymentStatus == "Neplaćeno";
+  }
+
+  bool _hasShortStayUnpaid(Reservation reservation) {
+    if (reservation.isMonthly == true) return false;
+
+    final latestPayment = _getLatestPaymentForReservation(reservation.id);
+    if (latestPayment == null) return false;
+
+    return latestPayment.paymentStatus == "Neplaćeno";
+  }
+
+  bool _shouldHighlightInRed(Reservation reservation) {
+    if (reservation.isMonthly == true) {
+      return _hasMonthlyUnpaidLastInstallment(reservation);
+    }
+    return _hasShortStayUnpaid(reservation);
+  }
+
+  String? _warningText(Reservation reservation) {
+    if (reservation.isMonthly == true &&
+        _hasMonthlyUnpaidLastInstallment(reservation)) {
+      return "Zadnja poslana rata je neplaćena.";
+    }
+
+    if (reservation.isMonthly != true && _hasShortStayUnpaid(reservation)) {
+      return "Boravak je neplaćen.";
+    }
+
+    return null;
+  }
+
+  void _snack(String text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(text)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final reservations = _reservationPaging.items;
+    final reservations = _visibleReservations();
 
     return BaseMobileScreen(
       title: "Plaćanja",
@@ -228,22 +282,19 @@ class _PaymentScreenState extends State<PaymentScreen> {
             _SearchBar(
               controller: _searchCtrl,
               onChanged: _onSearchChanged,
-              onClear: () async {
+              onClear: () {
                 _searchCtrl.clear();
-                await _reservationPaging.search("");
-                if (!mounted) return;
-                await _loadAuxForCurrentPage();
+                _applySearch();
                 setState(() {});
               },
             ),
-
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
               child: Row(
                 children: [
                   Expanded(
                     child: _TabButton(
-                      label: "Aktivna",
+                      label: "Aktivne",
                       selected: _selectedTab == _PaymentTab.active,
                       onTap: () => _changeTab(_PaymentTab.active),
                     ),
@@ -251,100 +302,93 @@ class _PaymentScreenState extends State<PaymentScreen> {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _TabButton(
-                      label: "Završena",
-                      selected: _selectedTab == _PaymentTab.finished,
-                      onTap: () => _changeTab(_PaymentTab.finished),
+                      label: "Neaktivne",
+                      selected: _selectedTab == _PaymentTab.inactive,
+                      onTap: () => _changeTab(_PaymentTab.inactive),
                     ),
                   ),
                 ],
               ),
             ),
-
-            if (_metaLoading && reservations.isNotEmpty)
-              const LinearProgressIndicator(minHeight: 2),
-
             Expanded(
-              child: (_metaLoading && reservations.isEmpty)
+              child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : (_metaError != null && reservations.isEmpty)
+                  : (_loadError != null)
                       ? _ErrorState(
-                          message: _metaError!,
-                          onRetry: _refreshWithMeta,
+                          message: _loadError!,
+                          onRetry: _loadData,
                         )
                       : reservations.isEmpty
                           ? _EmptyState(
                               text: _selectedTab == _PaymentTab.active
                                   ? "Trenutno nema aktivnih plaćanja za prikaz."
-                                  : "Trenutno nema završenih plaćanja za prikaz.",
+                                  : "Trenutno nema neaktivnih plaćanja za prikaz.",
                             )
                           : RefreshIndicator(
-                              onRefresh: _refreshWithMeta,
-                              child: ListView(
-                                padding:
-                                    const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                                children: [
-                                  SwipePagedList<Reservation>(
-                                    provider: _reservationPaging,
-                                    separatorHeight: 12,
-                                    itemBuilder: (context, r) {
-                                      final property =
-                                          _propertiesMap[r.propertyId];
-                                      final payment =
-                                          _lastPaymentByReservationId[r.id];
+                              onRefresh: _loadData,
+                              child: ListView.separated(
+                                padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                                itemCount: reservations.length,
+                                separatorBuilder: (_, __) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) {
+                                  final r = reservations[index];
+                                  final property = _propertiesMap[r.propertyId];
+                                  final payment =
+                                      _getLatestPaymentForReservation(r.id);
 
-                                      return _PaymentCard(
-                                        propertyName:
-                                            property?.name ?? "Učitavanje...",
-                                        isMonthly: r.isMonthly == true,
-                                        start: r.startDateOfRenting,
-                                        end: r.endDateOfRenting,
-                                        reservationStatus: r.status,
-                                        payment: payment,
-                                        isFinishedTab:
-                                            _selectedTab == _PaymentTab.finished,
-                                        onOpen: property == null
-                                            ? null
-                                            : () async {
-                                                if (r.isMonthly == true) {
-                                                  await Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (_) =>
-                                                          PaymentListScreen(
-                                                        property: property,
-                                                        reservationStatus: payment!.reservation!.status!,
-                                                      ),
-                                                    ),
-                                                  );
-                                                  await _refreshWithMeta();
-                                                  return;
-                                                }
-
-                                                if (payment == null) {
-                                                  _snack(
-                                                    "Još nema kreiranog zahtjeva za ovu rezervaciju.",
-                                                  );
-                                                  return;
-                                                }
-
-                                                await Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (_) =>
-                                                        PaymentPreviewScreen(
-                                                      payment: payment,
-                                                      property: property,
-                                                      isMonthly: false,
-                                                    ),
+                                  return _PaymentCard(
+                                    propertyName:
+                                        property?.name ?? "Učitavanje...",
+                                    isMonthly: r.isMonthly == true,
+                                    start: r.startDateOfRenting,
+                                    end: r.endDateOfRenting,
+                                    reservationStatus: r.status,
+                                    payment: payment,
+                                    warningText: _warningText(r),
+                                    highlightRed: _shouldHighlightInRed(r),
+                                    onOpen: property == null
+                                        ? null
+                                        : () async {
+                                            if (r.isMonthly == true) {
+                                              await Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      PaymentListScreen(
+                                                    property: property,
+                                                    reservationStatus:
+                                                        r.status ?? "-",
                                                   ),
-                                                );
+                                                ),
+                                              );
+                                              await _loadData();
+                                              return;
+                                            }
 
-                                                await _refreshWithMeta();
-                                              },
-                                      );
-                                    },
-                                  ),
-                                ],
+                                            if (payment == null) {
+                                              _snack(
+                                                "Još nema kreiranog zahtjeva za ovu rezervaciju.",
+                                              );
+                                              return;
+                                            }
+
+                                            await Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    PaymentPreviewScreen(
+                                                  payment: payment,
+                                                  property: property,
+                                                  isMonthly: false,
+                                                ),
+                                              ),
+                                            );
+
+                                            await _loadData();
+                                          },
+                                  );
+                                },
                               ),
                             ),
             ),
@@ -354,23 +398,14 @@ class _PaymentScreenState extends State<PaymentScreen> {
     );
   }
 
-  void _snack(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(text)),
-    );
-  }
-
   @override
   void dispose() {
-    _reservationPaging.removeListener(_onPagingChanged);
     _debounce?.cancel();
     _searchCtrl.dispose();
-    _reservationPaging.dispose();
     super.dispose();
   }
 }
 
-/// ---------------- UI pieces ----------------
 
 class _SearchBar extends StatelessWidget {
   const _SearchBar({
@@ -404,7 +439,7 @@ class _SearchBar extends StatelessWidget {
           controller: controller,
           onChanged: onChanged,
           decoration: InputDecoration(
-            hintText: "Pretraga (naziv nekretnine / period...)",
+            hintText: "Pretraga (naziv nekretnine / status / period...)",
             border: InputBorder.none,
             prefixIcon: const Icon(Icons.search),
             suffixIcon: controller.text.isEmpty
@@ -479,7 +514,8 @@ class _PaymentCard extends StatelessWidget {
     required this.end,
     required this.reservationStatus,
     required this.payment,
-    required this.isFinishedTab,
+    required this.warningText,
+    required this.highlightRed,
     required this.onOpen,
   });
 
@@ -489,7 +525,8 @@ class _PaymentCard extends StatelessWidget {
   final DateTime? end;
   final String? reservationStatus;
   final Payment? payment;
-  final bool isFinishedTab;
+  final String? warningText;
+  final bool highlightRed;
   final VoidCallback? onOpen;
 
   String _fmt(DateTime? d) {
@@ -503,7 +540,6 @@ class _PaymentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasPayment = payment != null;
-    final isPayed = payment?.isPayed == true;
 
     final typeText = isMonthly ? "Najamnina" : "Kratki boravak";
     final cta = isMonthly
@@ -513,11 +549,16 @@ class _PaymentCard extends StatelessWidget {
     final enabled = isMonthly ? true : hasPayment;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 0),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.black.withOpacity(0.05)),
+        border: Border.all(
+          color: highlightRed
+              ? const Color(0xFFE53935)
+              : Colors.black.withOpacity(0.05),
+          width: highlightRed ? 2 : 1,
+        ),
         boxShadow: const [
           BoxShadow(
             color: Color(0x12000000),
@@ -559,13 +600,17 @@ class _PaymentCard extends StatelessWidget {
                   ),
                 ),
                 _StatusChip(
-                  isPayed: isPayed,
-                  isFinishedTab: isFinishedTab,
+                  paymentStatus: payment?.paymentStatus,
+                  reservationStatus: reservationStatus,
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            _InfoRow(icon: Icons.category_rounded, label: "Vrsta", value: typeText),
+            _InfoRow(
+              icon: Icons.category_rounded,
+              label: "Vrsta",
+              value: typeText,
+            ),
             _InfoRow(
               icon: Icons.event_available_rounded,
               label: "Početak",
@@ -581,6 +626,10 @@ class _PaymentCard extends StatelessWidget {
               label: "Status",
               value: reservationStatus ?? "-",
             ),
+            if (warningText != null) ...[
+              const SizedBox(height: 12),
+              _WarningBanner(text: warningText!),
+            ],
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerRight,
@@ -669,22 +718,47 @@ class _InfoRow extends StatelessWidget {
 
 class _StatusChip extends StatelessWidget {
   const _StatusChip({
-    required this.isPayed,
-    required this.isFinishedTab,
+    required this.paymentStatus,
+    required this.reservationStatus,
   });
 
-  final bool isPayed;
-  final bool isFinishedTab;
+  final String? paymentStatus;
+  final String? reservationStatus;
 
   @override
   Widget build(BuildContext context) {
-    final bg = isFinishedTab
-        ? const Color(0xFF5F9F3B)
-        : (isPayed ? Colors.green : Colors.orange);
+    final status = (paymentStatus ?? reservationStatus ?? "Nema zahtjeva").trim();
 
-    final text = isFinishedTab
-        ? "Završeno"
-        : (isPayed ? "Uplaćeno" : "Na čekanju");
+    Color bg;
+    switch (status) {
+      case "Plaćeno":
+        bg = Colors.green;
+        break;
+      case "Procesiranje":
+        bg = Colors.blue;
+        break;
+      case "Neplaćeno":
+        bg = Colors.red;
+        break;
+      case "Otkazano":
+        bg = Colors.grey;
+        break;
+      case "Neuspješno":
+        bg = Colors.deepOrange;
+        break;
+      case "Završeno":
+        bg = const Color(0xFF4B5563);
+        break;
+      case "Odobreno":
+        bg = const Color(0xFF5F9F3B);
+        break;
+      case "Na čekanju":
+        bg = Colors.orange;
+        break;
+      default:
+        bg = const Color(0xFF6B7280);
+        break;
+    }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -693,12 +767,53 @@ class _StatusChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        text,
+        status,
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w800,
           fontSize: 12,
         ),
+      ),
+    );
+  }
+}
+
+class _WarningBanner extends StatelessWidget {
+  const _WarningBanner({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFE53935),
+          width: 1.2,
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Color(0xFFE53935),
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFFB91C1C),
+                fontWeight: FontWeight.w700,
+                fontSize: 12.8,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -731,7 +846,7 @@ class _ErrorState extends StatelessWidget {
   });
 
   final String message;
-  final VoidCallback onRetry;
+  final Future<void> Function() onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -750,7 +865,7 @@ class _ErrorState extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             ElevatedButton(
-              onPressed: onRetry,
+              onPressed: () => onRetry(),
               child: const Text("Pokušaj ponovo"),
             ),
           ],

@@ -31,7 +31,6 @@ class PaymentListScreen extends StatefulWidget {
 
 class _PaymentListScreenState extends State<PaymentListScreen> {
   late PaymentProvider _paymentProvider;
-
   late UniversalPagingProvider<Payment> _paging;
 
   final _searchCtrl = TextEditingController();
@@ -41,7 +40,12 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   String? _metaError;
   List<Payment> _allPayments = [];
 
-  bool get _hasPending => _allPayments.any((p) => p.isPayed != true);
+  bool get _hasBlockingPayment => _allPayments.any((p) {
+        final status = (p.paymentStatus ?? "").trim();
+        return status == "Na čekanju" ||
+            status == "Procesiranje" ||
+            status == "Neplaćeno";
+      });
 
   @override
   void initState() {
@@ -50,30 +54,27 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
 
     _paging = UniversalPagingProvider<Payment>(
       pageSize: 5,
-      fetcher:
-          ({
-            required int page,
-            required int pageSize,
-            String? filter,
-            bool includeTotalCount = true,
-          }) async {
-            final f = <String, dynamic>{
-              "reservationId": widget.reservation.id,
-              "userId": widget.user.id,
-              "propertyId": widget.property.id,
-              "page": page,
-              "pageSize": pageSize,
-              "includeTotalCount": includeTotalCount,
+      fetcher: ({
+        required int page,
+        required int pageSize,
+        String? filter,
+        bool includeTotalCount = true,
+      }) async {
+        final f = <String, dynamic>{
+          "reservationId": widget.reservation.id,
+          "userId": widget.user.id,
+          "propertyId": widget.property.id,
+          "page": page,
+          "pageSize": pageSize,
+          "includeTotalCount": includeTotalCount,
+          if (filter != null && filter.trim().isNotEmpty) "FTS": filter.trim(),
+        };
 
-              if (filter != null && filter.trim().isNotEmpty)
-                "FTS": filter.trim(),
-            };
-
-            final SearchResult<Payment> res = await _paymentProvider.get(
-              filter: f,
-            );
-            return res;
-          },
+        final SearchResult<Payment> res = await _paymentProvider.get(
+          filter: f,
+        );
+        return res;
+      },
     );
 
     _loadAllMeta();
@@ -105,7 +106,6 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
           "reservationId": widget.reservation.id,
           "userId": widget.user.id,
           "propertyId": widget.property.id,
-          "retrieveAll": true,
           "includeTotalCount": false,
         },
       );
@@ -115,8 +115,15 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
       items.sort((a, b) {
         final y = b.yearNumber.compareTo(a.yearNumber);
         if (y != 0) return y;
+
         final m = b.monthNumber.compareTo(a.monthNumber);
         if (m != 0) return m;
+
+        final aDate = a.dateToPay ?? DateTime(1900);
+        final bDate = b.dateToPay ?? DateTime(1900);
+        final byDate = bDate.compareTo(aDate);
+        if (byDate != 0) return byDate;
+
         return b.id.compareTo(a.id);
       });
 
@@ -133,36 +140,46 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   }
 
   Payment? _lastPaidPayment() {
-  final paid = _allPayments.where((p) => p.isPayed == true).toList();
-  if (paid.isEmpty) return null;
+    final paid = _allPayments
+        .where((p) => (p.paymentStatus ?? "").trim() == "Plaćeno")
+        .toList();
 
-  paid.sort((a, b) {
-    final y = b.yearNumber.compareTo(a.yearNumber);
-    if (y != 0) return y;
-    final m = b.monthNumber.compareTo(a.monthNumber);
-    if (m != 0) return m;
-    return b.id.compareTo(a.id);
-  });
+    if (paid.isEmpty) return null;
 
-  return paid.first;
-}
+    paid.sort((a, b) {
+      final y = b.yearNumber.compareTo(a.yearNumber);
+      if (y != 0) return y;
 
-(int month, int year) _nextBillPeriod() {
-  final lastPaid = _lastPaidPayment();
+      final m = b.monthNumber.compareTo(a.monthNumber);
+      if (m != 0) return m;
 
-  if (lastPaid == null) {
-    final reservationStart = widget.reservation.startDateOfRenting;
+      final aDate = a.dateToPay ?? DateTime(1900);
+      final bDate = b.dateToPay ?? DateTime(1900);
+      final byDate = bDate.compareTo(aDate);
+      if (byDate != 0) return byDate;
 
-    if (reservationStart != null) {
-      return (reservationStart.month, reservationStart.year);
-    }
+      return b.id.compareTo(a.id);
+    });
 
-    final now = DateTime.now();
-    return (now.month, now.year);
+    return paid.first;
   }
 
-  return _nextMonthYear(lastPaid.monthNumber, lastPaid.yearNumber);
-}
+  (int month, int year) _nextBillPeriod() {
+    final lastPaid = _lastPaidPayment();
+
+    if (lastPaid == null) {
+      final reservationStart = widget.reservation.startDateOfRenting;
+
+      if (reservationStart != null) {
+        return (reservationStart.month, reservationStart.year);
+      }
+
+      final now = DateTime.now();
+      return (now.month, now.year);
+    }
+
+    return _nextMonthYear(lastPaid.monthNumber, lastPaid.yearNumber);
+  }
 
   (int month, int year) _nextMonthYear(int month, int year) {
     if (month == 12) return (1, year + 1);
@@ -177,24 +194,45 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   }
 
   bool _canSendForNextPeriod() {
-    if (_hasPending) return false;
+    if (_hasBlockingPayment) return false;
     final next = _nextBillPeriod();
     return _isPeriodStarted(next.$1, next.$2);
   }
 
-  Widget _statusChip(bool isPayed) {
-  final color = isPayed ? Colors.green : Colors.orange;
-  final text = isPayed ? "Uplaćeno" : "Na čekanju";
+  Widget _statusChip(String? status) {
+    final normalized = (status ?? "Na čekanju").trim();
 
-  return Text(
-    text,
-    style: TextStyle(
-      color: color,
-      fontWeight: FontWeight.w600,
-    ),
-  );
-}
+    Color color;
+    switch (normalized) {
+      case "Plaćeno":
+        color = Colors.green;
+        break;
+      case "Procesiranje":
+        color = Colors.blue;
+        break;
+      case "Neplaćeno":
+        color = Colors.red;
+        break;
+      case "Otkazano":
+        color = Colors.grey;
+        break;
+      case "Neuspješno":
+        color = Colors.deepOrange;
+        break;
+      case "Na čekanju":
+      default:
+        color = Colors.orange;
+        break;
+    }
 
+    return Text(
+      normalized,
+      style: TextStyle(
+        color: color,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
 
   String _periodText(Payment p) {
     if (p.monthNumber == 0 && p.yearNumber == 0) return "-";
@@ -204,6 +242,22 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   Future<void> _refreshAll() async {
     await _loadAllMeta();
     await _paging.refresh();
+  }
+
+  String _buildDisabledMessage((int month, int year) next) {
+    if (_metaLoading) {
+      return "Učitavam stanje uplata...";
+    }
+
+    if (_metaError != null) {
+      return "Ne mogu učitati podatke.";
+    }
+
+    if (_hasBlockingPayment) {
+      return "Postoji neriješena uplata za ovu rezervaciju.";
+    }
+
+    return "Zahtjev za ${next.$1.toString().padLeft(2, '0')}.${next.$2} možeš poslati od 01.${next.$1.toString().padLeft(2, '0')}.${next.$2}.";
   }
 
   @override
@@ -219,7 +273,6 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // HEADER
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -234,7 +287,6 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -267,18 +319,11 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                       icon: const Icon(Icons.send),
                       label: const Text("Pošalji zahtjev"),
                     ),
-
                     if (!canSend)
                       Padding(
                         padding: const EdgeInsets.only(top: 6),
                         child: Text(
-                          _metaLoading
-                              ? "Učitavam stanje uplata..."
-                              : (_metaError != null
-                                    ? "Ne mogu učitati podatke."
-                                    : (_hasPending
-                                          ? "Postoji uplata na čekanju."
-                                          : "Zahtjev za ${next.$1.toString().padLeft(2, '0')}.${next.$2} možeš poslati od 01.${next.$1.toString().padLeft(2, '0')}.${next.$2}.")),
+                          _buildDisabledMessage(next),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey.shade600,
@@ -291,20 +336,18 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                 ),
               ],
             ),
-
             const SizedBox(height: 12),
-
-            Container(
+            SizedBox(
               width: 450,
               height: 50,
               child: TextField(
                 controller: _searchCtrl,
                 onChanged: (value) {
-                  setState(() {}); 
-                  _paging.search(value); 
+                  setState(() {});
+                  _paging.search(value);
                 },
                 decoration: InputDecoration(
-                  hintText: "Pretraga (naziv/period)...",
+                  hintText: "Pretraga (naziv/period/status)...",
                   prefixIcon: const Icon(Icons.search),
                   isDense: true,
                   border: OutlineInputBorder(
@@ -317,9 +360,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
-
             Expanded(
               child: PaginatedTable<Payment>(
                 provider: _paging,
@@ -368,8 +409,6 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   ),
                 ],
                 rowBuilder: (p) {
-                  final isPayed = p.isPayed == true;
-
                   return [
                     Expanded(flex: 2, child: Text(_periodText(p))),
                     Expanded(
@@ -380,7 +419,10 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                       ),
                     ),
                     Expanded(flex: 2, child: Text("${p.price ?? 0} KM")),
-                    Expanded(flex: 2, child: _statusChip(isPayed)),
+                    Expanded(
+                      flex: 2,
+                      child: _statusChip(p.paymentStatus),
+                    ),
                     Expanded(
                       flex: 3,
                       child: Text(
@@ -392,41 +434,44 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                     SizedBox(
                       width: 120,
                       child: ElevatedButton.icon(
-  onPressed: () async {
-    final refreshed = await Navigator.push<bool>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => PaymentEditingScreen(
-          user: widget.user,
-          property: widget.property,
-          payment: p,
-          isMonthly: true,
-        ),
-      ),
-    );
+                        onPressed: () async {
+                          final refreshed = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => PaymentEditingScreen(
+                                user: widget.user,
+                                property: widget.property,
+                                payment: p,
+                                isMonthly: true,
+                              ),
+                            ),
+                          );
 
-    if (refreshed == true && mounted) {
-      await _refreshAll();
-    }
-  },
-  style: ElevatedButton.styleFrom(
-    backgroundColor: const Color(0xFF5F9F3B),
-    foregroundColor: Colors.white,
-    elevation: 0,
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(12),
-    ),
-  ),
-  icon: const Icon(Icons.visibility_rounded, size: 18),
-  label: const Text(
-    "Pregled",
-    style: TextStyle(
-      fontWeight: FontWeight.w700,
-      fontSize: 13.5,
-    ),
-  ),
-),
+                          if (refreshed == true && mounted) {
+                            await _refreshAll();
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF5F9F3B),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        icon: const Icon(Icons.visibility_rounded, size: 18),
+                        label: const Text(
+                          "Pregled",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                      ),
                     ),
                   ];
                 },
@@ -438,4 +483,3 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     );
   }
 }
-

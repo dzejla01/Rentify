@@ -26,21 +26,29 @@ namespace Rentify.Services.Services
 
             if (!string.IsNullOrWhiteSpace(search?.FTS))
             {
-                var fts = search.FTS.Trim().ToLower();
+                var fts = string.Join(" ", search.FTS.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
                 query = query.Where(x =>
-                    (x.Comment != null && x.Comment.ToLower().Contains(fts))
+                    (x.Comment != null && x.Comment.ToLower().Contains(fts)
+                    || (x.Reservation != null && x.Reservation.User != null && x.Reservation.User.FirstName.ToLower().Contains(fts))
+                    || (x.Reservation != null && x.Reservation.User != null && x.Reservation.User.LastName.ToLower().Contains(fts))
+                    || (x.Reservation != null && x.Reservation.User != null && (x.Reservation.User.FirstName + " " + x.Reservation.User.LastName).ToLower().Contains(fts))
+                    || (x.Reservation != null && x.Reservation.User != null && (x.Reservation.User.LastName + " " + x.Reservation.User.FirstName).ToLower().Contains(fts))
+                    || (x.Reservation != null && x.Reservation.Property != null && x.Reservation.Property.Name.ToLower().Contains(fts)))
                 );
             }
 
             if (search.UserId.HasValue)
             {
-                query = query.Where(x => x.Reservation.UserId == search.UserId);
+                query = query.Where(x => x.Reservation != null && x.Reservation.UserId == search.UserId);
             }
 
             if (search.OwnersPropertyId.HasValue)
             {
-                query = query.Where(x => x.Reservation.Property.UserId == search.OwnersPropertyId);
+                query = query.Where(x =>
+                    x.Reservation != null &&
+                    x.Reservation.Property != null &&
+                    x.Reservation.Property.UserId == search.OwnersPropertyId);
             }
 
             if (search.ReservationId.HasValue && search.ReservationId.Value > 0)
@@ -65,7 +73,6 @@ namespace Rentify.Services.Services
                     .Include(x => x.Reservation)
                     .ThenInclude(r => r.Property);
             }
-
             return query;
         }
 

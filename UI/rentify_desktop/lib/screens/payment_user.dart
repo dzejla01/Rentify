@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/helper/date_helper.dart';
-import 'package:rentify_desktop/helper/univerzal_pagging_helper.dart';
 import 'package:rentify_desktop/models/payment.dart';
 import 'package:rentify_desktop/models/property.dart';
 import 'package:rentify_desktop/models/reservation.dart';
-import 'package:rentify_desktop/models/search_result.dart';
 import 'package:rentify_desktop/models/user.dart';
 import 'package:rentify_desktop/providers/payment_provider.dart';
 import 'package:rentify_desktop/providers/property_provider.dart';
@@ -14,6 +12,9 @@ import 'package:rentify_desktop/screens/adding_payment_screen.dart';
 import 'package:rentify_desktop/screens/base_screen.dart';
 import 'package:rentify_desktop/screens/editing_payment_screen.dart';
 import 'package:rentify_desktop/screens/payment_list_screen.dart';
+import 'package:rentify_desktop/utils/session.dart';
+
+enum ReservationViewFilter { active, inactive }
 
 class PaymentUserScreen extends StatefulWidget {
   final User user;
@@ -29,13 +30,18 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
   late final ReservationProvider _reservationProvider;
   late final PaymentProvider _paymentProvider;
 
-  late final UniversalPagingProvider<Reservation> _reservationPaging;
-
   final TextEditingController _searchCtrl = TextEditingController();
-  String _searchText = "";
+
+  List<Reservation> _allReservations = [];
+  List<Reservation> _filteredReservations = [];
 
   Map<int, Property> _propertiesMap = {};
-  Map<int, Payment?> _shortStayPaymentByReservationId = {};
+  Map<int, List<Payment>> _paymentsByReservationId = {};
+
+  bool _isLoading = true;
+  String? _loadError;
+
+  ReservationViewFilter _selectedFilter = ReservationViewFilter.active;
 
   @override
   void initState() {
@@ -54,124 +60,292 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
       listen: false,
     );
 
-    _reservationPaging = UniversalPagingProvider<Reservation>(
-      pageSize: 5,
-      fetcher: ({
-        required int page,
-        required int pageSize,
-        String? filter,
-        bool includeTotalCount = true,
-      }) async {
-        final f = <String, dynamic>{
-          "userId": widget.user.id,
-          "isApproved": true,
-          "page": page,
-          "pageSize": pageSize,
-          "includeTotalCount": includeTotalCount,
-          "status": "Odobreno",
-          if (filter != null && filter.trim().isNotEmpty) "FTS": filter.trim(),
-        };
-
-        final SearchResult<Reservation> res = await _reservationProvider.get(
-          filter: f,
-        );
-
-        return res;
-      },
-    );
-
-    _loadPageWithExtras();
+    _searchCtrl.addListener(_applySearch);
+    _loadData();
   }
 
   @override
   void dispose() {
+    _searchCtrl.removeListener(_applySearch);
     _searchCtrl.dispose();
-    _reservationPaging.dispose();
     super.dispose();
   }
 
-  Future<void> _loadPageWithExtras({int? pageNumber, String? filter}) async {
-    await _reservationPaging.loadPage(pageNumber: pageNumber, filter: filter);
-    if (!mounted) return;
-    await _loadAuxForCurrentPage();
-  }
+  Future<void> _loadData() async {
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
 
-  Future<void> _nextPageWithExtras() async {
-    if (!_reservationPaging.hasNextPage) return;
-    await _reservationPaging.nextPage();
-    if (!mounted) return;
-    await _loadAuxForCurrentPage();
-  }
+    try {
+      final propertiesResult = await _propertyProvider.get(
+        filter: {
+          "userId": Session.userId,
+          "retrieveAll": true,
+          "page": 0,
+          "pageSize": 1000,
+          "includeTotalCount": false,
+        },
+      );
 
-  Future<void> _prevPageWithExtras() async {
-    if (!_reservationPaging.hasPreviousPage) return;
-    await _reservationPaging.previousPage();
-    if (!mounted) return;
-    await _loadAuxForCurrentPage();
-  }
+      final ownerPropertyIds = propertiesResult.items.map((p) => p.id).toSet();
 
-  Future<void> _searchWithExtras(String value) async {
-    _searchText = value;
-    await _reservationPaging.search(value);
-    if (!mounted) return;
-    await _loadAuxForCurrentPage();
-  }
+      final reservationResult = await _reservationProvider.get(
+        filter: {
+          "userId": widget.user.id,
+          "retrieveAll": true,
+          "page": 0,
+          "pageSize": 1000,
+          "includeTotalCount": false,
+        },
+      );
 
-  Future<Map<int, Property>> _loadPropertiesForReservations(
-    List<Reservation> reservations,
-  ) async {
-    final Map<int, Property> loadedProperties = {};
+      final relevantReservations = reservationResult.items.where((r) {
+        final status = (r.status!).trim();
+        if (status == "Odbijeno") return false;
+        return ownerPropertyIds.contains(r.propertyId);
+      }).toList();
 
-    for (final reservation in reservations) {
-      if (!loadedProperties.containsKey(reservation.propertyId)) {
-        final property = await _propertyProvider.getById(reservation.propertyId);
-        loadedProperties[reservation.propertyId] = property;
+      final propertiesMap = <int, Property>{};
+      for (final property in propertiesResult.items) {
+        propertiesMap[property.id] = property;
       }
-    }
 
-    return loadedProperties;
-  }
+      final paymentResult = await _paymentProvider.get(
+        filter: {
+          "userId": widget.user.id,
+          "retrieveAll": true,
+          "page": 0,
+          "pageSize": 1000,
+          "includeTotalCount": false,
+        },
+      );
 
-  Future<Map<int, Payment?>> _mapShortStayPaymentsByReservation(
-    List<Reservation> reservations,
-  ) async {
-    final paymentResult = await _paymentProvider.get(
-      filter: {"userId": widget.user.id},
-    );
+      final paymentsByReservationId = <int, List<Payment>>{};
+      for (final payment in paymentResult.items) {
+        final reservationId = payment.reservation?.id;
+        if (reservationId == null) continue;
 
-    final payments = paymentResult.items;
-    final Map<int, Payment?> paymentMap = {};
-
-    for (final reservation in reservations) {
-      if (reservation.isMonthly == false) {
-        final matchingPayments = payments
-            .where((payment) => payment.reservation?.id == reservation.id)
-            .toList();
-
-        matchingPayments.sort((a, b) => b.id.compareTo(a.id));
-
-        paymentMap[reservation.id] =
-            matchingPayments.isNotEmpty ? matchingPayments.first : null;
+        paymentsByReservationId.putIfAbsent(reservationId, () => []);
+        paymentsByReservationId[reservationId]!.add(payment);
       }
-    }
 
-    return paymentMap;
+      for (final entry in paymentsByReservationId.entries) {
+        entry.value.sort((a, b) {
+          final aDate = a.dateToPay ?? DateTime(1900);
+          final bDate = b.dateToPay ?? DateTime(1900);
+
+          final byDate = bDate.compareTo(aDate);
+          if (byDate != 0) return byDate;
+
+          return b.id.compareTo(a.id);
+        });
+      }
+
+      relevantReservations.sort((a, b) {
+        final propertyA = propertiesMap[a.propertyId]?.name.toLowerCase() ?? "";
+        final propertyB = propertiesMap[b.propertyId]?.name.toLowerCase() ?? "";
+
+        final byProperty = propertyA.compareTo(propertyB);
+        if (byProperty != 0) return byProperty;
+
+        final aStart = a.startDateOfRenting ?? DateTime(1900);
+        final bStart = b.startDateOfRenting ?? DateTime(1900);
+        return bStart.compareTo(aStart);
+      });
+
+      if (!mounted) return;
+
+      setState(() {
+        _allReservations = relevantReservations;
+        _filteredReservations = relevantReservations;
+        _propertiesMap = propertiesMap;
+        _paymentsByReservationId = paymentsByReservationId;
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _loadError = "Greška pri učitavanju rezervacija i uplata.";
+      });
+    }
   }
 
-  Future<void> _loadAuxForCurrentPage() async {
-    final reservations = _reservationPaging.items;
+  void _applySearch() {
+    final query = _searchCtrl.text.trim().toLowerCase();
 
-    final loadedProperties = await _loadPropertiesForReservations(reservations);
-    final shortStayPaymentMap =
-        await _mapShortStayPaymentsByReservation(reservations);
+    final filtered = _allReservations.where((reservation) {
+      final property = _propertiesMap[reservation.propertyId];
+      final propertyName = (property?.name ?? "").toLowerCase();
+      final reservationType =
+          reservation.isMonthly == true ? "najamnina" : "kratki boravak";
+      final status = reservation.status!.toLowerCase();
 
-    if (!mounted) return;
+      return propertyName.contains(query) ||
+          reservationType.contains(query) ||
+          status.contains(query);
+    }).toList();
 
     setState(() {
-      _propertiesMap = loadedProperties;
-      _shortStayPaymentByReservationId = shortStayPaymentMap;
+      _filteredReservations = filtered;
     });
   }
+
+  Payment? _getLatestPaymentForReservation(int reservationId) {
+    final payments = _paymentsByReservationId[reservationId];
+    if (payments == null || payments.isEmpty) return null;
+    return payments.first;
+  }
+
+  bool _hasMonthlyUnpaidLastInstallment(Reservation reservation) {
+    if (reservation.isMonthly != true) return false;
+
+    final latestPayment = _getLatestPaymentForReservation(reservation.id);
+    if (latestPayment == null) return false;
+
+    return latestPayment.paymentStatus == "Neplaćeno";
+  }
+
+  bool _hasShortStayUnpaid(Reservation reservation) {
+    if (reservation.isMonthly == true) return false;
+
+    final latestPayment = _getLatestPaymentForReservation(reservation.id);
+    if (latestPayment == null) return false;
+
+    return latestPayment.paymentStatus == "Neplaćeno";
+  }
+
+  bool _shouldHighlightInRed(Reservation reservation) {
+    if (reservation.isMonthly == true) {
+      return _hasMonthlyUnpaidLastInstallment(reservation);
+    }
+
+    return _hasShortStayUnpaid(reservation);
+  }
+
+  String? _warningText(Reservation reservation) {
+    if (reservation.isMonthly == true &&
+        _hasMonthlyUnpaidLastInstallment(reservation)) {
+      return "Zadnja poslana rata je neplaćena.";
+    }
+
+    if (reservation.isMonthly != true && _hasShortStayUnpaid(reservation)) {
+      return "Boravak je neplaćen.";
+    }
+
+    return null;
+  }
+
+  List<Reservation> _visibleReservations() {
+    if (_selectedFilter == ReservationViewFilter.active) {
+      return _filteredReservations.where((r) => r.status == "Odobreno").toList();
+    }
+
+    return _filteredReservations
+        .where((r) => r.status == "Završeno" || r.status == "Otkazano")
+        .toList();
+  }
+
+  Widget _buildFilterChips() {
+  final activeCount =
+      _filteredReservations.where((r) => r.status == "Odobreno").length;
+
+  final inactiveCount = _filteredReservations
+      .where((r) => r.status == "Završeno" || r.status == "Otkazano")
+      .length;
+
+  Widget buildItem({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+    required Color selectedColor,
+  }) {
+    return Expanded(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeInOut,
+        decoration: BoxDecoration(
+          color: selected ? selectedColor : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: selected
+              ? const [
+                  BoxShadow(
+                    color: Color(0x14000000),
+                    blurRadius: 10,
+                    offset: Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              child: Center(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w700,
+                    color: selected
+                        ? Colors.white
+                        : const Color(0xFF4B5563),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  return Container(
+    padding: const EdgeInsets.all(6),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: Colors.black.withOpacity(0.06)),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x12000000),
+          blurRadius: 18,
+          offset: Offset(0, 10),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        buildItem(
+          label: "Aktivne ($activeCount)",
+          selected: _selectedFilter == ReservationViewFilter.active,
+          selectedColor: const Color(0xFF5F9F3B),
+          onTap: () {
+            setState(() {
+              _selectedFilter = ReservationViewFilter.active;
+            });
+          },
+        ),
+        const SizedBox(width: 6),
+        buildItem(
+          label: "Neaktivne ($inactiveCount)",
+          selected: _selectedFilter == ReservationViewFilter.inactive,
+          selectedColor: const Color(0xFF4B5563),
+          onTap: () {
+            setState(() {
+              _selectedFilter = ReservationViewFilter.inactive;
+            });
+          },
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _infoRow({
     required IconData icon,
@@ -211,14 +385,72 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
     );
   }
 
-  Widget _rentifyActionButton({
-    required BuildContext context,
-    required bool enabled,
+  Widget _statusChip(Reservation reservation) {
+    Color bg;
+    if (reservation.status == "Odobreno") {
+      bg = const Color(0xFF5F9F3B);
+    } else if (reservation.status == "Završeno") {
+      bg = const Color(0xFF4B5563);
+    } else if (reservation.status == "Otkazano") {
+      bg = const Color(0xFF9CA3AF);
+    } else {
+      bg = const Color(0xFF6B7280);
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        reservation.status!,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 12.5,
+        ),
+      ),
+    );
+  }
+
+  Widget _warningBanner(String text) {
+    return Container(
+      margin: const EdgeInsets.only(top: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE53935), width: 1.2),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_amber_rounded,
+            color: Color(0xFFE53935),
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(
+                color: Color(0xFFB91C1C),
+                fontWeight: FontWeight.w700,
+                fontSize: 12.8,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
     required Reservation reservation,
     required Property? property,
-    required Payment? shortStayPayment,
   }) {
-    final bool hasShortStayPayment = shortStayPayment != null;
+    final latestPayment = _getLatestPaymentForReservation(reservation.id);
 
     final ButtonStyle style = ElevatedButton.styleFrom(
       backgroundColor: const Color(0xFF5F9F3B),
@@ -232,20 +464,20 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
 
     if (reservation.isMonthly == true) {
       return ElevatedButton.icon(
-        onPressed: !enabled
+        onPressed: property == null
             ? null
             : () async {
                 await Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => PaymentListScreen(
                       user: widget.user,
-                      property: property!,
+                      property: property,
                       reservation: reservation,
                     ),
                   ),
                 );
 
-                await _loadPageWithExtras(filter: _searchText);
+                await _loadData();
               },
         style: style,
         icon: const Icon(Icons.payments_rounded, size: 18),
@@ -256,9 +488,9 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
       );
     }
 
-    if (hasShortStayPayment) {
+    if (latestPayment != null) {
       return ElevatedButton.icon(
-        onPressed: !enabled
+        onPressed: property == null
             ? null
             : () async {
                 final refreshed = await Navigator.push<bool>(
@@ -266,15 +498,15 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
                   MaterialPageRoute(
                     builder: (_) => PaymentEditingScreen(
                       user: widget.user,
-                      property: property!,
-                      payment: shortStayPayment,
+                      property: property,
+                      payment: latestPayment,
                       isMonthly: false,
                     ),
                   ),
                 );
 
                 if (refreshed == true && mounted) {
-                  await _loadPageWithExtras(filter: _searchText);
+                  await _loadData();
                 }
               },
         style: style,
@@ -287,7 +519,7 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
     }
 
     return ElevatedButton.icon(
-      onPressed: !enabled
+      onPressed: property == null
           ? null
           : () async {
               final refreshed = await Navigator.push<bool>(
@@ -295,7 +527,7 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
                 MaterialPageRoute(
                   builder: (_) => PaymentAddingScreen(
                     user: widget.user,
-                    property: property!,
+                    property: property,
                     billMonth: DateTime.now().month,
                     billYear: DateTime.now().year,
                     isMonthly: false,
@@ -305,7 +537,7 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
               );
 
               if (refreshed == true && mounted) {
-                await _loadPageWithExtras(filter: _searchText);
+                await _loadData();
               }
             },
       style: style,
@@ -317,224 +549,172 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
     );
   }
 
-  Widget _statusChip(Payment? payment) {
-    final isPayed = payment?.isPayed == true;
-    final bg = isPayed ? Colors.green : Colors.orange;
-    final text = isPayed ? "Uplaćeno" : "Na čekanju";
+  Widget _buildReservationCard(Reservation reservation) {
+    final property = _propertiesMap[reservation.propertyId];
+    final propertyName = property?.name ?? "Učitavanje...";
+    final shouldHighlight = _shouldHighlightInRed(reservation);
+    final warningText = _warningText(reservation);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      margin: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: shouldHighlight
+              ? const Color(0xFFE53935)
+              : Colors.black.withOpacity(0.05),
+          width: shouldHighlight ? 2 : 1,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 18,
+            offset: Offset(0, 10),
+          ),
+        ],
       ),
-      child: Text(
-        "Status: $text",
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEAF6E5),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.home_rounded,
+                          size: 18,
+                          color: Color(0xFF5F9F3B),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          propertyName,
+                          style: const TextStyle(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w800,
+                            color: Color(0xFF1F2A1F),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                _statusChip(reservation),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _infoRow(
+              icon: Icons.category_rounded,
+              label: "Vrsta rezervacije",
+              value: reservation.isMonthly == true
+                  ? "Najamnina"
+                  : "Kratki boravak",
+            ),
+            if (reservation.startDateOfRenting != null)
+              _infoRow(
+                icon: Icons.event_available_rounded,
+                label: "Datum početka",
+                value: DateHelper.formatNullable(reservation.startDateOfRenting),
+              ),
+            if (reservation.endDateOfRenting != null)
+              _infoRow(
+                icon: Icons.event_busy_rounded,
+                label: "Datum kraja",
+                value: DateHelper.formatNullable(reservation.endDateOfRenting),
+              ),
+            if (warningText != null) _warningBanner(warningText),
+            const SizedBox(height: 14),
+            Align(
+              alignment: Alignment.centerRight,
+              child: _buildActionButton(
+                reservation: reservation,
+                property: property,
+              ),
+            ),
+          ],
         ),
       ),
-    );
-  }
-
-  Widget _pagingControls() {
-    final paging = _reservationPaging;
-    final totalPages =
-        ((paging.totalCount + paging.pageSize - 1) ~/ paging.pageSize);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        IconButton(
-          onPressed: paging.hasPreviousPage ? _prevPageWithExtras : null,
-          icon: const Icon(Icons.arrow_back),
-        ),
-        Text("${paging.page + 1} / ${totalPages == 0 ? 1 : totalPages}"),
-        IconButton(
-          onPressed: paging.hasNextPage ? _nextPageWithExtras : null,
-          icon: const Icon(Icons.arrow_forward),
-        ),
-      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final paging = _reservationPaging;
-    final reservations = paging.items;
+    final visibleReservations = _visibleReservations();
 
     return RentifyBasePage(
       title: "Stanje uplata: ${widget.user.firstName} ${widget.user.lastName}",
       child: Padding(
-        padding: const EdgeInsets.only(top: 8),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: TextField(
-                controller: _searchCtrl,
-                onChanged: (value) async {
-                  await _searchWithExtras(value);
-                },
-                decoration: InputDecoration(
-                  hintText: "Pretraga (npr. naziv nekretnine, vrste rezervacije)",
-                  prefixIcon: const Icon(Icons.search),
-                  suffixIcon: _searchCtrl.text.isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.clear),
-                          onPressed: () async {
-                            _searchCtrl.clear();
-                            await _searchWithExtras("");
-                          },
-                        ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  isDense: true,
+            TextField(
+              controller: _searchCtrl,
+              decoration: InputDecoration(
+                hintText:
+                    "Pretraga (npr. naziv nekretnine, status, vrsta rezervacije)",
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchCtrl.text.isEmpty
+                    ? null
+                    : IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                        },
+                      ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                isDense: true,
               ),
             ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: paging.isLoading && reservations.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : reservations.isEmpty
-                      ? const Center(
-                          child: Text("Nema rezervacija za ovog korisnika."),
-                        )
-                      : ListView.builder(
-                          itemCount: reservations.length,
-                          itemBuilder: (context, index) {
-                            final reservation = reservations[index];
-                            final property =
-                                _propertiesMap[reservation.propertyId];
-                            final propertyName =
-                                property?.name ?? "Učitavanje...";
-
-                            final shortStayPayment =
-                                _shortStayPaymentByReservationId[reservation.id];
-
-                            return Container(
-                              margin: const EdgeInsets.symmetric(
-                                vertical: 10,
-                                horizontal: 16,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(18),
-                                border: Border.all(
-                                  color: Colors.black.withOpacity(0.05),
-                                ),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Color(0x12000000),
-                                    blurRadius: 18,
-                                    offset: Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  14,
-                                  16,
-                                  14,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: Row(
-                                            children: [
-                                              Container(
-                                                width: 34,
-                                                height: 34,
-                                                decoration: BoxDecoration(
-                                                  color:
-                                                      const Color(0xFFEAF6E5),
-                                                  borderRadius:
-                                                      BorderRadius.circular(10),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.home_rounded,
-                                                  size: 18,
-                                                  color: Color(0xFF5F9F3B),
-                                                ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              Expanded(
-                                                child: Text(
-                                                  propertyName.isEmpty
-                                                      ? "Nekretnina"
-                                                      : propertyName,
-                                                  style: const TextStyle(
-                                                    fontSize: 15.5,
-                                                    fontWeight: FontWeight.w800,
-                                                    color: Color(0xFF1F2A1F),
-                                                  ),
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        if (reservation.isMonthly == false &&
-                                            shortStayPayment != null) ...[
-                                          const SizedBox(width: 10),
-                                          _statusChip(shortStayPayment),
-                                        ],
-                                      ],
-                                    ),
-                                    const SizedBox(height: 12),
-                                    _infoRow(
-                                      icon: Icons.category_rounded,
-                                      label: "Vrsta rezervacije",
-                                      value: reservation.isMonthly == true
-                                          ? "Najamnina"
-                                          : "Kratki boravak",
-                                    ),
-                                    if (reservation.startDateOfRenting != null)
-                                      _infoRow(
-                                        icon: Icons.event_available_rounded,
-                                        label: "Datum početka",
-                                        value: DateHelper.formatNullable(
-                                          reservation.startDateOfRenting,
-                                        ),
-                                      ),
-                                    if (reservation.endDateOfRenting != null)
-                                      _infoRow(
-                                        icon: Icons.event_busy_rounded,
-                                        label: "Datum kraja",
-                                        value: DateHelper.formatNullable(
-                                          reservation.endDateOfRenting,
-                                        ),
-                                      ),
-                                    const SizedBox(height: 14),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: _rentifyActionButton(
-                                        context: context,
-                                        enabled: property != null,
-                                        reservation: reservation,
-                                        property: property,
-                                        shortStayPayment: shortStayPayment,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
+            const SizedBox(height: 14),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: _buildFilterChips(),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: _pagingControls(),
+            const SizedBox(height: 12),
+            Expanded(
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _loadError != null
+                      ? Center(
+                          child: Text(
+                            _loadError!,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        )
+                      : visibleReservations.isEmpty
+                          ? Center(
+                              child: Text(
+                                _selectedFilter == ReservationViewFilter.active
+                                    ? "Nema aktivnih rezervacija za ovog korisnika."
+                                    : "Nema neaktivnih rezervacija za ovog korisnika.",
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: visibleReservations.length,
+                              itemBuilder: (context, index) {
+                                final reservation = visibleReservations[index];
+                                return _buildReservationCard(reservation);
+                              },
+                            ),
             ),
           ],
         ),

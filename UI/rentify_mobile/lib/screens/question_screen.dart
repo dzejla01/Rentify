@@ -30,7 +30,13 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   final PageController _swiperController = PageController(
     viewportFraction: 0.92,
   );
+
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
+
   int _swiperIndex = 0;
+  String _searchText = "";
+  bool? _selectedAnsweredFilter;
 
   @override
   void initState() {
@@ -53,6 +59,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
           "page": page,
           "pageSize": pageSize,
           "includeTotalCount": includeTotalCount,
+          "includeProperty": true,
         };
 
         if (filter != null && filter.trim().isNotEmpty) {
@@ -74,6 +81,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
     _swiperController.dispose();
     _paging.dispose();
     super.dispose();
@@ -87,6 +96,44 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
 
   Future<void> _refresh() async {
     await _paging.refresh();
+  }
+
+  void _onSearchChanged(String value) {
+    _debounce?.cancel();
+
+    _debounce = Timer(const Duration(milliseconds: 400), () async {
+      final text = value.trim();
+
+      if (_searchText == text) return;
+
+      _searchText = text;
+      await _paging.search(text);
+
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  Future<void> _clearSearch() async {
+    _debounce?.cancel();
+    _searchController.clear();
+    _searchText = "";
+    await _paging.search("");
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> _setAnsweredFilter(bool? value) async {
+    setState(() {
+      _selectedAnsweredFilter = value;
+    });
+
+    await _paging.applyExtra({
+      if (value != null) "isAnswered": value,
+    });
   }
 
   Future<void> _showAnswerDialog(Question item) async {
@@ -229,6 +276,98 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
         message: "Došlo je do greške pri učitavanju odgovora.",
       );
     }
+  }
+
+  Widget _buildSearchBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: _onSearchChanged,
+        textInputAction: TextInputAction.search,
+        decoration: InputDecoration(
+          hintText: "Pretraži pitanja...",
+          hintStyle: const TextStyle(
+            color: Color(0xFF9A9A9A),
+            fontWeight: FontWeight.w600,
+          ),
+          prefixIcon: const Icon(
+            Icons.search_rounded,
+            color: Color(0xFF5F9F3B),
+          ),
+          suffixIcon: _searchController.text.trim().isNotEmpty
+              ? IconButton(
+                  onPressed: _clearSearch,
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Color(0xFF888888),
+                  ),
+                )
+              : null,
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 18,
+            vertical: 16,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(18),
+            borderSide: const BorderSide(
+              color: Color(0xFFBFE06A),
+              width: 1.4,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusFilters() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _StatusChip(
+            label: "Sve",
+            selected: _selectedAnsweredFilter == null,
+            onTap: () => _setAnsweredFilter(null),
+            color: const Color(0xFF5F9F3B),
+          ),
+          const SizedBox(width: 8),
+          _StatusChip(
+            label: "Odgovoreno",
+            selected: _selectedAnsweredFilter == true,
+            onTap: () => _setAnsweredFilter(true),
+            color: Colors.green,
+          ),
+          const SizedBox(width: 8),
+          _StatusChip(
+            label: "Na čekanju",
+            selected: _selectedAnsweredFilter == false,
+            onTap: () => _setAnsweredFilter(false),
+            color: const Color(0xFF5F9F3B),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSwiperHeader() {
@@ -440,9 +579,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: item.isAnswered
-                  ? () => _showAnswerDialog(item)
-                  : null,
+              onPressed: item.isAnswered ? () => _showAnswerDialog(item) : null,
               icon: Icon(
                 item.isAnswered
                     ? Icons.visibility_rounded
@@ -479,93 +616,81 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
       userUsername: Session.username!,
       userImageAsset: Session.userImage,
       onLogout: () async {
-  await Session.odjava(
-    deviceTokenProvider: context.read<DeviceTokenProvider>(),
-    authProvider: context.read<AuthProvider>(),
-  );
+        await Session.odjava(
+          deviceTokenProvider: context.read<DeviceTokenProvider>(),
+          authProvider: context.read<AuthProvider>(),
+        );
 
-  if (!context.mounted) return;
+        if (!context.mounted) return;
 
-  Navigator.pushNamedAndRemoveUntil(
-    context,
-    AppRoutes.login,
-    (route) => false,
-  );
-},
-      child: AnimatedBuilder(
-        animation: _paging,
-        builder: (context, _) {
-          return RefreshIndicator(
-            onRefresh: _refresh,
-            child: _paging.isLoading && _paging.items.isEmpty
-                ? const Center(child: CircularProgressIndicator())
-                : _paging.error != null
-                    ? ListView(
-                        padding: const EdgeInsets.all(24),
-                        children: [
-                          const SizedBox(height: 120),
-                          Text(
-                            _paging.error!,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: _refresh,
-                              child: const Text("Pokušaj ponovo"),
-                            ),
-                          ),
-                        ],
-                      )
-                    : _paging.items.isEmpty
-                        ? ListView(
-                            padding: const EdgeInsets.all(24),
-                            children: [
-                              const SizedBox(height: 80),
-                              const Icon(
-                                Icons.question_answer_outlined,
-                                size: 74,
-                                color: Color(0xFFA9C64A),
-                              ),
-                              const SizedBox(height: 18),
-                              const Text(
-                                "Nemate još pitanja",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w800,
+        Navigator.pushNamedAndRemoveUntil(
+          context,
+          AppRoutes.login,
+          (route) => false,
+        );
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: Column(
+              children: [
+                _buildSearchBar(),
+                const SizedBox(height: 12),
+                _buildStatusFilters(),
+                const SizedBox(height: 16),
+                _buildSwiperHeader(),
+              ],
+            ),
+          ),
+          Expanded(
+            child: AnimatedBuilder(
+              animation: _paging,
+              builder: (context, _) {
+                return RefreshIndicator(
+                  onRefresh: _refresh,
+                  child: _paging.isLoading && _paging.items.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : _paging.error != null
+                          ? ListView(
+                              padding: const EdgeInsets.all(24),
+                              children: [
+                                const SizedBox(height: 120),
+                                Text(
+                                  _paging.error!,
+                                  textAlign: TextAlign.center,
                                 ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                "Pitanja koja pošaljete za nekretnine prikazivat će se ovdje, zajedno sa statusom odgovora.",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF6E6E6E),
-                                  fontWeight: FontWeight.w600,
+                              ],
+                            )
+                          : _paging.items.isEmpty
+                              ? ListView(
+                                  padding: const EdgeInsets.all(24),
+                                  children: const [
+                                    SizedBox(height: 80),
+                                    Center(child: Text("Nema rezultata")),
+                                  ],
+                                )
+                              : ListView(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    16,
+                                    16,
+                                    24,
+                                  ),
+                                  children: [
+                                    SwipePagedList<Question>(
+                                      provider: _paging,
+                                      separatorHeight: 14,
+                                      itemBuilder: (context, item) =>
+                                          _buildQuestionCard(item),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ],
-                          )
-                        : ListView(
-                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                            children: [
-                              _buildSwiperHeader(),
-                              const SizedBox(height: 16),
-                              SwipePagedList<Question>(
-                                provider: _paging,
-                                separatorHeight: 14,
-                                itemBuilder: (context, item) =>
-                                    _buildQuestionCard(item),
-                              ),
-                            ],
-                          ),
-          );
-        },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -583,4 +708,44 @@ class _HeaderCardData {
     required this.subtitle,
     required this.icon,
   });
+}
+
+class _StatusChip extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final Color color;
+
+  const _StatusChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(999),
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+        decoration: BoxDecoration(
+          color: selected ? color : Colors.white,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(
+            color: selected ? color : Colors.black.withOpacity(0.08),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : const Color(0xFF374151),
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    );
+  }
 }

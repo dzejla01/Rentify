@@ -41,13 +41,11 @@ class _ReportScreenState extends State<ReportScreen> {
   final ScrollController _bestOwnerScrollController = ScrollController();
   final ScrollController _trendHorizontalController = ScrollController();
 
-  // INCOME
   List<MonthlyIncome> _monthly = [];
   List<PropertyIncome> _byProperty = [];
   int? _selectedIncomeYear;
   int? _selectedIncomeMonth;
 
-  // BEST OWNER
   final List<int> _yearOptions = const [2025, 2026];
   int? _selectedYear = 2026;
   BestOwnerByYear? _bestOwner;
@@ -97,7 +95,6 @@ class _ReportScreenState extends State<ReportScreen> {
       _monthly = sorted;
     });
 
-    // default: zadnji dostupan mjesec
     if (sorted.isNotEmpty) {
       final last = sorted.last;
       _selectedIncomeYear = last.year;
@@ -1640,7 +1637,7 @@ class _BestOwnerTab extends StatelessWidget {
                 children: [
                   _InfoTile(
                     icon: Icons.person_rounded,
-                    title: "Ime ownera",
+                    title: "Ime vlasnika",
                     value: bestOwner!.ownerName,
                     accent: accent,
                     soft: accentSoft,

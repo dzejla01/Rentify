@@ -26,6 +26,12 @@ namespace Rentify.Services.Services
             {
                 query = query.Where(p => p.PropertyId == search.PropertyId);
             }
+
+            if (search.IsMain.HasValue)
+            {
+                query = query.Where(p => p.IsMain == search.IsMain.Value);
+            }
+
             return base.ApplyFilter(query, search);
         }
 

@@ -28,7 +28,7 @@ namespace Rentify.Services.Services
                 .AsNoTracking()
                 .Include(p => p.Reservation)
                   .ThenInclude(p => p.Property)
-                .Where(p => p.IsPayed == true)
+                .Where(p => p.PaymentStatus == "Plaćeno")
                 .Where(p => p.Reservation.Property != null && p.Reservation.Property.UserId == search.OwnerId);
 
             var monthly = await baseQ

@@ -15,10 +15,10 @@ class Payment {
   final double price;
   final int monthNumber;
   final int yearNumber;
-  final bool isPayed;
   final String paymentStatus;
   DateTime? dateToPay;
   DateTime? warningDateToPay;  
+  DateTime? secondWarningDate;
 
   Payment({
     required this.id,
@@ -27,12 +27,12 @@ class Payment {
     required this.name,
     required this.comment,
     required this.price,
-    required this.isPayed,
     required this.paymentStatus,
     required this.monthNumber,
     required this.yearNumber,
     this.dateToPay,
     this.warningDateToPay,
+    this.secondWarningDate,
   });
 
   factory Payment.fromJson(Map<String, dynamic> json) =>

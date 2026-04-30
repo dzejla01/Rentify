@@ -1,35 +1,32 @@
-﻿using System.IO;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
+using Rentify.Services.Exceptions;
 using Rentify.Services.Interfaces;
 using Rentify.WebAPI.Configuration;
 using Stripe;
+using System.IO;
+using System.Security.Claims;
 
 namespace Rentify.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class PaymentController
-        : BaseCRUDController<PaymentResponse, PaymentSearchObject, PaymentUpsertRequest, PaymentUpsertRequest>
+    public class PaymentController : BaseCRUDController<PaymentResponse, PaymentSearchObject, PaymentUpsertRequest, PaymentUpsertRequest>
     {
         private readonly StripeSettings _stripeSettings;
-        private readonly IPaymentService _paymentService;
 
         public PaymentController(
-            IPaymentService service,
+            IPaymentService paymentService,
             StripeSettings stripeSettings
-        ) : base(service)
+        ) : base(paymentService)
         {
-            _paymentService = service;
             _stripeSettings = stripeSettings;
         }
 
-        [Authorize(Roles = "Korisnik")]
+        [Authorize(Roles = "Korisnik,Admin")]
         [HttpPost("create-new-intent")]
         public async Task<IActionResult> CreateNewPaymentIntent([FromBody] CreatePaymentIntentRequest req)
         {
@@ -37,32 +34,32 @@ namespace Rentify.WebAPI.Controllers
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-                if (string.IsNullOrWhiteSpace(userIdClaim) || !int.TryParse(userIdClaim, out var loggedInUserId))
-                    return Unauthorized("Neispravan token");
+                if (!int.TryParse(userIdClaim, out var loggedInUserId))
+                    return Unauthorized("Neispravan token.");
 
                 var isAdmin = User.IsInRole("Admin");
 
                 if (!isAdmin && req.UserId != loggedInUserId)
-                    return Forbid("Nije dozvoljeno kreirati payment intent za drugog korisnika.");
+                    return Forbid();
 
-                var result = await _paymentService.CreateNewPaymentIntentAsync(req);
+                var result = await (_service as IPaymentService).CreateNewPaymentIntentAsync(req);
                 return Ok(result);
             }
-            catch (ArgumentException ex)
+            catch (UserException ex)
             {
                 return BadRequest(ex.Message);
             }
-            catch (InvalidOperationException ex)
+            catch (NotFoundException ex)
             {
-                return BadRequest(ex.Message);
+                return NotFound(ex.Message);
             }
             catch (StripeException)
             {
-                return StatusCode(500, "Greška prilikom komunikacije sa Stripe servisom.");
+                return StatusCode(500, "Greška sa Stripe servisom.");
             }
             catch (Exception)
             {
-                return StatusCode(500, "Došlo je do greške prilikom kreiranja payment intenta.");
+                return StatusCode(500, "Greška prilikom kreiranja payment intenta.");
             }
         }
 
@@ -75,12 +72,12 @@ namespace Rentify.WebAPI.Controllers
                 using var reader = new StreamReader(HttpContext.Request.Body);
                 var json = await reader.ReadToEndAsync();
 
-                var signatureHeader = Request.Headers["Stripe-Signature"].ToString();
+                var signatureHeader = Request.Headers["Stripe-Signature"];
 
                 var stripeEvent = EventUtility.ConstructEvent(
                     json,
                     signatureHeader,
-                    _stripeSettings.WebhookSecret,  
+                    _stripeSettings.WebhookSecret,
                     throwOnApiVersionMismatch: false
                 );
 
@@ -90,21 +87,21 @@ namespace Rentify.WebAPI.Controllers
 
                 if (stripeEvent.Type == "payment_intent.succeeded")
                 {
-                    await _paymentService.HandlePaymentIntentSucceededAsync(
+                    await (_service as IPaymentService).HandlePaymentIntentSucceededAsync(
                         paymentIntent.Id,
                         paymentIntent.Metadata
                     );
                 }
                 else if (stripeEvent.Type == "payment_intent.payment_failed")
                 {
-                    await _paymentService.HandlePaymentIntentFailedAsync(
+                    await (_service as IPaymentService).HandlePaymentIntentFailedAsync(
                         paymentIntent.Id,
                         paymentIntent.Metadata
                     );
                 }
                 else if (stripeEvent.Type == "payment_intent.canceled")
                 {
-                    await _paymentService.HandlePaymentIntentCanceledAsync(
+                    await (_service as IPaymentService).HandlePaymentIntentCanceledAsync(
                         paymentIntent.Id,
                         paymentIntent.Metadata
                     );
@@ -114,11 +111,11 @@ namespace Rentify.WebAPI.Controllers
             }
             catch (StripeException)
             {
-                return BadRequest("Neispravan Stripe webhook potpis ili payload.");
+                return BadRequest("Neispravan webhook.");
             }
             catch (Exception)
             {
-                return StatusCode(500, "Greška pri obradi Stripe webhook-a.");
+                return StatusCode(500, "Greška pri webhook obradi.");
             }
         }
     }

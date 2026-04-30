@@ -12,8 +12,9 @@ import 'package:rentify_desktop/utils/session.dart';
 
 String fmtDateTime(DateTime? d) {
   if (d == null) return "-";
+  final local = d.toLocal();
   String two(int n) => n.toString().padLeft(2, '0');
-  return "${two(d.day)}.${two(d.month)}.${d.year} ${two(d.hour)}:${two(d.minute)}";
+  return "${two(local.day)}.${two(local.month)}.${local.year} ${two(local.hour)}:${two(local.minute)}";
 }
 
 class AppointmentScreen extends StatefulWidget {

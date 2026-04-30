@@ -1,6 +1,5 @@
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection;
-using Rentify.Model;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Services.Database;
@@ -65,7 +64,7 @@ namespace Rentify.Services.AppointmentStateMachine
             {
                 nameof(InitialAppointmentState) => _serviceProvider.GetRequiredService<InitialAppointmentState>(),
                 nameof(PendingAppointmentState) => _serviceProvider.GetRequiredService<PendingAppointmentState>(),
-                nameof(ApprovedAppoitmentState) => _serviceProvider.GetRequiredService<ApprovedAppoitmentState>(),
+                nameof(ApprovedAppointmentState) => _serviceProvider.GetRequiredService<ApprovedAppointmentState>(),
                 nameof(FinishedAppointmentState) => _serviceProvider.GetRequiredService<FinishedAppointmentState>(),
                 nameof(RejectedAppointmentState) => _serviceProvider.GetRequiredService<RejectedAppointmentState>(),
                 nameof(CancelledAppointmentState) => _serviceProvider.GetRequiredService<CancelledAppointmentState>(),

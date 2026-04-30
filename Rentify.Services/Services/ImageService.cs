@@ -100,7 +100,6 @@ namespace Rentify.Services
 
         private string GetPhysicalFolder(string folder)
         {
-            // wwwroot/images/{folder}
             var webRoot = _env.WebRootPath ?? Path.Combine(AppContext.BaseDirectory, "wwwroot");
             return Path.Combine(webRoot, "images", folder);
         }
@@ -116,14 +115,11 @@ namespace Rentify.Services
 
             var name = input.Trim();
 
-            // spriječi putanje i traversal
             name = name.Replace("\\", "/");
             name = Path.GetFileName(name);
 
-            // izbaci čudne znakove (samo slova, brojevi, -, _, .)
             name = Regex.Replace(name, @"[^a-zA-Z0-9._-]", "");
 
-            // nije dozvoljeno da bude prazno ili "." ili ".."
             if (name is "." or "..") return "";
 
             return name;

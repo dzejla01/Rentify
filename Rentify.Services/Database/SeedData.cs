@@ -173,13 +173,12 @@ public static class SeedData
         int nextId = 1;
         int usernameCounter = 10;
 
-        // 🔥 GLAVNI OWNER
         users.Add(new User
         {
             Id = nextId++,
             FirstName = "Darko",
             LastName = "Hodzic",
-            Email = "owner1@rentify.dev",
+            Email = "owner.testni@gmail.com",
             Username = "owner1",
             PasswordHash = hashBase64,
             PasswordSalt = saltBase64,
@@ -189,15 +188,14 @@ public static class SeedData
         });
 
         usedUsernames.Add("owner1");
-        usedEmails.Add("owner1@rentify.dev");
+        usedEmails.Add("owner.testni@gmail.com");
 
-        // 🔥 GLAVNI USER
         users.Add(new User
         {
             Id = nextId++,
             FirstName = "Ajla",
             LastName = "Delic",
-            Email = "user1@rentify.dev",
+            Email = "usertestni089@gmail.com",
             Username = "user1",
             PasswordHash = hashBase64,
             PasswordSalt = saltBase64,
@@ -207,10 +205,9 @@ public static class SeedData
         });
 
         usedUsernames.Add("user1");
-        usedEmails.Add("user1@rentify.dev");
+        usedEmails.Add("usertestni089@gmail.com");
 
-        // 🔹 OSTALI OWNERI
-        for (int i = 0; i < 9; i++) // već imamo jednog
+        for (int i = 0; i < 9; i++) 
         {
             var firstName = FirstNames[(i + 2) % FirstNames.Length];
             var lastName = LastNames[(i * 3 + 2) % LastNames.Length];
@@ -235,7 +232,6 @@ public static class SeedData
             usernameCounter++;
         }
 
-        // 🔹 OSTALI USERI
         for (int i = 0; i < 100; i++)
         {
             var firstName = FirstNames[(i + 5) % FirstNames.Length];
@@ -284,7 +280,6 @@ public static class SeedData
         {
             var owner = owners[ownerIndex];
 
-            // owner1 dobija vise nekretnina za demo
             int propertyCount = owner.Username == "owner1" ? 10 : 4;
 
             for (int i = 0; i < propertyCount; i++)
@@ -312,7 +307,6 @@ public static class SeedData
                 },
                     SquareMeters = 35 + (propertyId % 40),
                     Details = $"Automatski generisana nekretnina broj {propertyId} u gradu {city}.",
-                    IsAvailable = propertyId % 7 != 0,
                     IsRentingPerDay = true,
                     IsActiveOnApp = true
                 });
@@ -371,7 +365,7 @@ public static class SeedData
             .ToList();
 
         var demoOwnerProperties = properties
-            .Where(x => x.UserId == 1) // owner1
+            .Where(x => x.UserId == 1) 
             .OrderBy(x => x.Id)
             .ToList();
 
@@ -394,12 +388,7 @@ public static class SeedData
                 .ToList();
         }
 
-        // =========================================
-        // DEMO REZERVACIJE ZA OWNER1
-        // owner1 nekretnine, ali različiti useri
-        // =========================================
-
-        // JAN 2026
+        
         reservations.Add(new Reservation
         {
             Id = reservationId++,
@@ -424,7 +413,6 @@ public static class SeedData
             EndDateOfRenting = new DateTime(2026, 1, 18, 10, 0, 0, DateTimeKind.Utc)
         });
 
-        // FEB 2026
         reservations.Add(new Reservation
         {
             Id = reservationId++,
@@ -449,7 +437,6 @@ public static class SeedData
             EndDateOfRenting = new DateTime(2026, 2, 13, 10, 0, 0, DateTimeKind.Utc)
         });
 
-        // MAR 2026
         reservations.Add(new Reservation
         {
             Id = reservationId++,
@@ -474,7 +461,6 @@ public static class SeedData
             EndDateOfRenting = new DateTime(2026, 3, 15, 10, 0, 0, DateTimeKind.Utc)
         });
 
-        // APR 2026
         reservations.Add(new Reservation
         {
             Id = reservationId++,
@@ -499,7 +485,6 @@ public static class SeedData
             EndDateOfRenting = new DateTime(2026, 4, 14, 10, 0, 0, DateTimeKind.Utc)
         });
 
-        // Owner1 mora imati i odobreno / na čekanju / odbijeno / otkazano
         reservations.Add(new Reservation
         {
             Id = reservationId++,
@@ -548,10 +533,7 @@ public static class SeedData
             EndDateOfRenting = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc)
         });
 
-        // =========================================
-        // DEMO REZERVACIJE ZA USER1
-        // user1 rezerviše i kod drugih ownera
-        // =========================================
+        
 
         reservations.Add(new Reservation
         {
@@ -649,17 +631,14 @@ public static class SeedData
             EndDateOfRenting = new DateTime(2026, 4, 5, 10, 0, 0, DateTimeKind.Utc)
         });
 
-        // 200 ukupno rezervacija raspoređenih kroz 16 mjeseci
-        // 8 mjeseci će imati 13 rezervacija, 8 mjeseci po 12 rezervacija
-        // => 8*13 + 8*12 = 200
+       
         for (int monthIndex = 0; monthIndex < months.Count; monthIndex++)
         {
             var (year, month) = months[monthIndex];
 
             int reservationsThisMonth = monthIndex < 8 ? 13 : 12;
 
-            // 2025 favorizuje prvog ownera
-            // 2026 favorizuje drugog ownera
+           
             var dominantOwnerId = year == 2025
                 ? ownerIds[0]
                 : ownerIds.Count > 1 ? ownerIds[1] : ownerIds[0];
@@ -741,41 +720,121 @@ public static class SeedData
             if (reservation.Status == "Na čekanju")
                 continue;
 
-            var property = propertyMap[reservation.PropertyId];
+            if (!propertyMap.TryGetValue(reservation.PropertyId, out var property))
+                continue;
+
+            if (reservation.StartDateOfRenting == null || reservation.EndDateOfRenting == null)
+                continue;
+
+       
+            bool shouldSeedFinishedButUnpaid =
+                reservation.Status == "Završeno" &&
+                reservation.Id % 7 == 0;
 
             if (reservation.IsMonthly)
             {
                 int monthCount = GetMonthDifference(
-                    reservation.StartDateOfRenting!.Value,
-                    reservation.EndDateOfRenting!.Value);
+                    reservation.StartDateOfRenting.Value,
+                    reservation.EndDateOfRenting.Value
+                );
 
                 monthCount = Math.Max(1, monthCount);
 
                 for (int m = 0; m < monthCount; m++)
                 {
                     var paymentDate = reservation.StartDateOfRenting.Value.AddMonths(m);
-                    bool isPaid = reservation.Status == "Završeno"
-                        ? true
-                        : m < monthCount - 1;
+
+                    string paymentStatus;
+                    DateTime? paidAt = null;
+                    string comment;
+
+                    bool isLastInstallment = m == monthCount - 1;
+
+                    if (!isLastInstallment)
+                    {
+   
+                        paymentStatus = "Plaćeno";
+                        paidAt = new DateTime(
+                            paymentDate.Year,
+                            paymentDate.Month,
+                            3,
+                            0,
+                            0,
+                            0,
+                            DateTimeKind.Utc
+                        );
+                        comment = "Automatski generisana evidentirana uplata.";
+                    }
+                    else
+                    {
+                        if (reservation.Status == "Završeno")
+                        {
+                            if (shouldSeedFinishedButUnpaid)
+                            {
+                                paymentStatus = "Neplaćeno";
+                                paidAt = null;
+                                comment = "Automatski generisan testni slučaj neplaćene završene rate.";
+                            }
+                            else
+                            {
+                                paymentStatus = "Plaćeno";
+                                paidAt = new DateTime(
+                                    paymentDate.Year,
+                                    paymentDate.Month,
+                                    3,
+                                    0,
+                                    0,
+                                    0,
+                                    DateTimeKind.Utc
+                                );
+                                comment = "Automatski generisana evidentirana uplata.";
+                            }
+                        }
+                        else
+                        {
+                            paymentStatus = "Na čekanju";
+                            comment = "Plaćanje je na čekanju.";
+                        }
+                    }
 
                     payments.Add(new Payment
                     {
                         Id = paymentId++,
                         ReservationId = reservation.Id,
                         Name = $"Mjesečna rata {paymentDate.Month:D2}.{paymentDate.Year}",
-                        Comment = isPaid
-                            ? "Automatski generisana evidentirana uplata."
-                            : "Plaćanje je na čekanju.",
+                        Comment = comment,
                         Price = property.PricePerMonth,
-                        IsPayed = isPaid,
                         MonthNumber = paymentDate.Month,
                         YearNumber = paymentDate.Year,
-                        DateToPay = new DateTime(paymentDate.Year, paymentDate.Month, 5, 0, 0, 0, DateTimeKind.Utc),
-                        WarningDateToPay = new DateTime(paymentDate.Year, paymentDate.Month, 12, 0, 0, 0, DateTimeKind.Utc),
-                        PaidAt = isPaid
-                            ? new DateTime(paymentDate.Year, paymentDate.Month, 3, 0, 0, 0, DateTimeKind.Utc)
-                            : null,
-                        PaymentStatus = isPaid ? "Paid" : "Pending"
+                        DateToPay = new DateTime(
+                            paymentDate.Year,
+                            paymentDate.Month,
+                            5,
+                            0,
+                            0,
+                            0,
+                            DateTimeKind.Utc
+                        ),
+                        WarningDateToPay = new DateTime(
+                            paymentDate.Year,
+                            paymentDate.Month,
+                            12,
+                            0,
+                            0,
+                            0,
+                            DateTimeKind.Utc
+                        ),
+                        SecondWarningDate = new DateTime(
+                            paymentDate.Year,
+                            paymentDate.Month,
+                            17,
+                            0,
+                            0,
+                            0,
+                            DateTimeKind.Utc
+                        ),
+                        PaidAt = paidAt,
+                        PaymentStatus = paymentStatus
                     });
                 }
             }
@@ -783,26 +842,48 @@ public static class SeedData
             {
                 int days = Math.Max(
                     1,
-                    (reservation.EndDateOfRenting!.Value - reservation.StartDateOfRenting!.Value).Days);
+                    (reservation.EndDateOfRenting.Value - reservation.StartDateOfRenting.Value).Days
+                );
 
-                bool isPaid = reservation.Status == "Završeno";
+                string paymentStatus;
+                DateTime? paidAt = null;
+                string comment;
+
+                if (reservation.Status == "Završeno")
+                {
+                    if (shouldSeedFinishedButUnpaid)
+                    {
+                        paymentStatus = "Neplaćeno";
+                        paidAt = null;
+                        comment = "Automatski generisan testni slučaj neplaćenog završenog kratkog boravka.";
+                    }
+                    else
+                    {
+                        paymentStatus = "Plaćeno";
+                        paidAt = reservation.StartDateOfRenting.Value.AddDays(-1);
+                        comment = "Automatski generisana evidentirana uplata.";
+                    }
+                }
+                else
+                {
+                    paymentStatus = "Na čekanju";
+                    comment = "Plaćanje je na čekanju.";
+                }
 
                 payments.Add(new Payment
                 {
                     Id = paymentId++,
                     ReservationId = reservation.Id,
-                    Name = $"Kratki boravak {reservation.StartDateOfRenting!.Value.Month:D2}.{reservation.StartDateOfRenting!.Value.Year}",
-                    Comment = isPaid
-                        ? "Automatski generisana evidentirana uplata."
-                        : "Plaćanje je na čekanju.",
+                    Name = $"Kratki boravak {reservation.StartDateOfRenting.Value.Month:D2}.{reservation.StartDateOfRenting.Value.Year}",
+                    Comment = comment,
                     Price = property.PricePerDay * days,
-                    IsPayed = isPaid,
                     MonthNumber = reservation.StartDateOfRenting.Value.Month,
                     YearNumber = reservation.StartDateOfRenting.Value.Year,
                     DateToPay = reservation.StartDateOfRenting.Value,
                     WarningDateToPay = reservation.StartDateOfRenting.Value.AddDays(2),
-                    PaidAt = isPaid ? reservation.StartDateOfRenting.Value.AddDays(-1) : null,
-                    PaymentStatus = isPaid ? "Paid" : "Pending"
+                    SecondWarningDate = reservation.StartDateOfRenting.Value.AddDays(5),
+                    PaidAt = paidAt,
+                    PaymentStatus = paymentStatus
                 });
             }
         }

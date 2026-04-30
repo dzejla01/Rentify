@@ -15,7 +15,6 @@ class UnavailableDatesResponse {
       dates: raw
           .where((x) => x != null)
           .map((x) => DateTime.parse(x.toString()))
-          // normalizuj na yyyy-mm-dd (da ti set.contains radi 1:1)
           .map((d) => DateTime(d.year, d.month, d.day))
           .toList(),
     );

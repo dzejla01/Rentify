@@ -10,7 +10,6 @@ class ForgotPasswordDialog extends StatefulWidget {
 }
 
 class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
-  // 🎨 Rentify theme
   static const Color _green = Color(0xFF5F9F3B);
   static const Color _greenSoft = Color(0xFFEAF6E5);
   static const Color _text = Color(0xFF1F2A1F);
@@ -151,7 +150,6 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 🟩 HEADER
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
@@ -175,7 +173,6 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                 ),
               ),
 
-              // BODY
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
                 child: Column(
@@ -211,7 +208,6 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
 
                     const SizedBox(height: 16),
 
-                    // ACTIONS
                     Row(
                       children: [
                         OutlinedButton(

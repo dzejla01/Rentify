@@ -5,10 +5,8 @@ import 'package:rentify_mobile/helper/stripe_payment_helper.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
-
 import 'package:rentify_mobile/screens/base_screen.dart';
 import 'package:rentify_mobile/utils/session.dart';
-
 import 'package:rentify_mobile/models/payment.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/providers/payment_provider.dart';
@@ -37,6 +35,14 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
 
   Payment get p => widget.payment;
 
+  String get _paymentStatus => (p.paymentStatus).trim();
+
+  @override
+  void initState() {
+    super.initState();
+    _paymentProvider = context.read<PaymentProvider>();
+  }
+
   String _fmtDate(DateTime? d) {
     if (d == null) return "-";
     final dd = d.day.toString().padLeft(2, '0');
@@ -51,7 +57,48 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
     return "$m.${p.yearNumber}";
   }
 
+  DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  bool _isAdditionalDeadlineActive() {
+    if (_paymentStatus == "Plaćeno" ||
+        _paymentStatus == "Neplaćeno" ||
+        _paymentStatus == "Otkazano" ||
+        _paymentStatus == "Neuspješno") {
+      return false;
+    }
+
+    if (p.dateToPay == null) return false;
+    if (p.secondWarningDate == null) return false;
+
+    final today = _dateOnly(DateTime.now());
+    final dueDate = _dateOnly(p.dateToPay!);
+
+    return !today.isBefore(dueDate);
+  }
+
+  bool _isUnpaid() {
+    return _paymentStatus == "Neplaćeno";
+  }
+
+  bool _canPay() {
+    return _paymentStatus == "Na čekanju" || _paymentStatus == "Procesiranje";
+  }
+
+  String _additionalDeadlineMessage() {
+    if (p.secondWarningDate != null) {
+      return "Prvi rok plaćanja nije ispoštovan. Dodijeljen vam je dodatni rok do ${_fmtDate(p.secondWarningDate)}. Ako uplata ne bude evidentirana ni do tada, zahtjev će biti završen zbog neplaćenog duga.";
+    }
+
+    return "Prvi rok plaćanja nije ispoštovan. Dodijeljen vam je dodatni rok. Ako uplata ne bude evidentirana ni u dodatnom roku, zahtjev će biti završen zbog neplaćenog duga.";
+  }
+
+  String _unpaidMessage() {
+    return "Ovaj zahtjev je označen kao neplaćen zbog neizmirene obaveze u predviđenom roku.";
+  }
+
   Future<void> _payNow() async {
+    if (!_canPay()) return;
+
     setState(() {
       _loading = true;
       _error = null;
@@ -82,9 +129,9 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
 
       setState(() => _loading = false);
 
-      final status = (refreshed.paymentStatus ?? "").trim().toLowerCase();
+      final status = (refreshed.paymentStatus).trim();
 
-      if (status == "paid") {
+      if (status == "Plaćeno") {
         await ConfirmDialogs.paymentSuccessDialog(
           context,
           message: "Plaćanje je uspješno evidentirano.",
@@ -95,7 +142,7 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
         return;
       }
 
-      if (status == "failed") {
+      if (status == "Neuspješno") {
         await ConfirmDialogs.paymentFailedDialog(
           context,
           message: "Plaćanje nije uspješno završeno.",
@@ -106,7 +153,7 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
         return;
       }
 
-      if (status == "canceled") {
+      if (status == "Otkazano") {
         await ConfirmDialogs.paymentFailedDialog(
           context,
           message: "Plaćanje je otkazano.",
@@ -142,14 +189,9 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    _paymentProvider = context.read<PaymentProvider>();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final isPayed = p.isPayed == true;
+    final hasAdditionalDeadline = _isAdditionalDeadlineActive();
+    final isUnpaid = _isUnpaid();
 
     return BaseMobileScreen(
       title: "Zahtjev za uplatu",
@@ -181,7 +223,124 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
             : ListView(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
                 children: [
+                  if (hasAdditionalDeadline) ...[
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEBEE),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0xFFE53935),
+                          width: 1.6,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFE53935).withOpacity(0.10),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE53935).withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.warning_amber_rounded,
+                              color: Color(0xFFD32F2F),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Dodatni rok",
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w900,
+                                    color: Color(0xFFD32F2F),
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  _additionalDeadlineMessage(),
+                                  style: const TextStyle(
+                                    color: Color(0xFF7F1D1D),
+                                    fontWeight: FontWeight.w600,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (isUnpaid) ...[
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFEBEE),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: const Color(0xFFE53935),
+                          width: 1.6,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFE53935).withOpacity(0.10),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE53935).withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(
+                              Icons.error_outline_rounded,
+                              color: Color(0xFFD32F2F),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              _unpaidMessage(),
+                              style: const TextStyle(
+                                color: Color(0xFF7F1D1D),
+                                fontWeight: FontWeight.w700,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
                   _Card(
+                    borderColor: hasAdditionalDeadline || isUnpaid
+                        ? const Color(0xFFE53935)
+                        : null,
+                    borderWidth: hasAdditionalDeadline || isUnpaid ? 1.8 : 1,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -201,7 +360,6 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
                           ),
                         ),
                         const SizedBox(height: 12),
-
                         Wrap(
                           spacing: 10,
                           runSpacing: 10,
@@ -217,8 +375,20 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
                               label: _periodText(),
                             ),
                             _Chip(
-                              icon: Icons.event_busy_outlined,
-                              label: "Rok: ${_fmtDate(p.dateToPay)}",
+                              icon: hasAdditionalDeadline
+                                  ? Icons.warning_amber_rounded
+                                  : isUnpaid
+                                  ? Icons.error_outline_rounded
+                                  : Icons.event_busy_outlined,
+                              label: hasAdditionalDeadline
+                                  ? "Dodatni rok: ${_fmtDate(p.secondWarningDate)}"
+                                  : "Rok: ${_fmtDate(p.dateToPay)}",
+                              backgroundColor: hasAdditionalDeadline || isUnpaid
+                                  ? const Color(0xFFFFEBEE)
+                                  : null,
+                              foregroundColor: hasAdditionalDeadline || isUnpaid
+                                  ? const Color(0xFFD32F2F)
+                                  : null,
                             ),
                           ],
                         ),
@@ -266,30 +436,34 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Komentar",
+                          "Detalji zahtjeva",
                           style: TextStyle(fontWeight: FontWeight.w900),
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          p.comment,
-                          style: TextStyle(
-                            color: Colors.grey.shade800,
-                            fontWeight: FontWeight.w600,
+                        const SizedBox(height: 10),
+                        _InfoRow(
+                          label: "Status",
+                          valueWidget: _StatusText(
+                            paymentStatus: _paymentStatus,
+                            additionalDeadline: hasAdditionalDeadline,
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            const Text(
-                              "Status:",
-                              style: TextStyle(fontWeight: FontWeight.w900),
-                            ),
-                            const SizedBox(width: 8),
-                            _StatusText(isPayed: isPayed),
-                          ],
+                        const SizedBox(height: 8),
+                        _InfoRow(
+                          label: "Rok plaćanja",
+                          value: _fmtDate(p.dateToPay),
                         ),
+                        if (hasAdditionalDeadline &&
+                            p.secondWarningDate != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: _InfoRow(
+                              label: "Dodatni rok",
+                              value: _fmtDate(p.secondWarningDate),
+                              valueColor: const Color(0xFFD32F2F),
+                            ),
+                          ),
                         if (_error != null) ...[
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           Text(
                             _error!,
                             style: const TextStyle(
@@ -301,24 +475,64 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+
+                  _Card(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Komentar",
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          (p.comment.trim().isEmpty)
+                              ? "Nema dodatnog komentara."
+                              : p.comment,
+                          style: TextStyle(
+                            color: Colors.grey.shade800,
+                            fontWeight: FontWeight.w600,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
                   const SizedBox(height: 16),
 
-                  if (!isPayed)
+                  if (_canPay())
                     SizedBox(
-                      height: 52,
+                      height: 54,
                       child: ElevatedButton.icon(
                         onPressed: _payNow,
                         style: ElevatedButton.styleFrom(
-                          elevation: 0,
+                          backgroundColor: hasAdditionalDeadline
+                              ? const Color(0xFFD32F2F) // danger
+                              : const Color(0xFF9C27B0), // Rentify primary
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          shadowColor: Colors.black26,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        icon: const Icon(Icons.payments_rounded),
+                        icon: Icon(
+                          hasAdditionalDeadline
+                              ? Icons.warning_amber_rounded
+                              : Icons.payments_rounded,
+                          size: 22,
+                        ),
                         label: Text(
-                          "Plati zahtjev (${p.price.toStringAsFixed(2)} KM)",
-                          style: const TextStyle(fontWeight: FontWeight.w900),
+                          hasAdditionalDeadline
+                              ? "Platite u dodatnom roku (${p.price.toStringAsFixed(2)} KM)"
+                              : "Plati zahtjev (${p.price.toStringAsFixed(2)} KM)",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15,
+                            letterSpacing: 0.3,
+                          ),
                         ),
                       ),
                     )
@@ -326,12 +540,22 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.08),
+                        color: _paymentStatus == "Plaćeno"
+                            ? Colors.green.withOpacity(0.08)
+                            : Colors.red.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(14),
                       ),
-                      child: const Text(
-                        "Ovaj zahtjev je već plaćen.",
-                        style: TextStyle(fontWeight: FontWeight.w800),
+                      child: Text(
+                        _paymentStatus == "Plaćeno"
+                            ? "Ovaj zahtjev je već plaćen."
+                            : _paymentStatus == "Neplaćeno"
+                            ? "Ovaj zahtjev je označen kao neplaćen."
+                            : _paymentStatus == "Otkazano"
+                            ? "Ovaj zahtjev je otkazan."
+                            : _paymentStatus == "Neuspješno"
+                            ? "Plaćanje nije uspješno završeno."
+                            : "Za ovaj zahtjev trenutno nije moguće izvršiti uplatu.",
+                        style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                     ),
                 ],
@@ -342,8 +566,11 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
 }
 
 class _Card extends StatelessWidget {
-  const _Card({required this.child});
+  const _Card({required this.child, this.borderColor, this.borderWidth});
+
   final Widget child;
+  final Color? borderColor;
+  final double? borderWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -352,6 +579,10 @@ class _Card extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: borderColor ?? Colors.transparent,
+          width: borderWidth ?? 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.06),
@@ -366,42 +597,128 @@ class _Card extends StatelessWidget {
 }
 
 class _Chip extends StatelessWidget {
-  const _Chip({required this.icon, required this.label});
+  const _Chip({
+    required this.icon,
+    required this.label,
+    this.backgroundColor,
+    this.foregroundColor,
+  });
+
   final IconData icon;
   final String label;
+  final Color? backgroundColor;
+  final Color? foregroundColor;
 
   @override
   Widget build(BuildContext context) {
+    final bgColor = backgroundColor ?? Colors.black.withOpacity(0.05);
+    final fgColor = foregroundColor ?? const Color(0xFF111827);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.05),
+        color: bgColor,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18),
+          Icon(icon, size: 18, color: fgColor),
           const SizedBox(width: 6),
-          Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+          Text(
+            label,
+            style: TextStyle(fontWeight: FontWeight.w700, color: fgColor),
+          ),
         ],
       ),
     );
   }
 }
 
-class _StatusText extends StatelessWidget {
-  const _StatusText({required this.isPayed});
-  final bool isPayed;
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({
+    required this.label,
+    this.value,
+    this.valueWidget,
+    this.valueColor,
+  });
+
+  final String label;
+  final String? value;
+  final Widget? valueWidget;
+  final Color? valueColor;
 
   @override
   Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 96,
+          child: Text(
+            "$label:",
+            style: const TextStyle(
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ),
+        Expanded(
+          child:
+              valueWidget ??
+              Text(
+                value ?? "-",
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  color: valueColor ?? const Color(0xFF111827),
+                ),
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusText extends StatelessWidget {
+  const _StatusText({
+    required this.paymentStatus,
+    required this.additionalDeadline,
+  });
+
+  final String paymentStatus;
+  final bool additionalDeadline;
+
+  @override
+  Widget build(BuildContext context) {
+    final String text;
+    final Color color;
+
+    if (paymentStatus == "Plaćeno") {
+      text = "Plaćeno";
+      color = Colors.green;
+    } else if (paymentStatus == "Neplaćeno") {
+      text = "Neplaćeno";
+      color = const Color(0xFFD32F2F);
+    } else if (paymentStatus == "Otkazano") {
+      text = "Otkazano";
+      color = Colors.grey;
+    } else if (paymentStatus == "Neuspješno") {
+      text = "Neuspješno";
+      color = Colors.deepOrange;
+    } else if (additionalDeadline) {
+      text = "Dodatni rok";
+      color = const Color(0xFFD32F2F);
+    } else if (paymentStatus == "Procesiranje") {
+      text = "Procesiranje";
+      color = Colors.blue;
+    } else {
+      text = "Na čekanju";
+      color = Colors.orange;
+    }
+
     return Text(
-      isPayed ? "Uplaćeno" : "Na čekanju",
-      style: TextStyle(
-        color: isPayed ? Colors.green : Colors.orange,
-        fontWeight: FontWeight.w800,
-      ),
+      text,
+      style: TextStyle(color: color, fontWeight: FontWeight.w800),
     );
   }
 }

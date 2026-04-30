@@ -1,5 +1,4 @@
-﻿// Rentify.Model/Requests/LoginRequest.cs
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Rentify.Model.RequestObjects
 {

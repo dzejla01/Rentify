@@ -1,5 +1,4 @@
-﻿// Rentify.Model/Requests/UserUpsertRequest.cs
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 

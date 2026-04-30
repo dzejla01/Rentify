@@ -28,16 +28,13 @@ class BaseBody extends StatelessWidget {
 
   final UniversalPagingProvider<Property> paging;
 
-  // welcome
   final String? fullName;
   final String? username;
   final bool showWelcome;
 
-  // texts
   final String sectionTitle;
   final String sectionSubtitle;
 
-  // search/filter
   final bool showSearch;
   final TextEditingController? searchController;
   final void Function(String value)? onSearchChanged;
@@ -51,7 +48,7 @@ class BaseBody extends StatelessWidget {
     const rentifyGreenDark = Color(0xFF5F9F3B);
 
     return AnimatedBuilder(
-      animation: paging, // <- Sluša promjene (notifyListeners)
+      animation: paging, 
       builder: (context, _) {
         return RefreshIndicator(
           onRefresh: paging.refresh,
@@ -113,7 +110,6 @@ class BaseBody extends StatelessWidget {
                 const SizedBox(height: 14),
               ],
 
-              // Title + subtitle
               Text(
                 sectionTitle,
                 style: const TextStyle(
@@ -133,7 +129,6 @@ class BaseBody extends StatelessWidget {
               ),
               const SizedBox(height: 12),
 
-              // Search + Filter (opciono)
               if (showSearch || showFilter) ...[
                 Row(
                   children: [
@@ -191,7 +186,6 @@ class BaseBody extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
 
-              // List / states
               if (paging.isLoading && paging.items.isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 18),
@@ -233,6 +227,7 @@ class _PropertyCard extends StatelessWidget {
     final city = (property.city ?? "").trim();
     final pricePerMonth = property.pricePerMonth ?? 0;
     final pricePerDay = property.pricePerDay ?? 0;
+    final supportsShortStay = property.isRentingPerDay;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -323,10 +318,10 @@ class _PropertyCard extends StatelessWidget {
                       ),
                     ),
 
-                    if (pricePerDay != null) ...[
+                    if (supportsShortStay) ...[
                       const SizedBox(height: 6),
                       Text(
-                        "${pricePerDay!.toStringAsFixed(0)} KM / noć",
+                        "${pricePerDay.toStringAsFixed(0)} KM / noć",
                         style: TextStyle(
                           fontWeight: FontWeight.w900,
                           fontSize: 13,
@@ -437,7 +432,6 @@ class _PropertyMainImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ako nema id, odmah fallback
     if (propertyId == null) {
       return _fallback();
     }

@@ -69,13 +69,13 @@ class RentifyBasePage extends StatelessWidget {
         color: Colors.white,
         border: Border(
           bottom: BorderSide(
-            color: Colors.black.withOpacity(0.06), // suptilna linija
+            color: Colors.black.withOpacity(0.06), 
             width: 1,
           ),
         ),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x14000000), // jako slaba sjena
+            color: Color(0x14000000), 
             blurRadius: 12,
             offset: Offset(0, 6),
           ),
@@ -87,7 +87,7 @@ class RentifyBasePage extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 26),
           child: Row(
             children: [
-              // LEFT: Back
+              
               InkWell(
                 borderRadius: BorderRadius.circular(10),
                 onTap:  onBack,
@@ -117,7 +117,6 @@ class RentifyBasePage extends StatelessWidget {
                 ),
               ),
 
-              // CENTER: pill title
               Expanded(
                 child: Center(
                   child: Container(
@@ -135,7 +134,7 @@ class RentifyBasePage extends StatelessWidget {
                       ),
                       boxShadow: const [
                         BoxShadow(
-                          color: Color(0x0F000000), // mikro sjena pill-a
+                          color: Color(0x0F000000), 
                           blurRadius: 6,
                           offset: Offset(0, 3),
                         ),
@@ -154,7 +153,6 @@ class RentifyBasePage extends StatelessWidget {
                 ),
               ),
 
-              // RIGHT: logo
               SizedBox(
                 width: 70,
                 child: Align(

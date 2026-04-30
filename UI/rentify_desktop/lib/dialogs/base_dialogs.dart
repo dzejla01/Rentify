@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class RentifyBaseDialog extends StatelessWidget {
-  RentifyBaseDialog({
+  const RentifyBaseDialog({
     super.key,
     required this.title,
     required this.child,
@@ -12,7 +12,7 @@ class RentifyBaseDialog extends StatelessWidget {
 
   final String title;
   final Widget child;
-  VoidCallback? onClose;
+  final VoidCallback? onClose;
   final double width;
   final double? height;
 
@@ -22,9 +22,13 @@ class RentifyBaseDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog(
       backgroundColor: Colors.transparent,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       child: Container(
         width: width,
         height: height,
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -40,10 +44,9 @@ class RentifyBaseDialog extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // 🔹 HEADER
             Container(
               decoration: const BoxDecoration(
-                color: Color(0xFF5F9F3B), 
+                color: Color(0xFF5F9F3B),
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Padding(
@@ -51,7 +54,6 @@ class RentifyBaseDialog extends StatelessWidget {
                 child: Row(
                   children: [
                     const SizedBox(width: 40, height: 40),
-
                     Expanded(
                       child: Text(
                         title,
@@ -59,15 +61,14 @@ class RentifyBaseDialog extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white, 
+                          color: Colors.white,
                         ),
                       ),
                     ),
-
                     IconButton(
                       icon: const Icon(
                         Icons.close_rounded,
-                        color: Colors.white, 
+                        color: Colors.white,
                       ),
                       splashRadius: 20,
                       onPressed: onClose,
@@ -76,13 +77,12 @@ class RentifyBaseDialog extends StatelessWidget {
                 ),
               ),
             ),
-
-            // divider
             Container(height: 1, color: Colors.black.withOpacity(0.06)),
-
-            // 🔹 CONTENT
             Flexible(
-              child: Padding(padding: const EdgeInsets.all(20), child: child),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: child,
+              ),
             ),
           ],
         ),

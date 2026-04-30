@@ -61,12 +61,14 @@ namespace Rentify.Services.Services
 
             if (!string.IsNullOrWhiteSpace(search.FTS))
             {
-                var fts = search.FTS.Trim().ToLower();
+                var fts = string.Join(" ", search.FTS.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
                 query = query.Where(a =>
                     (a.Property != null && a.Property.Name.ToLower().Contains(fts))
                     || (a.User != null && a.User.FirstName.ToLower().Contains(fts))
                     || (a.User != null && a.User.LastName.ToLower().Contains(fts))
+                    || (a.User != null && (a.User.FirstName + " " + a.User.LastName).ToLower().Contains(fts))
+                    || (a.User != null && (a.User.LastName + " " + a.User.FirstName).ToLower().Contains(fts))
                     || ((a.Status ?? "").ToLower().Contains(fts))
                     || (fts.Contains("odobreno") && a.Status == "Odobreno")
                     || (fts.Contains("odbijeno") && a.Status == "Odbijeno")
@@ -102,7 +104,6 @@ namespace Rentify.Services.Services
             if (appointmentDate <= DateTime.UtcNow)
                 throw new UserException("Termin ne može biti u prošlosti.");
 
-            // 1) isti korisnik već ima termin isti dan i isti sat
             var hasSameDateTimeAppointment = await _context.Appointments
                 .AsNoTracking()
                 .AnyAsync(x =>
@@ -119,7 +120,6 @@ namespace Rentify.Services.Services
                 );
             }
 
-            // 2) isti korisnik već ima termin za istu nekretninu
             var hasSamePropertyAppointment = await _context.Appointments
                 .AsNoTracking()
                 .AnyAsync(x =>
@@ -135,7 +135,6 @@ namespace Rentify.Services.Services
                 );
             }
 
-            // 3) zaštita da isti termin za istu nekretninu ne bude duplo zauzet
             var propertyHasApprovedAtSameTime = await _context.Appointments
                 .AsNoTracking()
                 .AnyAsync(x =>
@@ -307,7 +306,7 @@ namespace Rentify.Services.Services
             return (status ?? "").Trim() switch
             {
                 "Na čekanju" => nameof(PendingAppointmentState),
-                "Odobreno" => nameof(ApprovedAppoitmentState),
+                "Odobreno" => nameof(ApprovedAppointmentState),
                 "Odbijeno" => nameof(RejectedAppointmentState),
                 "Otkazano" => nameof(CancelledAppointmentState),
                 "Završeno" => nameof(FinishedAppointmentState),

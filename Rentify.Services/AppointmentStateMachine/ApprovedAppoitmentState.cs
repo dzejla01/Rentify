@@ -1,31 +1,25 @@
 using MapsterMapper;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Rentify.Model;
 using Rentify.Model.ResponseObjects;
 using Rentify.Services.Database;
 using Rentify.Services.Exceptions;
 
 namespace Rentify.Services.AppointmentStateMachine
 {
-    public class ApprovedAppoitmentState : BaseAppointmentState
+    public class ApprovedAppointmentState : BaseAppointmentState
     {
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public ApprovedAppoitmentState(
+        public ApprovedAppointmentState(
             IServiceProvider serviceProvider,
-            IHttpContextAccessor httpContextAccessor,
             RentifyDbContext context,
-            IMapper mapper) : base(serviceProvider, context, mapper)
+            IMapper mapper
+        ) : base(serviceProvider, context, mapper)
         {
-            _httpContextAccessor = httpContextAccessor;
         }
 
         public override async Task<AppointmentResponse> ToFinishedAsync(int id)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            var entity = await _context.Appointments.FindAsync(id);
             if (entity == null)
-                throw new UserException("Rezervacija nije pronađena.");
+                throw new UserException("Termin nije pronađen.");
 
             entity.Status = "Završeno";
 
@@ -35,69 +29,9 @@ namespace Rentify.Services.AppointmentStateMachine
 
         public override async Task<AppointmentResponse> ToCancelledAsync(int id)
         {
-            var entity = await _context.Reservations
-                .FirstOrDefaultAsync(r => r.Id == id);
-
+            var entity = await _context.Appointments.FindAsync(id);
             if (entity == null)
-                throw new UserException("Rezervacija nije pronađena.");
-
-            var user = _httpContextAccessor.HttpContext?.User;
-            var isOwner = user?.IsInRole("Vlasnik") ?? false;
-            var isUser = user?.IsInRole("Korisnik") ?? false;
-
-            if (!isOwner && !isUser)
-            {
-                throw new UserException("Nemate pravo da otkažete ovu rezervaciju.");
-            }
-
-            // VLASNIK može otkazati kad god želi
-            if (isOwner)
-            {
-                entity.Status = "Otkazano";
-
-                await _context.SaveChangesAsync();
-                return _mapper.Map<AppointmentResponse>(entity);
-            }
-
-            // KORISNIK pravila
-            if (isUser)
-            {
-                if (entity.IsMonthly)
-                {
-                    var payments = await _context.Payments
-                        .Where(p => p.ReservationId == id)
-                        .ToListAsync();
-
-                    if (payments.Any())
-                    {
-                        var hasUnpaidPayments = payments.Any(p =>
-                            !p.IsPayed || p.PaymentStatus != "Paid");
-
-                        if (hasUnpaidPayments)
-                        {
-                            throw new UserException(
-                                "Najamnina se ne može otkazati dok sve poslane rate nisu plaćene."
-                            );
-                        }
-                    }
-                }
-                else
-                {
-                    if (!entity.StartDateOfRenting.HasValue)
-                        throw new UserException("Rezervacija nema definisan datum početka.");
-
-                    var today = DateTime.UtcNow.Date;
-                    var startDate = entity.StartDateOfRenting.Value.Date;
-                    var daysUntilStart = (startDate - today).TotalDays;
-
-                    if (daysUntilStart <= 3)
-                    {
-                        throw new UserException(
-                            "Kratki boravak nije moguće otkazati 3 dana prije početka ili kasnije."
-                        );
-                    }
-                }
-            }
+                throw new UserException("Termin nije pronađen.");
 
             entity.Status = "Otkazano";
 

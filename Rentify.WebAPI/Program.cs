@@ -11,6 +11,7 @@ using Rentify.Services;
 using Rentify.Services.AppointmentStateMachine;
 using Rentify.Services.Exceptions;
 using Rentify.Services.Interfaces;
+using Rentify.Services.PaymentStateMachine;
 using Rentify.Services.ReservationStateMachine;
 using Rentify.Services.Services;
 using Rentify.WebAPI.Authentication;
@@ -48,8 +49,8 @@ bool GetBoolEnv(string key, bool defaultValue = false)
     return bool.TryParse(raw, out var value) ? value : defaultValue;
 }
 
-var connectionString = GetRequiredEnv("CONNECTION_STRING_LOCAL");
-// var connectionString = GetRequiredEnv("CONNECTION_STRING_DOCKER"); -> Docker
+// var connectionString = GetRequiredEnv("CONNECTION_STRING_LOCAL");
+var connectionString = GetRequiredEnv("CONNECTION_STRING_DOCKER"); 
 
 builder.Services.AddDbContext<RentifyDbContext>(options =>
     options.UseNpgsql(connectionString)
@@ -123,10 +124,18 @@ builder.Services.AddTransient<CancelledReservationState>();
 builder.Services.AddTransient<BaseAppointmentState>();
 builder.Services.AddTransient<InitialAppointmentState>();
 builder.Services.AddTransient<PendingAppointmentState>();
-builder.Services.AddTransient<ApprovedAppoitmentState>();
+builder.Services.AddTransient<ApprovedAppointmentState>();
 builder.Services.AddTransient<FinishedAppointmentState>();
 builder.Services.AddTransient<RejectedAppointmentState>();
 builder.Services.AddTransient<CancelledAppointmentState>();
+
+builder.Services.AddTransient<BasePaymentState>();
+builder.Services.AddScoped<PendingPaymentState>();
+builder.Services.AddScoped<ProcessingPaymentState>();
+builder.Services.AddScoped<PaidPaymentState>();
+builder.Services.AddScoped<UnpaidPaymentState>();
+builder.Services.AddScoped<CancelledPaymentState>();
+builder.Services.AddScoped<FailedPaymentState>();
 
 //TOOLS
 builder.Services.AddHttpContextAccessor();
@@ -168,7 +177,7 @@ builder.Services.AddSingleton<IConnection>(_ =>
 });
 
 var firebasePath =
-    GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_LOCAL") ??
+    // GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_LOCAL") ??
     GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_DOCKER");
 
 if (string.IsNullOrWhiteSpace(firebasePath))
@@ -238,11 +247,11 @@ if (app.Environment.IsDevelopment())
 }
 
 // MIGRATIONS
-//using (var scope = app.Services.CreateScope())
-//{
-//    var db = scope.ServiceProvider.GetRequiredService<RentifyDbContext>();
-//    db.Database.Migrate();
-//}
+using (var scope = app.Services.CreateScope())
+{
+   var db = scope.ServiceProvider.GetRequiredService<RentifyDbContext>();
+   db.Database.Migrate();
+}
 
 app.UseStaticFiles();
 

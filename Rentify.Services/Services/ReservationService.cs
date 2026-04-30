@@ -37,12 +37,14 @@ namespace Rentify.Services.Services
 
             if (!string.IsNullOrWhiteSpace(search.FTS))
             {
-                var fts = search.FTS.Trim().ToLower();
+                var fts = string.Join(" ", search.FTS.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries));
 
                 query = query.Where(r =>
                     (r.Property != null && r.Property.Name.ToLower().Contains(fts))
                     || (r.User != null && r.User.FirstName.ToLower().Contains(fts))
                     || (r.User != null && r.User.LastName.ToLower().Contains(fts))
+                    || (r.User != null && (r.User.FirstName + " " + r.User.LastName).ToLower().Contains(fts))
+                    || (r.User != null && (r.User.LastName + " " + r.User.FirstName).ToLower().Contains(fts))
                     || (fts.Contains("najamnina") && r.IsMonthly)
                     || (fts.Contains("kratki boravak") && !r.IsMonthly)
                     || (r.Status != null && r.Status.ToLower().Contains(fts))
@@ -187,21 +189,7 @@ namespace Rentify.Services.Services
             };
         }
 
-        //public override async Task<ReservationResponse?> UpdateAsync(int id, ReservationUpsertRequest request)
-        //{
-        //    var entity = await _context.Reservations.FindAsync(id);
-
-        //    if (entity == null)
-        //        throw new UserException("Rezervacija nije pronađena.");
-
-        //    await BeforeUpdate(entity, request);
-
-        //    var stateName = MapStatusToState(entity.Status);
-        //    var baseState = _baseState.GetState(stateName);
-
-        //    return await baseState.UpdateAsync(id, request);
-        //}
-
+     
         public override Task<ReservationResponse?> UpdateAsync(int id, ReservationUpsertRequest request)
         {
             throw new InvalidOperationException("Metoda nije implementirana");
@@ -239,70 +227,6 @@ namespace Rentify.Services.Services
                 _ => throw new UserException($"Nepoznat status rezervacije: {status}")
             };
         }
-
-        //protected override async Task BeforeUpdate(Reservation entity, ReservationUpsertRequest request)
-        //{
-        //    var oldStatus = (entity.Status ?? string.Empty).Trim();
-        //    var newStatus = (request.Status ?? entity.Status ?? string.Empty).Trim();
-
-        //    var propertyId = request.PropertyId != 0
-        //        ? request.PropertyId
-        //        : entity.PropertyId;
-
-        //    var isMonthly = request.IsMonthly != entity.IsMonthly
-        //        ? request.IsMonthly
-        //        : entity.IsMonthly;
-
-        //    var start = request.StartDateOfRenting ?? entity.StartDateOfRenting;
-        //    var end = request.EndDateOfRenting ?? entity.EndDateOfRenting;
-
-        //    if (oldStatus == "Na čekanju" &&
-        //        newStatus == "Odobreno" &&
-        //        isMonthly)
-        //    {
-        //        var hasApprovedShortStayConflict = await _context.Reservations
-        //            .AsNoTracking()
-        //            .Where(r => r.Id != entity.Id)
-        //            .Where(r => r.PropertyId == propertyId)
-        //            .Where(r => r.IsMonthly == false)
-        //            .Where(r => r.Status == "Odobreno")
-        //            .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
-        //            .AnyAsync(r =>
-        //                start.Value < r.EndDateOfRenting!.Value &&
-        //                end.Value > r.StartDateOfRenting!.Value
-        //            );
-
-        //        if (hasApprovedShortStayConflict)
-        //        {
-        //            throw new InvalidOperationException(
-        //                "Mjesečna najamnina se ne može odobriti jer ova nekretnina već ima odobren kratki boravak u tom periodu."
-        //            );
-        //        }
-
-        //        var property = await _context.Properties
-        //            .FirstOrDefaultAsync(p => p.Id == propertyId);
-
-        //        if (property == null)
-        //            throw new NotFoundException("Nekretnina nije pronađena.");
-
-        //        property.IsAvailable = false;
-        //    }
-
-        //    if (oldStatus == "Odobreno" &&
-        //        newStatus != "Odobreno" &&
-        //        isMonthly)
-        //    {
-        //        var property = await _context.Properties
-        //            .FirstOrDefaultAsync(p => p.Id == propertyId);
-
-        //        if (property == null)
-        //            throw new NotFoundException("Nekretnina nije pronađena.");
-
-        //        property.IsAvailable = true;
-        //    }
-
-        //    await base.BeforeUpdate(entity, request);
-        //}
 
         public async Task ValidateReservationInsertAsync(ReservationUpsertRequest request)
         {
@@ -350,6 +274,25 @@ namespace Rentify.Services.Services
                 {
                     throw new UserException(
                         "Ne možete poslati novu najamninu jer već imate aktivnu najamninu za ovu nekretninu."
+                    );
+                }
+
+                var hasMonthlyConflictForSameUserOnDifferentProperty = await _context.Reservations
+                    .AsNoTracking()
+                    .Where(r => r.UserId == request.UserId)
+                    .Where(r => r.PropertyId != request.PropertyId)
+                    .Where(r => r.IsMonthly == true)
+                    .Where(r => r.Status == "Na čekanju" || r.Status == "Odobreno")
+                    .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
+                    .AnyAsync(r =>
+                        start <= r.EndDateOfRenting!.Value &&
+                        end >= r.StartDateOfRenting!.Value
+                    );
+
+                if (hasMonthlyConflictForSameUserOnDifferentProperty)
+                {
+                    throw new UserException(
+                        "Ne možete rezervisati najamninu za ovaj period jer već imate najamninu za drugu nekretninu u istom periodu."
                     );
                 }
             }

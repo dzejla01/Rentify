@@ -62,7 +62,6 @@ class PropertyFilterDialogState extends State<PropertyFilterDialog> {
     final maxDailyTxt = _fields.text("MaxDailyPrice").trim();
 
     final rules = <FieldRule>[
-      // Monthly numbers
       if (minMonthlyTxt.isNotEmpty)
         Rules.positiveNumber(
           "MinPrice",
@@ -76,7 +75,6 @@ class PropertyFilterDialogState extends State<PropertyFilterDialog> {
           "Max mjesečna cijena mora biti broj > 0",
         ),
 
-      // Monthly range (Min <= Max)
       FieldRule("MonthlyMinMax", () {
         final minV = _tryParseDouble(minMonthlyTxt);
         final maxV = _tryParseDouble(maxMonthlyTxt);
@@ -85,7 +83,6 @@ class PropertyFilterDialogState extends State<PropertyFilterDialog> {
         return null;
       }),
 
-      // Daily numbers
       if (minDailyTxt.isNotEmpty)
         Rules.positiveNumber(
           "MinDailyPrice",

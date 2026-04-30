@@ -1,5 +1,4 @@
-﻿// Rentify.Services/Interfaces/IUserService.cs
-using Rentify.Model.RequestObjects;
+﻿using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObject;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;

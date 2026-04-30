@@ -15,6 +15,9 @@ WORKDIR /src
 
 # Copy csproj first (bolji caching)
 COPY ["Rentify.WebAPI/Rentify.WebAPI.csproj", "Rentify.WebAPI/"]
+COPY ["Rentify.Services/Rentify.Services.csproj", "Rentify.Services/"]
+COPY ["Rentify.Model/Rentify.Model.csproj", "Rentify.Model/"]
+COPY ["Rentify.EmailConsumer/Rentify.EmailConsumer.csproj", "Rentify.EmailConsumer/"]
 RUN dotnet restore "Rentify.WebAPI/Rentify.WebAPI.csproj"
 
 # Copy everything else

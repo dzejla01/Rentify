@@ -18,14 +18,29 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Favorite> ApplyFilter(IQueryable<Favorite> query,FavoriteSearchObject search)
         {
-            //query = query.Include(x => x.User)
-            //             .Include(x => x.Property);
+            ;
 
             if (search.UserId.HasValue)
                 query = query.Where(x => x.UserId == search.UserId.Value);
 
             if (search.PropertyId.HasValue)
                 query = query.Where(x => x.PropertyId == search.PropertyId.Value);
+
+            if (!string.IsNullOrWhiteSpace(search.FTS))
+            {
+                var fts = string.Join(" ", search.FTS.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+                query = query.Where(x =>
+                    x.Property.Name.ToLower().Contains(fts)
+                    || x.User.FirstName.ToLower().Contains(fts)
+                    || x.User.LastName.ToLower().Contains(fts)
+                    || (x.User.FirstName + " " + x.User.LastName).ToLower().Contains(fts)
+                    || (x.User.LastName + " " + x.User.FirstName).ToLower().Contains(fts)
+                    || x.Property.User.FirstName.ToLower().Contains(fts)
+                    || x.Property.User.LastName.ToLower().Contains(fts)
+                    || (x.Property.User.FirstName + " " + x.Property.User.LastName).ToLower().Contains(fts)
+                    || (x.Property.User.LastName + " " + x.Property.User.FirstName).ToLower().Contains(fts));
+            }
 
             return base.ApplyFilter(query, search);
         }

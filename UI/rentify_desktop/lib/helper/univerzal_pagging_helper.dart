@@ -27,7 +27,6 @@ class UniversalPagingProvider<T> with ChangeNotifier {
   bool get hasNextPage => (_page + 1) * pageSize < totalCount;
   bool get hasPreviousPage => _page > 0;
 
-  /// Load current page (with optional filter)
   Future<void> loadPage({int? pageNumber, String? filter}) async {
     if (_isLoading) return;
     _isLoading = true;
@@ -41,7 +40,7 @@ class UniversalPagingProvider<T> with ChangeNotifier {
         page: _page,
         pageSize: pageSize,
         filter: _filter.isNotEmpty ? _filter : null,
-        includeTotalCount: true, // <-- ovo sada ide backendu
+        includeTotalCount: true, 
       );
       _result = result;
     } finally {

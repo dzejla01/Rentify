@@ -9,13 +9,11 @@ namespace Rentify.Services.Database
         [Key]
         public int Id { get; set; }
         
-        // User
         public int UserId { get; set; }
         
         [ForeignKey("UserId")]
         public User User { get; set; } = null!;
         
-        // Role
         public int RoleId { get; set; }
         
         [ForeignKey("RoleId")]

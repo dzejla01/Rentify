@@ -13,7 +13,6 @@ import 'package:rentify_mobile/validation/validation_model/validation_rules.dart
 import 'package:rentify_mobile/validation/validation_use/universal_error_removal.dart';
 import 'package:rentify_mobile/validation/validation_use/universal_validator.dart';
 
-// upload slike
 import 'package:rentify_mobile/providers/image_provider.dart' as img_app;
 
 class RegisterScreen extends StatefulWidget {

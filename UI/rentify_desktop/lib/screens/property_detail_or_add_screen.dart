@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:rentify_desktop/dialogs/base_dialogs.dart';
 import 'package:rentify_desktop/dialogs/base_property_dialog.dart';
 import 'package:rentify_desktop/dialogs/confirmation_dialogs.dart';
-
-// primjer modela (ti već imaš Property)
 import 'package:rentify_desktop/models/property.dart';
 import 'package:rentify_desktop/providers/property_provider.dart';
 import 'package:rentify_desktop/screens/base_screen.dart';

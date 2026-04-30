@@ -15,7 +15,6 @@ Payment _$PaymentFromJson(Map<String, dynamic> json) => Payment(
   name: json['name'] as String,
   comment: json['comment'] as String,
   price: (json['price'] as num).toDouble(),
-  isPayed: json['isPayed'] as bool,
   paymentStatus: json['paymentStatus'] as String,
   monthNumber: (json['monthNumber'] as num).toInt(),
   yearNumber: (json['yearNumber'] as num).toInt(),
@@ -25,6 +24,9 @@ Payment _$PaymentFromJson(Map<String, dynamic> json) => Payment(
   warningDateToPay: json['warningDateToPay'] == null
       ? null
       : DateTime.parse(json['warningDateToPay'] as String),
+  secondWarningDate: json['secondWarningDate'] == null
+      ? null
+      : DateTime.parse(json['secondWarningDate'] as String),
 );
 
 Map<String, dynamic> _$PaymentToJson(Payment instance) => <String, dynamic>{
@@ -36,8 +38,8 @@ Map<String, dynamic> _$PaymentToJson(Payment instance) => <String, dynamic>{
   'price': instance.price,
   'monthNumber': instance.monthNumber,
   'yearNumber': instance.yearNumber,
-  'isPayed': instance.isPayed,
   'paymentStatus': instance.paymentStatus,
   'dateToPay': instance.dateToPay?.toIso8601String(),
   'warningDateToPay': instance.warningDateToPay?.toIso8601String(),
+  'secondWarningDate': instance.secondWarningDate?.toIso8601String(),
 };

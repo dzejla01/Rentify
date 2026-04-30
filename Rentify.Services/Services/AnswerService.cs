@@ -28,7 +28,17 @@ namespace Rentify.Services.Services
                 query = query.Where(x => x.UserId == search.UserId.Value);
 
             if (!string.IsNullOrWhiteSpace(search.FTS))
-                query = query.Where(x => x.Content.Contains(search.FTS));
+            {
+                var fts = string.Join(" ", search.FTS.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+                query = query.Where(x =>
+                    x.Content.ToLower().Contains(fts)
+                    || x.User.FirstName.ToLower().Contains(fts)
+                    || x.User.LastName.ToLower().Contains(fts)
+                    || (x.User.FirstName + " " + x.User.LastName).ToLower().Contains(fts)
+                    || (x.User.LastName + " " + x.User.FirstName).ToLower().Contains(fts)
+                    || x.Question.Content.ToLower().Contains(fts));
+            }
 
             return base.ApplyFilter(query, search);
         }

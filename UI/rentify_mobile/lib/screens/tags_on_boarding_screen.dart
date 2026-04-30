@@ -52,7 +52,6 @@ class _TaggsOnboardingScreenState extends State<TaggsOnboardingScreen> {
   @override
   void initState() {
     super.initState();
-    // Ako već imaš lokalno snimljene tagove, možeš ih učitati (opc.)
     _loadUserName();
   }
 

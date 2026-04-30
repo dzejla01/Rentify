@@ -21,7 +21,6 @@ namespace Rentify.Services.Database
         public int PropertyId { get; set; }
         public Property? Property { get; set; }
         public bool IsMonthly { get; set; }
-        //public bool? IsApproved { get; set; }
         public String Status { get; set; } = "Na čekanju";
         public DateTime CreatedAt {get; set;}
         public DateTime? StartDateOfRenting {get; set;}

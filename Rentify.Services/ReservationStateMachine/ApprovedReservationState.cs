@@ -51,7 +51,6 @@ namespace Rentify.Services.ReservationStateMachine
                 throw new UserException("Nemate pravo da otkažete ovu rezervaciju.");
             }
 
-            // VLASNIK može otkazati kad god želi
             if (isOwner)
             {
                 entity.Status = "Otkazano";
@@ -60,7 +59,6 @@ namespace Rentify.Services.ReservationStateMachine
                 return _mapper.Map<ReservationResponse>(entity);
             }
 
-            // KORISNIK pravila
             if (isUser)
             {
                 if (entity.IsMonthly)
@@ -71,13 +69,15 @@ namespace Rentify.Services.ReservationStateMachine
 
                     if (payments.Any())
                     {
-                        var hasUnpaidPayments = payments.Any(p =>
-                            !p.IsPayed || p.PaymentStatus != "Paid");
+                        var hasBlockingPayments = payments.Any(p =>
+    p.PaymentStatus == "Na čekanju" ||
+    p.PaymentStatus == "Procesiranje" ||
+    p.PaymentStatus == "Neplaćeno");
 
-                        if (hasUnpaidPayments)
+                        if (hasBlockingPayments)
                         {
                             throw new UserException(
-                                "Najamnina se ne može otkazati dok sve poslane rate nisu plaćene."
+                                "Najamnina se ne može otkazati dok sve poslane rate nisu rijesene."
                             );
                         }
                     }

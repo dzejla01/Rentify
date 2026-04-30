@@ -20,7 +20,6 @@ namespace Rentify.Services.Database
         
         public bool IsActive { get; set; } = true;
         
-        // Navigation property for the many-to-many relationship with User
         public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
     }
 } 

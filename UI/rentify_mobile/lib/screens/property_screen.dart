@@ -31,7 +31,6 @@ class _PropertyScreenState extends State<PropertyScreen> {
   bool _loadingUser = true;
   String? _userError;
 
-  // ✅ Search
   final TextEditingController _searchCtrl = TextEditingController();
   Timer? _debounce;
 
@@ -65,6 +64,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
           "PageSize": pageSize,
           "IncludeTotalCount": includeTotalCount,
           "IncludeUser": true,
+          "IsActiveOnApp": true,
 
           if (filter != null && filter.trim().isNotEmpty) "Name": filter.trim(),
 
@@ -72,11 +72,11 @@ class _PropertyScreenState extends State<PropertyScreen> {
               extra!["City"].toString().trim().isNotEmpty)
             "City": extra["City"].toString().trim(),
 
-          // Monthly
+          
           if (extra?["MinPrice"] != null) "MinPriceMonth": extra?["MinPrice"],
           if (extra?["MaxPrice"] != null) "MaxPriceMonth": extra?["MaxPrice"],
 
-          // Daily
+          
           if (extra?["MinDailyPrice"] != null)
             "MinPriceDays": extra?["MinDailyPrice"],
           if (extra?["MaxDailyPrice"] != null)

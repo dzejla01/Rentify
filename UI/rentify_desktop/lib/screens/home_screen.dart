@@ -1,20 +1,18 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_desktop/helper/date_helper.dart';
 import 'package:rentify_desktop/helper/image_helper.dart';
+import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/helper/text_editing_controller_helper.dart';
-import 'package:rentify_desktop/helper/validation_helper.dart';
 import 'package:rentify_desktop/models/user.dart';
 import 'package:rentify_desktop/providers/image_provider.dart';
 import 'package:rentify_desktop/providers/user_provider.dart';
 import 'package:rentify_desktop/routes/app_routes.dart';
 import 'package:rentify_desktop/dialogs/base_dialogs.dart';
 import 'package:rentify_desktop/utils/session.dart';
-import 'package:path/path.dart' as p;
+import 'package:rentify_desktop/validation/validation_model/validation_rules.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -71,13 +69,11 @@ class _HomeScreenState extends State<HomeScreen> {
           'Da li i dalje želite izaći?',
     );
 
-    if (!confirm)
-      return;
-    else if (confirm) {
-      setState(() {
-        _pickedImage = null;
-      });
-    }
+    if (!confirm) return;
+
+    setState(() {
+      _pickedImage = null;
+    });
 
     if (context.mounted) {
       Navigator.of(context).pop();
@@ -114,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadedUser = user;
       });
     } catch (e) {
-      debugPrint("Nesto nije uredu ${e}");
+      debugPrint("Nesto nije uredu $e");
     }
   }
 
@@ -240,7 +236,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ],
-
             child: Container(
               width: 46,
               height: 46,
@@ -304,9 +299,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final initial = Map<String, String>.from(fields.values());
 
     bool hasChanges() {
-      if (_isImageChanged) {
-        return true;
-      }
+      if (_isImageChanged) return true;
 
       final now = fields.values();
       for (final k in initial.keys) {
@@ -338,55 +331,70 @@ class _HomeScreenState extends State<HomeScreen> {
                 final ok = _formKey.currentState?.validate() ?? false;
                 if (!ok) return;
 
-                String? finalImage = _loadedUser?.userImage;
-                if (finalImage != null && finalImage.trim().isEmpty) {
-                  finalImage = null;
-                }
-
-                if (_pickedImage != null) {
-                  final uploadedFileName = await ImageAppProvider.upload(
-                    file: _pickedImage!,
-                    folder: "users",
-                  );
-                  finalImage = uploadedFileName;
-                }
-
-                await _userProvider.update(Session.userId!, {
-                  'firstName': fields.text("firstName"),
-                  'lastName': fields.text("lastName"),
-                  'email': fields.text("email"),
-                  'username': fields.text("username"),
-                  'phoneNumber': fields.text("phoneNumber"),
-                  'dateOfBirth': DateHelper.toIsoFromUi(
-                    fields.text("birthDate"),
-                  ),
-                  'userImage': finalImage,
-                  'isActive': _loadedUser!.isActive,
-                  'isVlasnik': _loadedUser!.isVlasnik,
-                  'createdAt': _loadedUser!.createdAt.toIso8601String(),
-                  'lastLoginAt': _loadedUser!.lastLoginAt?.toIso8601String(),
-                });
-
-                if (_pickedImage != null) {
-                  final oldImg = _loadedUser?.userImage;
-                  if (oldImg != null &&
-                      oldImg.trim().isNotEmpty &&
-                      !ImageHelper.isHttp(oldImg) &&
-                      oldImg != finalImage) {
-                    await ImageAppProvider.delete(
-                      folder: "users",
-                      fileName: oldImg,
-                    );
+                try {
+                  String? finalImage = _loadedUser?.userImage;
+                  if (finalImage != null && finalImage.trim().isEmpty) {
+                    finalImage = null;
                   }
+
+                  if (_pickedImage != null) {
+                    final uploadedFileName = await ImageAppProvider.upload(
+                      file: _pickedImage!,
+                      folder: "users",
+                    );
+                    finalImage = uploadedFileName;
+                  }
+
+                  await _userProvider.update(Session.userId!, {
+                    'firstName': fields.text("firstName"),
+                    'lastName': fields.text("lastName"),
+                    'email': fields.text("email"),
+                    'username': fields.text("username"),
+                    'phoneNumber': fields.text("phoneNumber"),
+                    'dateOfBirth': DateHelper.toIsoFromUi(
+                      fields.text("birthDate"),
+                    ),
+                    'userImage': finalImage,
+                    'isActive': _loadedUser!.isActive,
+                    'isVlasnik': _loadedUser!.isVlasnik,
+                    'createdAt': _loadedUser!.createdAt.toIso8601String(),
+                    'lastLoginAt': _loadedUser!.lastLoginAt?.toIso8601String(),
+                  });
+
+                  if (_pickedImage != null) {
+                    final oldImg = _loadedUser?.userImage;
+                    if (oldImg != null &&
+                        oldImg.trim().isNotEmpty &&
+                        !ImageHelper.isHttp(oldImg) &&
+                        oldImg != finalImage) {
+                      await ImageAppProvider.delete(
+                        folder: "users",
+                        fileName: oldImg,
+                      );
+                    }
+                  }
+
+                  _saved = true;
+                  _pickedImage = null;
+
+                  await loadUser();
+
+                  if (!context.mounted) return;
+
+                  SnackbarHelper.showUpdate(
+                    context,
+                    "Podaci su uspješno sačuvani.",
+                  );
+                  Navigator.of(context).pop();
+                } catch (e) {
+
+                  if (!context.mounted) return;
+                  SnackbarHelper.showError(
+                    context,
+                    "$e",
+                  );
                 }
-
-                _saved = true;
-                _pickedImage = null;
-
-                await loadUser();
-                if (context.mounted) Navigator.of(context).pop();
               },
-
               onChangeImage: _changeUserImage,
               onAnyChanged: () => setStateDialog(() {}),
               isSaveEnabled: hasChanges(),
@@ -408,12 +416,13 @@ class _HomeScreenState extends State<HomeScreen> {
     if (user == null) {
       return const Center(child: Text('Korisnik nije učitan.'));
     }
+
     const saveColor = Color(0xFF5F9F3B);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        // HEADER
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -487,10 +496,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-
         const SizedBox(height: 14),
-
-        // FORM
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
@@ -500,8 +506,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           child: Form(
             key: _formKey,
-            autovalidateMode: AutovalidateMode.disabled, // poruke tek na Save
+            autovalidateMode: AutovalidateMode.disabled,
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   children: [
@@ -536,7 +543,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         label: 'Email',
                         controller: fields.controller('email'),
                         keyboardType: TextInputType.emailAddress,
-                        validator: ValidationHelper.emailValidator,
+                        validator: (v) {
+                          final value = v ?? '';
+                          return Rules.email('email', value).validate();
+                        },
                         onChanged: (_) => onAnyChanged(),
                       ),
                     ),
@@ -545,7 +555,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: _settingsFieldSimple(
                         label: 'Username',
                         controller: fields.controller('username'),
-                        validator: ValidationHelper.usernameValidator,
+                        validator: (v) {
+                          final value = v ?? '';
+                          return Rules.username('username', value).validate();
+                        },
                         onChanged: (_) => onAnyChanged(),
                       ),
                     ),
@@ -558,24 +571,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   controller: fields.controller('birthDate'),
                   onAnyChanged: onAnyChanged,
                 ),
-
                 const SizedBox(height: 12),
                 _settingsFieldSimple(
                   label: 'Telefon',
                   controller: fields.controller('phoneNumber'),
                   keyboardType: TextInputType.phone,
-                  validator: (v) =>
-                      ValidationHelper.phoneValidator(v, required: true),
+                  validator: (v) {
+                    final value = v ?? '';
+                    return Rules.phone(
+                      'phoneNumber',
+                      value,
+                      required: true,
+                    ).validate();
+                  },
                   onChanged: (_) => onAnyChanged(),
                 ),
               ],
             ),
           ),
         ),
-
-        const Spacer(),
-
-        // ACTIONS
+        const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
@@ -584,7 +599,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? () {
                       final ok = _formKey.currentState?.validate() ?? false;
                       if (!ok) return;
-
                       onSave();
                     }
                   : null,
@@ -619,7 +633,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }) {
     return TextFormField(
       controller: controller,
-      readOnly: true, // 👈 nema tipkanja
+      readOnly: true,
       decoration: InputDecoration(
         labelText: label,
         filled: true,
@@ -633,7 +647,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final now = DateTime.now();
         final picked = await showDatePicker(
           context: context,
-          initialDate: initialDate ?? DateTime(now.year - 18), // default 18+
+          initialDate: initialDate ?? DateTime(now.year - 18),
           firstDate: DateTime(1900),
           lastDate: now,
         );
@@ -645,7 +659,7 @@ class _HomeScreenState extends State<HomeScreen> {
             "${picked.month.toString().padLeft(2, '0')}. "
             "${picked.year}.";
 
-        onAnyChanged(); // refresh + enable save
+        onAnyChanged();
       },
     );
   }
@@ -661,7 +675,7 @@ class _HomeScreenState extends State<HomeScreen> {
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      onChanged: onChanged, 
+      onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
         filled: true,

@@ -32,7 +32,7 @@ class _SwipePagedListState<T> extends State<SwipePagedList<T>> {
         builder: (context, paging, _) {
           final width = MediaQuery.of(context).size.width;
           final threshold =
-              width * 0.28; // koliko moraš povući da promijeni stranicu
+              width * 0.28; 
 
           Future<void> snapTo(double value) async {
             if (!mounted) return;
@@ -62,19 +62,16 @@ class _SwipePagedListState<T> extends State<SwipePagedList<T>> {
               setState(() => _snapping = true);
 
               if (shouldPrev && paging.hasPreviousPage) {
-                // odleti desno pa ucitaj prethodnu
                 await snapTo(width);
                 await Future.delayed(const Duration(milliseconds: 180));
                 await paging.previousPage();
                 await snapTo(0);
               } else if (shouldNext && paging.hasNextPage) {
-                // odleti lijevo pa ucitaj sljedecu
                 await snapTo(-width);
                 await Future.delayed(const Duration(milliseconds: 180));
                 await paging.nextPage();
                 await snapTo(0);
               } else {
-                // nije dovoljno povučeno -> vrati nazad
                 await snapTo(0);
               }
 
@@ -91,7 +88,6 @@ class _SwipePagedListState<T> extends State<SwipePagedList<T>> {
 
                 const SizedBox(height: 10),
 
-                // 👇 Ovo ostaje fiksno
                 Row(
                   children: [
                     Expanded(
@@ -128,7 +124,6 @@ class _SwipePagedListState<T> extends State<SwipePagedList<T>> {
     BuildContext context,
     UniversalPagingProvider<T> paging,
   ) {
-    // loading (prvi load)
     if (paging.isLoading && paging.items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.only(top: 18),
@@ -136,7 +131,6 @@ class _SwipePagedListState<T> extends State<SwipePagedList<T>> {
       );
     }
 
-    // error
     if (paging.error != null) {
       return Padding(
         padding: const EdgeInsets.only(top: 12),
@@ -157,7 +151,6 @@ class _SwipePagedListState<T> extends State<SwipePagedList<T>> {
       );
     }
 
-    // empty
     if (paging.items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.only(top: 12),
@@ -165,7 +158,6 @@ class _SwipePagedListState<T> extends State<SwipePagedList<T>> {
       );
     }
 
-    // content
     return Column(
       children: [
         ListView.separated(

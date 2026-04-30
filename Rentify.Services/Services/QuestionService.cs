@@ -18,8 +18,6 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Question> ApplyFilter(IQueryable<Question> query, QuestionSearchObject search)
         {
-            query = query.Include(x => x.User)
-                         .Include(x => x.Property);
 
             if(search.OwnerId.HasValue)
                 query = query.Where(x => x.Property.UserId == search.OwnerId.Value);
@@ -34,7 +32,17 @@ namespace Rentify.Services.Services
                 query = query.Where(x => x.IsAnswered == search.IsAnswered.Value);
 
             if (!string.IsNullOrWhiteSpace(search.FTS))
-                query = query.Where(x => x.Content.Contains(search.FTS));
+            {
+                var fts = string.Join(" ", search.FTS.Trim().ToLower().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+                query = query.Where(x =>
+                    x.Content.ToLower().Contains(fts)
+                    || x.Property.Name.ToLower().Contains(fts)
+                    || x.User.FirstName.ToLower().Contains(fts)
+                    || x.User.LastName.ToLower().Contains(fts)
+                    || (x.User.FirstName + " " + x.User.LastName).ToLower().Contains(fts)
+                    || (x.User.LastName + " " + x.User.FirstName).ToLower().Contains(fts));
+            }
 
             return base.ApplyFilter(query, search);
         }

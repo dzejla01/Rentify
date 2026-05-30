@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/models/user.dart';
-import 'package:rentify_desktop/providers/property_provider.dart';
 import 'package:rentify_desktop/providers/reservation_provider.dart';
 import 'package:rentify_desktop/providers/user_provider.dart';
 import 'package:rentify_desktop/screens/base_screen.dart';
@@ -16,7 +15,6 @@ class PaymentScreen extends StatefulWidget {
 }
 
 class _PaymentScreenState extends State<PaymentScreen> {
-  late final PropertyProvider _propertyProvider;
   late final ReservationProvider _reservationProvider;
   late final UserProvider _userProvider;
 
@@ -35,7 +33,6 @@ class _PaymentScreenState extends State<PaymentScreen> {
   void initState() {
     super.initState();
 
-    _propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
     _reservationProvider = Provider.of<ReservationProvider>(
       context,
       listen: false,
@@ -82,36 +79,39 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   Future<List<User>> _loadAvailableUsers() async {
+    final ownerId = Session.userId;
+    if (ownerId == null) {
+      throw Exception("Korisnik nije prijavljen.");
+    }
+
     final reservationsResult = await _reservationProvider.get(
       filter: {
+        "ownerId": ownerId,
         "retrieveAll": true,
         "page": 0,
         "pageSize": 1000,
         "includeTotalCount": false,
+        "includeUser": true,
       },
     );
-
-    final propertiesResult = await _propertyProvider.get(
-      filter: {
-        "userId": Session.userId,
-        "retrieveAll": true,
-        "page": 0,
-        "pageSize": 1000,
-        "includeTotalCount": false,
-      },
-    );
-
-    final ownerPropertyIds = propertiesResult.items.map((p) => p.id).toSet();
 
     final relevantReservations = reservationsResult.items
-        .where((r) => ownerPropertyIds.contains(r.propertyId))
+        .where((r) => r.status?.name != "Odbijeno")
         .toList();
 
     final uniqueUserIds = relevantReservations.map((r) => r.userId).toSet();
 
     final List<User> users = [];
     for (final userId in uniqueUserIds) {
-      final user = await _userProvider.getById(userId);
+      User? reservationUser;
+      for (final reservation in relevantReservations) {
+        if (reservation.userId == userId && reservation.user != null) {
+          reservationUser = reservation.user;
+          break;
+        }
+      }
+
+      final user = reservationUser ?? await _userProvider.getById(userId);
       users.add(user);
     }
 

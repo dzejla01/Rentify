@@ -1,5 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:rentify_mobile/models/property.dart';
+import 'package:rentify_mobile/models/status.dart';
 import 'package:rentify_mobile/models/user.dart';
 
 part 'reservation.g.dart';
@@ -12,7 +13,8 @@ class Reservation {
   final int propertyId;
   final Property? property;
   final bool isMonthly;
-  String? status;
+  final int statusId;
+  Status? status;
   DateTime? createdAt;
   DateTime? startDateOfRenting;
   DateTime? endDateOfRenting;
@@ -24,6 +26,7 @@ class Reservation {
     required this.propertyId,
     required this.property,
     required this.isMonthly,
+    required this.statusId,
     this.status,
     this.createdAt,
     this.startDateOfRenting,

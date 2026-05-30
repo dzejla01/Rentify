@@ -616,6 +616,54 @@ namespace Rentify.Services.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Rentify.Services.Database.AppNotification", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ReferenceId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ReferenceType")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Type")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "IsRead", "CreatedAt");
+
+                    b.ToTable("AppNotifications");
+                });
+
             modelBuilder.Entity("Rentify.Services.Database.Appointment", b =>
                 {
                     b.Property<int>("Id")
@@ -630,9 +678,8 @@ namespace Rentify.Services.Migrations
                     b.Property<int>("PropertyId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -640,6 +687,8 @@ namespace Rentify.Services.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PropertyId");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex("UserId");
 
@@ -651,7 +700,7 @@ namespace Rentify.Services.Migrations
                             Id = 1,
                             DateAppointment = new DateTime(2026, 1, 3, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 1,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 2
                         },
                         new
@@ -659,7 +708,7 @@ namespace Rentify.Services.Migrations
                             Id = 2,
                             DateAppointment = new DateTime(2026, 2, 4, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 3,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 12
                         },
                         new
@@ -667,7 +716,7 @@ namespace Rentify.Services.Migrations
                             Id = 3,
                             DateAppointment = new DateTime(2026, 3, 5, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 5,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 13
                         },
                         new
@@ -675,7 +724,7 @@ namespace Rentify.Services.Migrations
                             Id = 4,
                             DateAppointment = new DateTime(2026, 4, 6, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 7,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 14
                         },
                         new
@@ -683,7 +732,7 @@ namespace Rentify.Services.Migrations
                             Id = 5,
                             DateAppointment = new DateTime(2026, 1, 7, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 9,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 15
                         },
                         new
@@ -691,7 +740,7 @@ namespace Rentify.Services.Migrations
                             Id = 6,
                             DateAppointment = new DateTime(2026, 2, 8, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 11,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 16
                         },
                         new
@@ -699,7 +748,7 @@ namespace Rentify.Services.Migrations
                             Id = 7,
                             DateAppointment = new DateTime(2026, 3, 9, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 13,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 17
                         },
                         new
@@ -707,7 +756,7 @@ namespace Rentify.Services.Migrations
                             Id = 8,
                             DateAppointment = new DateTime(2026, 4, 10, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 15,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 18
                         },
                         new
@@ -715,7 +764,7 @@ namespace Rentify.Services.Migrations
                             Id = 9,
                             DateAppointment = new DateTime(2026, 1, 11, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 17,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 19
                         },
                         new
@@ -723,7 +772,7 @@ namespace Rentify.Services.Migrations
                             Id = 10,
                             DateAppointment = new DateTime(2026, 2, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 19,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 20
                         },
                         new
@@ -731,7 +780,7 @@ namespace Rentify.Services.Migrations
                             Id = 11,
                             DateAppointment = new DateTime(2026, 3, 13, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 21,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 21
                         },
                         new
@@ -739,7 +788,7 @@ namespace Rentify.Services.Migrations
                             Id = 12,
                             DateAppointment = new DateTime(2026, 4, 14, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 23,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 22
                         },
                         new
@@ -747,7 +796,7 @@ namespace Rentify.Services.Migrations
                             Id = 13,
                             DateAppointment = new DateTime(2026, 1, 15, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 25,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 23
                         },
                         new
@@ -755,7 +804,7 @@ namespace Rentify.Services.Migrations
                             Id = 14,
                             DateAppointment = new DateTime(2026, 2, 16, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 27,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 24
                         },
                         new
@@ -763,7 +812,7 @@ namespace Rentify.Services.Migrations
                             Id = 15,
                             DateAppointment = new DateTime(2026, 3, 17, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 29,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 25
                         },
                         new
@@ -771,7 +820,7 @@ namespace Rentify.Services.Migrations
                             Id = 16,
                             DateAppointment = new DateTime(2026, 4, 18, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 31,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 26
                         },
                         new
@@ -779,7 +828,7 @@ namespace Rentify.Services.Migrations
                             Id = 17,
                             DateAppointment = new DateTime(2026, 1, 19, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 33,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 27
                         },
                         new
@@ -787,7 +836,7 @@ namespace Rentify.Services.Migrations
                             Id = 18,
                             DateAppointment = new DateTime(2026, 2, 20, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 35,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 28
                         },
                         new
@@ -795,7 +844,7 @@ namespace Rentify.Services.Migrations
                             Id = 19,
                             DateAppointment = new DateTime(2026, 3, 21, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 37,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 29
                         },
                         new
@@ -803,7 +852,7 @@ namespace Rentify.Services.Migrations
                             Id = 20,
                             DateAppointment = new DateTime(2026, 4, 22, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 39,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 30
                         },
                         new
@@ -811,7 +860,7 @@ namespace Rentify.Services.Migrations
                             Id = 21,
                             DateAppointment = new DateTime(2026, 1, 23, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 41,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 31
                         },
                         new
@@ -819,7 +868,7 @@ namespace Rentify.Services.Migrations
                             Id = 22,
                             DateAppointment = new DateTime(2026, 2, 24, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 43,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 32
                         },
                         new
@@ -827,7 +876,7 @@ namespace Rentify.Services.Migrations
                             Id = 23,
                             DateAppointment = new DateTime(2026, 3, 25, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 45,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 33
                         },
                         new
@@ -835,7 +884,7 @@ namespace Rentify.Services.Migrations
                             Id = 24,
                             DateAppointment = new DateTime(2026, 4, 26, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 1,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 34
                         },
                         new
@@ -843,7 +892,7 @@ namespace Rentify.Services.Migrations
                             Id = 25,
                             DateAppointment = new DateTime(2026, 1, 27, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 3,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 35
                         },
                         new
@@ -851,7 +900,7 @@ namespace Rentify.Services.Migrations
                             Id = 26,
                             DateAppointment = new DateTime(2026, 2, 28, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 5,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 36
                         },
                         new
@@ -859,7 +908,7 @@ namespace Rentify.Services.Migrations
                             Id = 27,
                             DateAppointment = new DateTime(2026, 3, 28, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 7,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 37
                         },
                         new
@@ -867,7 +916,7 @@ namespace Rentify.Services.Migrations
                             Id = 28,
                             DateAppointment = new DateTime(2026, 4, 28, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 9,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 38
                         },
                         new
@@ -875,7 +924,7 @@ namespace Rentify.Services.Migrations
                             Id = 29,
                             DateAppointment = new DateTime(2026, 1, 28, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 11,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 39
                         },
                         new
@@ -883,7 +932,7 @@ namespace Rentify.Services.Migrations
                             Id = 30,
                             DateAppointment = new DateTime(2026, 2, 28, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 13,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 40
                         },
                         new
@@ -891,7 +940,7 @@ namespace Rentify.Services.Migrations
                             Id = 31,
                             DateAppointment = new DateTime(2026, 3, 28, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 15,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 41
                         },
                         new
@@ -899,7 +948,7 @@ namespace Rentify.Services.Migrations
                             Id = 32,
                             DateAppointment = new DateTime(2026, 4, 28, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 17,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 42
                         },
                         new
@@ -907,7 +956,7 @@ namespace Rentify.Services.Migrations
                             Id = 33,
                             DateAppointment = new DateTime(2026, 1, 28, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 19,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 43
                         },
                         new
@@ -915,7 +964,7 @@ namespace Rentify.Services.Migrations
                             Id = 34,
                             DateAppointment = new DateTime(2026, 2, 28, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 21,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 44
                         },
                         new
@@ -923,7 +972,7 @@ namespace Rentify.Services.Migrations
                             Id = 35,
                             DateAppointment = new DateTime(2026, 3, 28, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 23,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 45
                         },
                         new
@@ -931,7 +980,7 @@ namespace Rentify.Services.Migrations
                             Id = 36,
                             DateAppointment = new DateTime(2026, 4, 28, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 25,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 46
                         },
                         new
@@ -939,7 +988,7 @@ namespace Rentify.Services.Migrations
                             Id = 37,
                             DateAppointment = new DateTime(2026, 1, 28, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 27,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 47
                         },
                         new
@@ -947,7 +996,7 @@ namespace Rentify.Services.Migrations
                             Id = 38,
                             DateAppointment = new DateTime(2026, 2, 28, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 29,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 48
                         },
                         new
@@ -955,7 +1004,7 @@ namespace Rentify.Services.Migrations
                             Id = 39,
                             DateAppointment = new DateTime(2026, 3, 28, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 31,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 49
                         },
                         new
@@ -963,7 +1012,7 @@ namespace Rentify.Services.Migrations
                             Id = 40,
                             DateAppointment = new DateTime(2026, 4, 28, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 33,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 50
                         },
                         new
@@ -971,7 +1020,7 @@ namespace Rentify.Services.Migrations
                             Id = 41,
                             DateAppointment = new DateTime(2026, 1, 28, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 35,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 51
                         },
                         new
@@ -979,7 +1028,7 @@ namespace Rentify.Services.Migrations
                             Id = 42,
                             DateAppointment = new DateTime(2026, 2, 28, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 37,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 52
                         },
                         new
@@ -987,7 +1036,7 @@ namespace Rentify.Services.Migrations
                             Id = 43,
                             DateAppointment = new DateTime(2026, 3, 28, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 39,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 53
                         },
                         new
@@ -995,7 +1044,7 @@ namespace Rentify.Services.Migrations
                             Id = 44,
                             DateAppointment = new DateTime(2026, 4, 28, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 41,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 54
                         },
                         new
@@ -1003,7 +1052,7 @@ namespace Rentify.Services.Migrations
                             Id = 45,
                             DateAppointment = new DateTime(2026, 1, 28, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 43,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 55
                         },
                         new
@@ -1011,7 +1060,7 @@ namespace Rentify.Services.Migrations
                             Id = 46,
                             DateAppointment = new DateTime(2026, 2, 28, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 45,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 56
                         },
                         new
@@ -1019,7 +1068,7 @@ namespace Rentify.Services.Migrations
                             Id = 47,
                             DateAppointment = new DateTime(2026, 3, 28, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 1,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 57
                         },
                         new
@@ -1027,7 +1076,7 @@ namespace Rentify.Services.Migrations
                             Id = 48,
                             DateAppointment = new DateTime(2026, 4, 28, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 3,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 58
                         },
                         new
@@ -1035,7 +1084,7 @@ namespace Rentify.Services.Migrations
                             Id = 49,
                             DateAppointment = new DateTime(2026, 1, 28, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 5,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 59
                         },
                         new
@@ -1043,7 +1092,7 @@ namespace Rentify.Services.Migrations
                             Id = 50,
                             DateAppointment = new DateTime(2026, 2, 28, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 7,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 60
                         },
                         new
@@ -1051,7 +1100,7 @@ namespace Rentify.Services.Migrations
                             Id = 51,
                             DateAppointment = new DateTime(2026, 3, 28, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 9,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 61
                         },
                         new
@@ -1059,7 +1108,7 @@ namespace Rentify.Services.Migrations
                             Id = 52,
                             DateAppointment = new DateTime(2026, 4, 28, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 11,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 62
                         },
                         new
@@ -1067,7 +1116,7 @@ namespace Rentify.Services.Migrations
                             Id = 53,
                             DateAppointment = new DateTime(2026, 1, 28, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 13,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 63
                         },
                         new
@@ -1075,7 +1124,7 @@ namespace Rentify.Services.Migrations
                             Id = 54,
                             DateAppointment = new DateTime(2026, 2, 28, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 15,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 64
                         },
                         new
@@ -1083,7 +1132,7 @@ namespace Rentify.Services.Migrations
                             Id = 55,
                             DateAppointment = new DateTime(2026, 3, 28, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 17,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 65
                         },
                         new
@@ -1091,7 +1140,7 @@ namespace Rentify.Services.Migrations
                             Id = 56,
                             DateAppointment = new DateTime(2026, 4, 28, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 19,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 66
                         },
                         new
@@ -1099,7 +1148,7 @@ namespace Rentify.Services.Migrations
                             Id = 57,
                             DateAppointment = new DateTime(2026, 1, 28, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 21,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 67
                         },
                         new
@@ -1107,7 +1156,7 @@ namespace Rentify.Services.Migrations
                             Id = 58,
                             DateAppointment = new DateTime(2026, 2, 28, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 23,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 68
                         },
                         new
@@ -1115,7 +1164,7 @@ namespace Rentify.Services.Migrations
                             Id = 59,
                             DateAppointment = new DateTime(2026, 3, 28, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 25,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 69
                         },
                         new
@@ -1123,7 +1172,7 @@ namespace Rentify.Services.Migrations
                             Id = 60,
                             DateAppointment = new DateTime(2026, 4, 28, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 27,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 70
                         },
                         new
@@ -1131,7 +1180,7 @@ namespace Rentify.Services.Migrations
                             Id = 61,
                             DateAppointment = new DateTime(2026, 1, 28, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 29,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 71
                         },
                         new
@@ -1139,7 +1188,7 @@ namespace Rentify.Services.Migrations
                             Id = 62,
                             DateAppointment = new DateTime(2026, 2, 28, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 31,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 72
                         },
                         new
@@ -1147,7 +1196,7 @@ namespace Rentify.Services.Migrations
                             Id = 63,
                             DateAppointment = new DateTime(2026, 3, 28, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 33,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 73
                         },
                         new
@@ -1155,7 +1204,7 @@ namespace Rentify.Services.Migrations
                             Id = 64,
                             DateAppointment = new DateTime(2026, 4, 28, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 35,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 74
                         },
                         new
@@ -1163,7 +1212,7 @@ namespace Rentify.Services.Migrations
                             Id = 65,
                             DateAppointment = new DateTime(2026, 1, 28, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 37,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 75
                         },
                         new
@@ -1171,7 +1220,7 @@ namespace Rentify.Services.Migrations
                             Id = 66,
                             DateAppointment = new DateTime(2026, 2, 28, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 39,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 76
                         },
                         new
@@ -1179,7 +1228,7 @@ namespace Rentify.Services.Migrations
                             Id = 67,
                             DateAppointment = new DateTime(2026, 3, 28, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 41,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 77
                         },
                         new
@@ -1187,7 +1236,7 @@ namespace Rentify.Services.Migrations
                             Id = 68,
                             DateAppointment = new DateTime(2026, 4, 28, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 43,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 78
                         },
                         new
@@ -1195,7 +1244,7 @@ namespace Rentify.Services.Migrations
                             Id = 69,
                             DateAppointment = new DateTime(2026, 1, 28, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 45,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 79
                         },
                         new
@@ -1203,7 +1252,7 @@ namespace Rentify.Services.Migrations
                             Id = 70,
                             DateAppointment = new DateTime(2026, 2, 28, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 1,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 80
                         },
                         new
@@ -1211,7 +1260,7 @@ namespace Rentify.Services.Migrations
                             Id = 71,
                             DateAppointment = new DateTime(2026, 3, 28, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 3,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 81
                         },
                         new
@@ -1219,7 +1268,7 @@ namespace Rentify.Services.Migrations
                             Id = 72,
                             DateAppointment = new DateTime(2026, 4, 28, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 5,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 82
                         },
                         new
@@ -1227,7 +1276,7 @@ namespace Rentify.Services.Migrations
                             Id = 73,
                             DateAppointment = new DateTime(2026, 1, 28, 9, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 7,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 83
                         },
                         new
@@ -1235,7 +1284,7 @@ namespace Rentify.Services.Migrations
                             Id = 74,
                             DateAppointment = new DateTime(2026, 2, 28, 10, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 9,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 84
                         },
                         new
@@ -1243,7 +1292,7 @@ namespace Rentify.Services.Migrations
                             Id = 75,
                             DateAppointment = new DateTime(2026, 3, 28, 11, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 11,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 85
                         },
                         new
@@ -1251,7 +1300,7 @@ namespace Rentify.Services.Migrations
                             Id = 76,
                             DateAppointment = new DateTime(2026, 4, 28, 12, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 13,
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 86
                         },
                         new
@@ -1259,7 +1308,7 @@ namespace Rentify.Services.Migrations
                             Id = 77,
                             DateAppointment = new DateTime(2026, 1, 28, 13, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 15,
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 87
                         },
                         new
@@ -1267,7 +1316,7 @@ namespace Rentify.Services.Migrations
                             Id = 78,
                             DateAppointment = new DateTime(2026, 2, 28, 14, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 17,
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 88
                         },
                         new
@@ -1275,7 +1324,7 @@ namespace Rentify.Services.Migrations
                             Id = 79,
                             DateAppointment = new DateTime(2026, 3, 28, 15, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 19,
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 89
                         },
                         new
@@ -1283,9 +1332,149 @@ namespace Rentify.Services.Migrations
                             Id = 80,
                             DateAppointment = new DateTime(2026, 4, 28, 16, 0, 0, 0, DateTimeKind.Utc),
                             PropertyId = 21,
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 90
                         });
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.BuildingType", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BuildingTypes");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Apartman"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Kuća"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Studio"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Loft"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Vila"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "Poslovni prostor"
+                        });
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.City", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Cities");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Sarajevo"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Mostar"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Tuzla"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Banja Luka"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Zenica"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "Bihać"
+                        });
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.Expense", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int?>("PropertyId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PropertyId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Expenses");
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Favorite", b =>
@@ -1315,6 +1504,38 @@ namespace Rentify.Services.Migrations
                     b.ToTable("Favorites");
                 });
 
+            modelBuilder.Entity("Rentify.Services.Database.PasswordResetToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "TokenHash", "UsedAt");
+
+                    b.ToTable("PasswordResetTokens");
+                });
+
             modelBuilder.Entity("Rentify.Services.Database.Payment", b =>
                 {
                     b.Property<int>("Id")
@@ -1340,10 +1561,6 @@ namespace Rentify.Services.Migrations
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("PaymentStatus")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
@@ -1352,6 +1569,9 @@ namespace Rentify.Services.Migrations
 
                     b.Property<DateTime?>("SecondWarningDate")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("StatusId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("StripePaymentIntentId")
                         .HasColumnType("text");
@@ -1366,6 +1586,8 @@ namespace Rentify.Services.Migrations
 
                     b.HasIndex("ReservationId");
 
+                    b.HasIndex("StatusId");
+
                     b.ToTable("Payments");
 
                     b.HasData(
@@ -1377,10 +1599,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 1,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1392,10 +1614,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 1,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1407,10 +1629,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2026",
                             PaidAt = new DateTime(2026, 1, 11, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 306m,
                             ReservationId = 2,
                             SecondWarningDate = new DateTime(2026, 1, 17, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 14, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1422,10 +1644,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 3,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1437,10 +1659,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 3,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1452,10 +1674,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2026",
                             PaidAt = new DateTime(2026, 2, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 342m,
                             ReservationId = 4,
                             SecondWarningDate = new DateTime(2026, 2, 12, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 9, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1467,10 +1689,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 5,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1482,10 +1704,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
                             PaidAt = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 5,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1497,10 +1719,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2026",
                             PaidAt = new DateTime(2026, 3, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 378m,
                             ReservationId = 6,
                             SecondWarningDate = new DateTime(2026, 3, 14, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 11, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1511,10 +1733,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1510m,
                             ReservationId = 7,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1526,10 +1748,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2026",
                             PaidAt = new DateTime(2026, 4, 7, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 414m,
                             ReservationId = 8,
                             SecondWarningDate = new DateTime(2026, 4, 13, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1541,10 +1763,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
                             PaidAt = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1670m,
                             ReservationId = 9,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1555,10 +1777,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1670m,
                             ReservationId = 9,
                             SecondWarningDate = new DateTime(2026, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1569,10 +1791,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 20, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 240m,
                             ReservationId = 11,
                             SecondWarningDate = new DateTime(2026, 4, 25, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 22, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1583,10 +1805,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1110m,
                             ReservationId = 12,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1598,10 +1820,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Kratki boravak 11.2025",
                             PaidAt = new DateTime(2025, 11, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 390m,
                             ReservationId = 13,
                             SecondWarningDate = new DateTime(2025, 11, 20, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 17, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1613,10 +1835,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 14,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1627,10 +1849,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1910m,
                             ReservationId = 14,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1641,10 +1863,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 25, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 420m,
                             ReservationId = 15,
                             SecondWarningDate = new DateTime(2026, 4, 30, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 27, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1655,10 +1877,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 950m,
                             ReservationId = 17,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1669,10 +1891,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 21, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 240m,
                             ReservationId = 18,
                             SecondWarningDate = new DateTime(2026, 4, 26, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 23, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1684,10 +1906,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2026",
                             PaidAt = new DateTime(2026, 2, 17, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 306m,
                             ReservationId = 19,
                             SecondWarningDate = new DateTime(2026, 2, 23, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 20, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1699,10 +1921,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 20,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -1713,10 +1935,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 1, 4, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 144m,
                             ReservationId = 21,
                             SecondWarningDate = new DateTime(2025, 1, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 1, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1728,10 +1950,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2025",
                             PaidAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 22,
                             SecondWarningDate = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1742,10 +1964,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1110m,
                             ReservationId = 22,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1757,10 +1979,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2025",
                             PaidAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 23,
                             SecondWarningDate = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1772,10 +1994,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2025",
                             PaidAt = new DateTime(2025, 1, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 342m,
                             ReservationId = 24,
                             SecondWarningDate = new DateTime(2025, 1, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1787,10 +2009,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2025",
                             PaidAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 25,
                             SecondWarningDate = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1802,10 +2024,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2025",
                             PaidAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 26,
                             SecondWarningDate = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1816,10 +2038,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1430m,
                             ReservationId = 26,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1831,10 +2053,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2025",
                             PaidAt = new DateTime(2025, 1, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 264m,
                             ReservationId = 27,
                             SecondWarningDate = new DateTime(2025, 1, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1846,10 +2068,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2025",
                             PaidAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1590m,
                             ReservationId = 28,
                             SecondWarningDate = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1860,10 +2082,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1590m,
                             ReservationId = 28,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1875,10 +2097,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2025",
                             PaidAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1670m,
                             ReservationId = 29,
                             SecondWarningDate = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1890,10 +2112,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2025",
                             PaidAt = new DateTime(2025, 1, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 609m,
                             ReservationId = 30,
                             SecondWarningDate = new DateTime(2025, 1, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1905,10 +2127,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2025",
                             PaidAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 31,
                             SecondWarningDate = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1920,10 +2142,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2025",
                             PaidAt = new DateTime(2025, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 2070m,
                             ReservationId = 32,
                             SecondWarningDate = new DateTime(2025, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1935,10 +2157,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
                             PaidAt = new DateTime(2025, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 2070m,
                             ReservationId = 32,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1949,10 +2171,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 1, 28, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 225m,
                             ReservationId = 33,
                             SecondWarningDate = new DateTime(2025, 2, 2, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 1, 30, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1964,10 +2186,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2025",
                             PaidAt = new DateTime(2025, 2, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 153m,
                             ReservationId = 34,
                             SecondWarningDate = new DateTime(2025, 2, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1979,10 +2201,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
                             PaidAt = new DateTime(2025, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 35,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -1993,10 +2215,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1190m,
                             ReservationId = 35,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2008,10 +2230,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
                             PaidAt = new DateTime(2025, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1270m,
                             ReservationId = 36,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2023,10 +2245,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2025",
                             PaidAt = new DateTime(2025, 2, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 360m,
                             ReservationId = 37,
                             SecondWarningDate = new DateTime(2025, 2, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2038,10 +2260,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
                             PaidAt = new DateTime(2025, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 38,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2053,10 +2275,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
                             PaidAt = new DateTime(2025, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 39,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2067,10 +2289,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1510m,
                             ReservationId = 39,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2082,10 +2304,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2025",
                             PaidAt = new DateTime(2025, 2, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 276m,
                             ReservationId = 40,
                             SecondWarningDate = new DateTime(2025, 2, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2097,10 +2319,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
                             PaidAt = new DateTime(2025, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1670m,
                             ReservationId = 41,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2112,10 +2334,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
                             PaidAt = new DateTime(2025, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1670m,
                             ReservationId = 41,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2126,10 +2348,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 2070m,
                             ReservationId = 42,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2141,10 +2363,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2025",
                             PaidAt = new DateTime(2025, 2, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 336m,
                             ReservationId = 43,
                             SecondWarningDate = new DateTime(2025, 2, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2155,10 +2377,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 2070m,
                             ReservationId = 44,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2170,10 +2392,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2025",
                             PaidAt = new DateTime(2025, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 950m,
                             ReservationId = 45,
                             SecondWarningDate = new DateTime(2025, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2185,10 +2407,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
                             PaidAt = new DateTime(2025, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 950m,
                             ReservationId = 45,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2200,10 +2422,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2025",
                             PaidAt = new DateTime(2025, 2, 27, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 300m,
                             ReservationId = 46,
                             SecondWarningDate = new DateTime(2025, 3, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 2, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2215,10 +2437,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2025",
                             PaidAt = new DateTime(2025, 3, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 162m,
                             ReservationId = 47,
                             SecondWarningDate = new DateTime(2025, 3, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2230,10 +2452,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
                             PaidAt = new DateTime(2025, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1270m,
                             ReservationId = 48,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2245,10 +2467,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1270m,
                             ReservationId = 48,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2259,10 +2481,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1350m,
                             ReservationId = 49,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2274,10 +2496,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2025",
                             PaidAt = new DateTime(2025, 3, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 378m,
                             ReservationId = 50,
                             SecondWarningDate = new DateTime(2025, 3, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2289,10 +2511,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
                             PaidAt = new DateTime(2025, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 51,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2304,10 +2526,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
                             PaidAt = new DateTime(2025, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1590m,
                             ReservationId = 52,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2318,10 +2540,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1590m,
                             ReservationId = 52,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2333,10 +2555,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2025",
                             PaidAt = new DateTime(2025, 3, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 288m,
                             ReservationId = 53,
                             SecondWarningDate = new DateTime(2025, 3, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2348,10 +2570,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
                             PaidAt = new DateTime(2025, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 54,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2363,10 +2585,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 54,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2377,10 +2599,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1030m,
                             ReservationId = 55,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2391,10 +2613,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 3, 22, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 609m,
                             ReservationId = 56,
                             SecondWarningDate = new DateTime(2025, 3, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 3, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2406,10 +2628,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
                             PaidAt = new DateTime(2025, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 950m,
                             ReservationId = 57,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2421,10 +2643,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2025",
                             PaidAt = new DateTime(2025, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 58,
                             SecondWarningDate = new DateTime(2025, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2436,10 +2658,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 58,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2451,10 +2673,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2025",
                             PaidAt = new DateTime(2025, 3, 27, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 375m,
                             ReservationId = 59,
                             SecondWarningDate = new DateTime(2025, 4, 2, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 3, 30, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2466,10 +2688,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 171m,
                             ReservationId = 60,
                             SecondWarningDate = new DateTime(2025, 4, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2481,10 +2703,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 61,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2496,10 +2718,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 61,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2511,10 +2733,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 62,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2525,10 +2747,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 4, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 396m,
                             ReservationId = 63,
                             SecondWarningDate = new DateTime(2025, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 4, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2540,10 +2762,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1590m,
                             ReservationId = 64,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2555,10 +2777,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1670m,
                             ReservationId = 65,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2569,10 +2791,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1670m,
                             ReservationId = 65,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2583,10 +2805,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 4, 16, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 300m,
                             ReservationId = 66,
                             SecondWarningDate = new DateTime(2025, 4, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 4, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2598,10 +2820,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 67,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2613,10 +2835,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 67,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2628,10 +2850,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 2070m,
                             ReservationId = 68,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2643,10 +2865,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2025",
                             PaidAt = new DateTime(2025, 4, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 315m,
                             ReservationId = 69,
                             SecondWarningDate = new DateTime(2025, 4, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2657,10 +2879,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1350m,
                             ReservationId = 70,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2672,10 +2894,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2025",
                             PaidAt = new DateTime(2025, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 71,
                             SecondWarningDate = new DateTime(2025, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2687,10 +2909,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 71,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2702,10 +2924,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2025",
                             PaidAt = new DateTime(2025, 4, 27, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 225m,
                             ReservationId = 72,
                             SecondWarningDate = new DateTime(2025, 5, 3, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 4, 30, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2717,10 +2939,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Kratki boravak 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 180m,
                             ReservationId = 73,
                             SecondWarningDate = new DateTime(2025, 5, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2732,10 +2954,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 74,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2747,10 +2969,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 74,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2762,10 +2984,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 75,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2777,10 +2999,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Kratki boravak 05.2025",
                             PaidAt = new DateTime(2025, 5, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 414m,
                             ReservationId = 76,
                             SecondWarningDate = new DateTime(2025, 5, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2791,10 +3013,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1670m,
                             ReservationId = 77,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2806,10 +3028,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 78,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2820,10 +3042,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1750m,
                             ReservationId = 78,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2835,10 +3057,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Kratki boravak 05.2025",
                             PaidAt = new DateTime(2025, 5, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 192m,
                             ReservationId = 79,
                             SecondWarningDate = new DateTime(2025, 5, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2850,10 +3072,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 80,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2865,10 +3087,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 80,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2880,10 +3102,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 950m,
                             ReservationId = 81,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2895,10 +3117,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Kratki boravak 05.2025",
                             PaidAt = new DateTime(2025, 5, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 420m,
                             ReservationId = 82,
                             SecondWarningDate = new DateTime(2025, 5, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2910,10 +3132,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 83,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2925,10 +3147,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2025",
                             PaidAt = new DateTime(2025, 5, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 950m,
                             ReservationId = 84,
                             SecondWarningDate = new DateTime(2025, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2939,10 +3161,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 950m,
                             ReservationId = 84,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2954,10 +3176,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 5,
                             Name = "Kratki boravak 05.2025",
                             PaidAt = new DateTime(2025, 5, 27, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 240m,
                             ReservationId = 85,
                             SecondWarningDate = new DateTime(2025, 6, 2, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 5, 30, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2969,10 +3191,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Kratki boravak 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 189m,
                             ReservationId = 86,
                             SecondWarningDate = new DateTime(2025, 6, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2984,10 +3206,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 87,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -2999,10 +3221,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 87,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3013,10 +3235,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 6, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1590m,
                             ReservationId = 88,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3028,10 +3250,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Kratki boravak 06.2025",
                             PaidAt = new DateTime(2025, 6, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 432m,
                             ReservationId = 89,
                             SecondWarningDate = new DateTime(2025, 6, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3043,10 +3265,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 90,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3058,10 +3280,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 91,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3072,10 +3294,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 7, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1030m,
                             ReservationId = 91,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3087,10 +3309,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Kratki boravak 06.2025",
                             PaidAt = new DateTime(2025, 6, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 204m,
                             ReservationId = 92,
                             SecondWarningDate = new DateTime(2025, 6, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3102,10 +3324,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 93,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3117,10 +3339,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 93,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3132,10 +3354,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 94,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3147,10 +3369,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Kratki boravak 06.2025",
                             PaidAt = new DateTime(2025, 6, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 525m,
                             ReservationId = 95,
                             SecondWarningDate = new DateTime(2025, 6, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3162,10 +3384,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 950m,
                             ReservationId = 96,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3177,10 +3399,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 6,
                             Name = "Mjesečna rata 06.2025",
                             PaidAt = new DateTime(2025, 6, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 97,
                             SecondWarningDate = new DateTime(2025, 6, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 6, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3192,10 +3414,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 97,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3206,10 +3428,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 6, 28, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 6,
                             Name = "Kratki boravak 06.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 315m,
                             ReservationId = 98,
                             SecondWarningDate = new DateTime(2025, 7, 3, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 6, 30, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3220,10 +3442,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 7, 4, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 7,
                             Name = "Kratki boravak 07.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 198m,
                             ReservationId = 99,
                             SecondWarningDate = new DateTime(2025, 7, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 7, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3235,10 +3457,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1590m,
                             ReservationId = 100,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3250,10 +3472,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1590m,
                             ReservationId = 100,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3265,10 +3487,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1670m,
                             ReservationId = 101,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3280,10 +3502,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Kratki boravak 07.2025",
                             PaidAt = new DateTime(2025, 7, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 450m,
                             ReservationId = 102,
                             SecondWarningDate = new DateTime(2025, 7, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3295,10 +3517,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 103,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3310,10 +3532,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 104,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3324,10 +3546,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 8, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1110m,
                             ReservationId = 104,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3338,10 +3560,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 7, 16, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 7,
                             Name = "Kratki boravak 07.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 216m,
                             ReservationId = 105,
                             SecondWarningDate = new DateTime(2025, 7, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 7, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3353,10 +3575,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1270m,
                             ReservationId = 106,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3368,10 +3590,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1270m,
                             ReservationId = 106,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3383,10 +3605,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 107,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3398,10 +3620,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Kratki boravak 07.2025",
                             PaidAt = new DateTime(2025, 7, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 315m,
                             ReservationId = 108,
                             SecondWarningDate = new DateTime(2025, 7, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3413,10 +3635,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 109,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3428,10 +3650,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Mjesečna rata 07.2025",
                             PaidAt = new DateTime(2025, 7, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 110,
                             SecondWarningDate = new DateTime(2025, 7, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3442,10 +3664,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 8, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1430m,
                             ReservationId = 110,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3457,10 +3679,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 7,
                             Name = "Kratki boravak 07.2025",
                             PaidAt = new DateTime(2025, 7, 27, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 390m,
                             ReservationId = 111,
                             SecondWarningDate = new DateTime(2025, 8, 2, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 7, 30, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3471,10 +3693,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 8, 4, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 8,
                             Name = "Kratki boravak 08.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 207m,
                             ReservationId = 112,
                             SecondWarningDate = new DateTime(2025, 8, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 8, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3486,10 +3708,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1670m,
                             ReservationId = 113,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3501,10 +3723,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1670m,
                             ReservationId = 113,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3516,10 +3738,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 114,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3531,10 +3753,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Kratki boravak 08.2025",
                             PaidAt = new DateTime(2025, 8, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 288m,
                             ReservationId = 115,
                             SecondWarningDate = new DateTime(2025, 8, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3546,10 +3768,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 116,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3561,10 +3783,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 117,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3575,10 +3797,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1190m,
                             ReservationId = 117,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3590,10 +3812,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Kratki boravak 08.2025",
                             PaidAt = new DateTime(2025, 8, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 228m,
                             ReservationId = 118,
                             SecondWarningDate = new DateTime(2025, 8, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3605,10 +3827,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 119,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3619,10 +3841,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1350m,
                             ReservationId = 119,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3634,10 +3856,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 950m,
                             ReservationId = 120,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3648,10 +3870,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 8, 22, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 8,
                             Name = "Kratki boravak 08.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 336m,
                             ReservationId = 121,
                             SecondWarningDate = new DateTime(2025, 8, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 8, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3663,10 +3885,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 122,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3678,10 +3900,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Mjesečna rata 08.2025",
                             PaidAt = new DateTime(2025, 8, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 123,
                             SecondWarningDate = new DateTime(2025, 8, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3693,10 +3915,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 123,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3708,10 +3930,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 8,
                             Name = "Kratki boravak 08.2025",
                             PaidAt = new DateTime(2025, 8, 27, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 240m,
                             ReservationId = 124,
                             SecondWarningDate = new DateTime(2025, 9, 2, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 8, 30, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3723,10 +3945,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Kratki boravak 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 216m,
                             ReservationId = 125,
                             SecondWarningDate = new DateTime(2025, 9, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3738,10 +3960,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1750m,
                             ReservationId = 126,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3752,10 +3974,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 10, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1750m,
                             ReservationId = 126,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3767,10 +3989,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 127,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3782,10 +4004,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Kratki boravak 09.2025",
                             PaidAt = new DateTime(2025, 9, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 306m,
                             ReservationId = 128,
                             SecondWarningDate = new DateTime(2025, 9, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3797,10 +4019,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 129,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3812,10 +4034,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1270m,
                             ReservationId = 130,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3826,10 +4048,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 10, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1270m,
                             ReservationId = 130,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3841,10 +4063,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Kratki boravak 09.2025",
                             PaidAt = new DateTime(2025, 9, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 240m,
                             ReservationId = 131,
                             SecondWarningDate = new DateTime(2025, 9, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3856,10 +4078,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 132,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3870,10 +4092,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 10, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1430m,
                             ReservationId = 132,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3884,10 +4106,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 9, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1030m,
                             ReservationId = 133,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3899,10 +4121,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Kratki boravak 09.2025",
                             PaidAt = new DateTime(2025, 9, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 441m,
                             ReservationId = 134,
                             SecondWarningDate = new DateTime(2025, 9, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3914,10 +4136,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 135,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3929,10 +4151,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 9,
                             Name = "Mjesečna rata 09.2025",
                             PaidAt = new DateTime(2025, 9, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 136,
                             SecondWarningDate = new DateTime(2025, 9, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 9, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3944,10 +4166,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
                             PaidAt = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 136,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3959,10 +4181,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Kratki boravak 10.2025",
                             PaidAt = new DateTime(2025, 10, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 225m,
                             ReservationId = 137,
                             SecondWarningDate = new DateTime(2025, 10, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3974,10 +4196,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
                             PaidAt = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 138,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -3989,10 +4211,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 138,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4004,10 +4226,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
                             PaidAt = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 139,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4018,10 +4240,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 10,
                             Name = "Kratki boravak 10.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 324m,
                             ReservationId = 140,
                             SecondWarningDate = new DateTime(2025, 10, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 10, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4033,10 +4255,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
                             PaidAt = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1270m,
                             ReservationId = 141,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4048,10 +4270,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
                             PaidAt = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 142,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4063,10 +4285,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 142,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4077,10 +4299,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 10, 16, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 10,
                             Name = "Kratki boravak 10.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 252m,
                             ReservationId = 143,
                             SecondWarningDate = new DateTime(2025, 10, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 10, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4092,10 +4314,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
                             PaidAt = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 144,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4107,10 +4329,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 144,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4122,10 +4344,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
                             PaidAt = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 145,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4137,10 +4359,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Kratki boravak 10.2025",
                             PaidAt = new DateTime(2025, 10, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 546m,
                             ReservationId = 146,
                             SecondWarningDate = new DateTime(2025, 10, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4151,10 +4373,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 10, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1030m,
                             ReservationId = 147,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4166,10 +4388,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 10,
                             Name = "Mjesečna rata 10.2025",
                             PaidAt = new DateTime(2025, 10, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 148,
                             SecondWarningDate = new DateTime(2025, 10, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 10, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4181,10 +4403,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 148,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4196,10 +4418,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Kratki boravak 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 144m,
                             ReservationId = 149,
                             SecondWarningDate = new DateTime(2025, 11, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4211,10 +4433,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 150,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4226,10 +4448,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
                             PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 150,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4241,10 +4463,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 151,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4256,10 +4478,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Kratki boravak 11.2025",
                             PaidAt = new DateTime(2025, 11, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 342m,
                             ReservationId = 152,
                             SecondWarningDate = new DateTime(2025, 11, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4271,10 +4493,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1350m,
                             ReservationId = 153,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4286,10 +4508,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1430m,
                             ReservationId = 154,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4300,10 +4522,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1430m,
                             ReservationId = 154,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4315,10 +4537,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Kratki boravak 11.2025",
                             PaidAt = new DateTime(2025, 11, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 264m,
                             ReservationId = 155,
                             SecondWarningDate = new DateTime(2025, 11, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4330,10 +4552,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1590m,
                             ReservationId = 156,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4344,10 +4566,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1590m,
                             ReservationId = 156,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4359,10 +4581,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 157,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4374,10 +4596,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Kratki boravak 11.2025",
                             PaidAt = new DateTime(2025, 11, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 336m,
                             ReservationId = 158,
                             SecondWarningDate = new DateTime(2025, 11, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4389,10 +4611,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 159,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4404,10 +4626,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 11,
                             Name = "Mjesečna rata 11.2025",
                             PaidAt = new DateTime(2025, 11, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 160,
                             SecondWarningDate = new DateTime(2025, 11, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 11, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4419,10 +4641,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
                             PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 160,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4433,10 +4655,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 12, 4, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 12,
                             Name = "Kratki boravak 12.2025",
-                            PaymentStatus = "Neplaćeno",
                             Price = 153m,
                             ReservationId = 161,
                             SecondWarningDate = new DateTime(2025, 12, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2025, 12, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4448,10 +4670,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
                             PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 162,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4463,10 +4685,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 162,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4478,10 +4700,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
                             PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1270m,
                             ReservationId = 163,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4493,10 +4715,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Kratki boravak 12.2025",
                             PaidAt = new DateTime(2025, 12, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 360m,
                             ReservationId = 164,
                             SecondWarningDate = new DateTime(2025, 12, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4507,10 +4729,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1430m,
                             ReservationId = 165,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4522,10 +4744,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
                             PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 166,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4537,10 +4759,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 166,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4552,10 +4774,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Kratki boravak 12.2025",
                             PaidAt = new DateTime(2025, 12, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 276m,
                             ReservationId = 167,
                             SecondWarningDate = new DateTime(2025, 12, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4567,10 +4789,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
                             PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1670m,
                             ReservationId = 168,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4581,10 +4803,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1670m,
                             ReservationId = 168,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4595,10 +4817,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
-                            PaymentStatus = "Na čekanju",
                             Price = 1030m,
                             ReservationId = 169,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4610,10 +4832,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Kratki boravak 12.2025",
                             PaidAt = new DateTime(2025, 12, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 336m,
                             ReservationId = 170,
                             SecondWarningDate = new DateTime(2025, 12, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4625,10 +4847,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
                             PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 171,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4640,10 +4862,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 12,
                             Name = "Mjesečna rata 12.2025",
                             PaidAt = new DateTime(2025, 12, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 172,
                             SecondWarningDate = new DateTime(2025, 12, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2025
                         },
@@ -4655,10 +4877,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 172,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4670,10 +4892,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 234m,
                             ReservationId = 173,
                             SecondWarningDate = new DateTime(2026, 1, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4685,10 +4907,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 174,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4700,10 +4922,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 174,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4714,10 +4936,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 1, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1990m,
                             ReservationId = 175,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4728,10 +4950,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 1, 10, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 522m,
                             ReservationId = 176,
                             SecondWarningDate = new DateTime(2026, 1, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 1, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4743,10 +4965,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 177,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4758,10 +4980,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 178,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4773,10 +4995,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 178,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4788,10 +5010,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2026",
                             PaidAt = new DateTime(2026, 1, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 336m,
                             ReservationId = 179,
                             SecondWarningDate = new DateTime(2026, 1, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4803,10 +5025,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 2070m,
                             ReservationId = 180,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4818,10 +5040,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 2070m,
                             ReservationId = 180,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4833,10 +5055,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1030m,
                             ReservationId = 181,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4847,10 +5069,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 1, 22, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 1,
                             Name = "Kratki boravak 01.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 567m,
                             ReservationId = 182,
                             SecondWarningDate = new DateTime(2026, 1, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 1, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4862,10 +5084,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 183,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4877,10 +5099,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 1,
                             Name = "Mjesečna rata 01.2026",
                             PaidAt = new DateTime(2026, 1, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 184,
                             SecondWarningDate = new DateTime(2026, 1, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 1, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4892,10 +5114,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1510m,
                             ReservationId = 184,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4907,10 +5129,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 243m,
                             ReservationId = 185,
                             SecondWarningDate = new DateTime(2026, 2, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4922,10 +5144,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1990m,
                             ReservationId = 186,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4937,10 +5159,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1990m,
                             ReservationId = 186,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4951,10 +5173,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 2070m,
                             ReservationId = 187,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4966,10 +5188,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2026",
                             PaidAt = new DateTime(2026, 2, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 468m,
                             ReservationId = 188,
                             SecondWarningDate = new DateTime(2026, 2, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4980,10 +5202,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1910m,
                             ReservationId = 189,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -4995,10 +5217,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1990m,
                             ReservationId = 190,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5010,10 +5232,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1990m,
                             ReservationId = 190,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5025,10 +5247,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2026",
                             PaidAt = new DateTime(2026, 2, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 348m,
                             ReservationId = 191,
                             SecondWarningDate = new DateTime(2026, 2, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5040,10 +5262,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 192,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5055,10 +5277,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 192,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5070,10 +5292,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 193,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5085,10 +5307,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Kratki boravak 02.2026",
                             PaidAt = new DateTime(2026, 2, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 357m,
                             ReservationId = 194,
                             SecondWarningDate = new DateTime(2026, 2, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5099,10 +5321,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 2, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1510m,
                             ReservationId = 195,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5114,10 +5336,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 2,
                             Name = "Mjesečna rata 02.2026",
                             PaidAt = new DateTime(2026, 2, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1590m,
                             ReservationId = 196,
                             SecondWarningDate = new DateTime(2026, 2, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 2, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5128,10 +5350,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 3, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
-                            PaymentStatus = "Neplaćeno",
                             Price = 1590m,
                             ReservationId = 196,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5143,10 +5365,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 252m,
                             ReservationId = 197,
                             SecondWarningDate = new DateTime(2026, 3, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5158,10 +5380,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 2070m,
                             ReservationId = 198,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5172,10 +5394,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 2070m,
                             ReservationId = 198,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5187,10 +5409,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 199,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5202,10 +5424,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2026",
                             PaidAt = new DateTime(2026, 3, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 486m,
                             ReservationId = 200,
                             SecondWarningDate = new DateTime(2026, 3, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5217,10 +5439,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1990m,
                             ReservationId = 201,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5232,10 +5454,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 2070m,
                             ReservationId = 202,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5246,10 +5468,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 2070m,
                             ReservationId = 202,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5260,10 +5482,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 3, 16, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2026",
-                            PaymentStatus = "Neplaćeno",
                             Price = 312m,
                             ReservationId = 203,
                             SecondWarningDate = new DateTime(2026, 3, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 8,
                             WarningDateToPay = new DateTime(2026, 3, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5275,10 +5497,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1910m,
                             ReservationId = 204,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5289,10 +5511,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1910m,
                             ReservationId = 204,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5304,10 +5526,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1110m,
                             ReservationId = 205,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5319,10 +5541,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Kratki boravak 03.2026",
                             PaidAt = new DateTime(2026, 3, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 462m,
                             ReservationId = 206,
                             SecondWarningDate = new DateTime(2026, 3, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5334,10 +5556,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1590m,
                             ReservationId = 207,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5349,10 +5571,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 3,
                             Name = "Mjesečna rata 03.2026",
                             PaidAt = new DateTime(2026, 3, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1990m,
                             ReservationId = 208,
                             SecondWarningDate = new DateTime(2026, 3, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 3, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5363,10 +5585,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1990m,
                             ReservationId = 208,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5377,10 +5599,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 4, 10, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 261m,
                             ReservationId = 209,
                             SecondWarningDate = new DateTime(2026, 4, 9, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 6, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5392,10 +5614,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
                             PaidAt = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 210,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5406,10 +5628,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1830m,
                             ReservationId = 210,
                             SecondWarningDate = new DateTime(2026, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5420,10 +5642,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1910m,
                             ReservationId = 211,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5435,10 +5657,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2026",
                             PaidAt = new DateTime(2026, 4, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 504m,
                             ReservationId = 212,
                             SecondWarningDate = new DateTime(2026, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 12, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5449,10 +5671,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 2070m,
                             ReservationId = 213,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5464,10 +5686,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
                             PaidAt = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1830m,
                             ReservationId = 214,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5478,10 +5700,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1830m,
                             ReservationId = 214,
                             SecondWarningDate = new DateTime(2026, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5493,10 +5715,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2026",
                             PaidAt = new DateTime(2026, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 324m,
                             ReservationId = 215,
                             SecondWarningDate = new DateTime(2026, 4, 21, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 18, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5508,10 +5730,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
                             PaidAt = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1990m,
                             ReservationId = 216,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5522,10 +5744,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1990m,
                             ReservationId = 216,
                             SecondWarningDate = new DateTime(2026, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5536,10 +5758,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1510m,
                             ReservationId = 217,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5551,10 +5773,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Kratki boravak 04.2026",
                             PaidAt = new DateTime(2026, 4, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 483m,
                             ReservationId = 218,
                             SecondWarningDate = new DateTime(2026, 4, 27, 10, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 24, 10, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5565,10 +5787,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 4, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1990m,
                             ReservationId = 219,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5580,10 +5802,10 @@ namespace Rentify.Services.Migrations
                             MonthNumber = 4,
                             Name = "Mjesečna rata 04.2026",
                             PaidAt = new DateTime(2026, 4, 3, 0, 0, 0, 0, DateTimeKind.Utc),
-                            PaymentStatus = "Plaćeno",
                             Price = 1190m,
                             ReservationId = 220,
                             SecondWarningDate = new DateTime(2026, 4, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 7,
                             WarningDateToPay = new DateTime(2026, 4, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         },
@@ -5594,10 +5816,10 @@ namespace Rentify.Services.Migrations
                             DateToPay = new DateTime(2026, 5, 5, 0, 0, 0, 0, DateTimeKind.Utc),
                             MonthNumber = 5,
                             Name = "Mjesečna rata 05.2026",
-                            PaymentStatus = "Na čekanju",
                             Price = 1190m,
                             ReservationId = 220,
                             SecondWarningDate = new DateTime(2026, 5, 17, 0, 0, 0, 0, DateTimeKind.Utc),
+                            StatusId = 1,
                             WarningDateToPay = new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
                             YearNumber = 2026
                         });
@@ -5611,9 +5833,11 @@ namespace Rentify.Services.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("BuildingTypeId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CityId")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Details")
                         .IsRequired()
@@ -5625,9 +5849,15 @@ namespace Rentify.Services.Migrations
                     b.Property<bool>("IsRentingPerDay")
                         .HasColumnType("boolean");
 
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision");
+
                     b.Property<string>("Location")
                         .IsRequired()
                         .HasColumnType("text");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -5651,6 +5881,10 @@ namespace Rentify.Services.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BuildingTypeId");
+
+                    b.HasIndex("CityId");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("Properties");
@@ -5659,12 +5893,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            City = "Sarajevo",
+                            BuildingTypeId = 2,
+                            CityId = 1,
                             Details = "Automatski generisana nekretnina broj 1 u gradu Sarajevo.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.853299999999997,
                             Location = "Bistrik 11",
-                            Name = "Modern Residence 1",
+                            Longitude = 18.414100000000001,
+                            Name = "Modern 1",
                             PricePerDay = 48m,
                             PricePerMonth = 1030m,
                             SquareMeters = 36.0,
@@ -5674,12 +5911,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 2,
-                            City = "Mostar",
+                            BuildingTypeId = 3,
+                            CityId = 2,
                             Details = "Automatski generisana nekretnina broj 2 u gradu Mostar.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.3508,
                             Location = "Hamze Hume 12",
-                            Name = "Quiet Flat 2",
+                            Longitude = 17.803799999999999,
+                            Name = "Quiet 2",
                             PricePerDay = 51m,
                             PricePerMonth = 1110m,
                             SquareMeters = 37.0,
@@ -5689,12 +5929,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 3,
-                            City = "Tuzla",
+                            BuildingTypeId = 4,
+                            CityId = 3,
                             Details = "Automatski generisana nekretnina broj 3 u gradu Tuzla.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.534199999999998,
                             Location = "Maršala Tita 13",
-                            Name = "Elegant Loft 3",
+                            Longitude = 18.6645,
+                            Name = "Elegant 3",
                             PricePerDay = 54m,
                             PricePerMonth = 1190m,
                             SquareMeters = 38.0,
@@ -5704,12 +5947,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 4,
-                            City = "Banja Luka",
+                            BuildingTypeId = 5,
+                            CityId = 4,
                             Details = "Automatski generisana nekretnina broj 4 u gradu Banja Luka.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.778199999999998,
                             Location = "Splitska 14",
-                            Name = "Panorama Studio 4",
+                            Longitude = 17.198,
+                            Name = "Panorama 4",
                             PricePerDay = 57m,
                             PricePerMonth = 1270m,
                             SquareMeters = 39.0,
@@ -5719,12 +5965,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 5,
-                            City = "Zenica",
+                            BuildingTypeId = 6,
+                            CityId = 5,
                             Details = "Automatski generisana nekretnina broj 5 u gradu Zenica.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.198500000000003,
                             Location = "Turalibegova 15",
-                            Name = "Comfort Home 5",
+                            Longitude = 17.909800000000001,
+                            Name = "Comfort 5",
                             PricePerDay = 60m,
                             PricePerMonth = 1350m,
                             SquareMeters = 40.0,
@@ -5734,12 +5983,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 6,
-                            City = "Bihać",
+                            BuildingTypeId = 1,
+                            CityId = 6,
                             Details = "Automatski generisana nekretnina broj 6 u gradu Bihać.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.8217,
                             Location = "Irac 16",
-                            Name = "Bright Apartment 6",
+                            Longitude = 15.8637,
+                            Name = "Bright 6",
                             PricePerDay = 63m,
                             PricePerMonth = 1430m,
                             SquareMeters = 41.0,
@@ -5749,12 +6001,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 7,
-                            City = "Sarajevo",
+                            BuildingTypeId = 2,
+                            CityId = 1,
                             Details = "Automatski generisana nekretnina broj 7 u gradu Sarajevo.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.850299999999997,
                             Location = "Cara Dušana 17",
-                            Name = "Green Residence 7",
+                            Longitude = 18.405100000000001,
+                            Name = "Green 7",
                             PricePerDay = 66m,
                             PricePerMonth = 1510m,
                             SquareMeters = 42.0,
@@ -5764,12 +6019,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 8,
-                            City = "Mostar",
+                            BuildingTypeId = 3,
+                            CityId = 2,
                             Details = "Automatski generisana nekretnina broj 8 u gradu Mostar.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.347799999999999,
                             Location = "Kninska 18",
-                            Name = "Stylish Flat 8",
+                            Longitude = 17.815799999999999,
+                            Name = "Stylish 8",
                             PricePerDay = 69m,
                             PricePerMonth = 1590m,
                             SquareMeters = 43.0,
@@ -5779,12 +6037,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 9,
-                            City = "Tuzla",
+                            BuildingTypeId = 4,
+                            CityId = 3,
                             Details = "Automatski generisana nekretnina broj 9 u gradu Tuzla.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.531199999999998,
                             Location = "Grbavička 19",
-                            Name = "Modern Loft 9",
+                            Longitude = 18.676500000000001,
+                            Name = "Modern 9",
                             PricePerDay = 72m,
                             PricePerMonth = 1670m,
                             SquareMeters = 44.0,
@@ -5794,12 +6055,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 10,
-                            City = "Banja Luka",
+                            BuildingTypeId = 5,
+                            CityId = 4,
                             Details = "Automatski generisana nekretnina broj 10 u gradu Banja Luka.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.775199999999998,
                             Location = "Vase Pelagića 20",
-                            Name = "Quiet Studio 10",
+                            Longitude = 17.189,
+                            Name = "Quiet 10",
                             PricePerDay = 75m,
                             PricePerMonth = 1750m,
                             SquareMeters = 45.0,
@@ -5809,12 +6073,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 11,
-                            City = "Mostar",
+                            BuildingTypeId = 1,
+                            CityId = 2,
                             Details = "Automatski generisana nekretnina broj 11 u gradu Mostar.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.347799999999999,
                             Location = "Irac 21",
-                            Name = "Bright Apartment 11",
+                            Longitude = 17.813800000000001,
+                            Name = "Bright 11",
                             PricePerDay = 78m,
                             PricePerMonth = 1830m,
                             SquareMeters = 46.0,
@@ -5824,12 +6091,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 12,
-                            City = "Tuzla",
+                            BuildingTypeId = 2,
+                            CityId = 3,
                             Details = "Automatski generisana nekretnina broj 12 u gradu Tuzla.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.531199999999998,
                             Location = "Cara Dušana 22",
-                            Name = "Green Residence 12",
+                            Longitude = 18.674499999999998,
+                            Name = "Green 12",
                             PricePerDay = 81m,
                             PricePerMonth = 1910m,
                             SquareMeters = 47.0,
@@ -5839,12 +6109,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 13,
-                            City = "Banja Luka",
+                            BuildingTypeId = 3,
+                            CityId = 4,
                             Details = "Automatski generisana nekretnina broj 13 u gradu Banja Luka.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.775199999999998,
                             Location = "Kninska 23",
-                            Name = "Stylish Flat 13",
+                            Longitude = 17.187000000000001,
+                            Name = "Stylish 13",
                             PricePerDay = 84m,
                             PricePerMonth = 1990m,
                             SquareMeters = 48.0,
@@ -5854,12 +6127,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 14,
-                            City = "Zenica",
+                            BuildingTypeId = 4,
+                            CityId = 5,
                             Details = "Automatski generisana nekretnina broj 14 u gradu Zenica.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.195500000000003,
                             Location = "Grbavička 24",
-                            Name = "Modern Loft 14",
+                            Longitude = 17.898800000000001,
+                            Name = "Modern 14",
                             PricePerDay = 87m,
                             PricePerMonth = 2070m,
                             SquareMeters = 49.0,
@@ -5869,12 +6145,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 15,
-                            City = "Tuzla",
+                            BuildingTypeId = 6,
+                            CityId = 3,
                             Details = "Automatski generisana nekretnina broj 15 u gradu Tuzla.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.528199999999998,
                             Location = "Kninska 25",
-                            Name = "Stylish Home 15",
+                            Longitude = 18.6815,
+                            Name = "Stylish 15",
                             PricePerDay = 45m,
                             PricePerMonth = 950m,
                             SquareMeters = 50.0,
@@ -5884,12 +6163,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 16,
-                            City = "Banja Luka",
+                            BuildingTypeId = 1,
+                            CityId = 4,
                             Details = "Automatski generisana nekretnina broj 16 u gradu Banja Luka.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.772199999999998,
                             Location = "Grbavička 26",
-                            Name = "Modern Apartment 16",
+                            Longitude = 17.193999999999999,
+                            Name = "Modern 16",
                             PricePerDay = 48m,
                             PricePerMonth = 1030m,
                             SquareMeters = 51.0,
@@ -5899,12 +6181,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 17,
-                            City = "Zenica",
+                            BuildingTypeId = 2,
+                            CityId = 5,
                             Details = "Automatski generisana nekretnina broj 17 u gradu Zenica.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.213500000000003,
                             Location = "Vase Pelagića 27",
-                            Name = "Quiet Residence 17",
+                            Longitude = 17.905799999999999,
+                            Name = "Quiet 17",
                             PricePerDay = 51m,
                             PricePerMonth = 1110m,
                             SquareMeters = 52.0,
@@ -5914,12 +6199,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 18,
-                            City = "Bihać",
+                            BuildingTypeId = 3,
+                            CityId = 6,
                             Details = "Automatski generisana nekretnina broj 18 u gradu Bihać.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.8157,
                             Location = "Bistrik 28",
-                            Name = "Elegant Flat 18",
+                            Longitude = 15.8597,
+                            Name = "Elegant 18",
                             PricePerDay = 54m,
                             PricePerMonth = 1190m,
                             SquareMeters = 53.0,
@@ -5929,12 +6217,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 19,
-                            City = "Banja Luka",
+                            BuildingTypeId = 5,
+                            CityId = 4,
                             Details = "Automatski generisana nekretnina broj 19 u gradu Banja Luka.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.769199999999998,
                             Location = "Vase Pelagića 29",
-                            Name = "Quiet Studio 19",
+                            Longitude = 17.201000000000001,
+                            Name = "Quiet 19",
                             PricePerDay = 57m,
                             PricePerMonth = 1270m,
                             SquareMeters = 54.0,
@@ -5944,12 +6235,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 20,
-                            City = "Zenica",
+                            BuildingTypeId = 6,
+                            CityId = 5,
                             Details = "Automatski generisana nekretnina broj 20 u gradu Zenica.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.210500000000003,
                             Location = "Bistrik 30",
-                            Name = "Elegant Home 20",
+                            Longitude = 17.912800000000001,
+                            Name = "Elegant 20",
                             PricePerDay = 60m,
                             PricePerMonth = 1350m,
                             SquareMeters = 55.0,
@@ -5959,12 +6253,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 21,
-                            City = "Bihać",
+                            BuildingTypeId = 1,
+                            CityId = 6,
                             Details = "Automatski generisana nekretnina broj 21 u gradu Bihać.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.8127,
                             Location = "Hamze Hume 31",
-                            Name = "Panorama Apartment 21",
+                            Longitude = 15.8667,
+                            Name = "Panorama 21",
                             PricePerDay = 63m,
                             PricePerMonth = 1430m,
                             SquareMeters = 56.0,
@@ -5974,12 +6271,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 22,
-                            City = "Sarajevo",
+                            BuildingTypeId = 2,
+                            CityId = 1,
                             Details = "Automatski generisana nekretnina broj 22 u gradu Sarajevo.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.862299999999998,
                             Location = "Maršala Tita 32",
-                            Name = "Comfort Residence 22",
+                            Longitude = 18.408100000000001,
+                            Name = "Comfort 22",
                             PricePerDay = 66m,
                             PricePerMonth = 1510m,
                             SquareMeters = 57.0,
@@ -5989,12 +6289,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 23,
-                            City = "Zenica",
+                            BuildingTypeId = 4,
+                            CityId = 5,
                             Details = "Automatski generisana nekretnina broj 23 u gradu Zenica.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.207500000000003,
                             Location = "Hamze Hume 33",
-                            Name = "Panorama Loft 23",
+                            Longitude = 17.898800000000001,
+                            Name = "Panorama 23",
                             PricePerDay = 69m,
                             PricePerMonth = 1590m,
                             SquareMeters = 58.0,
@@ -6004,12 +6307,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 24,
-                            City = "Bihać",
+                            BuildingTypeId = 5,
+                            CityId = 6,
                             Details = "Automatski generisana nekretnina broj 24 u gradu Bihać.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.809699999999999,
                             Location = "Maršala Tita 34",
-                            Name = "Comfort Studio 24",
+                            Longitude = 15.873699999999999,
+                            Name = "Comfort 24",
                             PricePerDay = 72m,
                             PricePerMonth = 1670m,
                             SquareMeters = 59.0,
@@ -6019,12 +6325,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 25,
-                            City = "Sarajevo",
+                            BuildingTypeId = 6,
+                            CityId = 1,
                             Details = "Automatski generisana nekretnina broj 25 u gradu Sarajevo.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.859299999999998,
                             Location = "Splitska 35",
-                            Name = "Bright Home 25",
+                            Longitude = 18.415099999999999,
+                            Name = "Bright 25",
                             PricePerDay = 75m,
                             PricePerMonth = 1750m,
                             SquareMeters = 60.0,
@@ -6034,12 +6343,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 26,
-                            City = "Mostar",
+                            BuildingTypeId = 1,
+                            CityId = 2,
                             Details = "Automatski generisana nekretnina broj 26 u gradu Mostar.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.335799999999999,
                             Location = "Turalibegova 36",
-                            Name = "Green Apartment 26",
+                            Longitude = 17.8048,
+                            Name = "Green 26",
                             PricePerDay = 78m,
                             PricePerMonth = 1830m,
                             SquareMeters = 61.0,
@@ -6049,12 +6361,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 27,
-                            City = "Bihać",
+                            BuildingTypeId = 3,
+                            CityId = 6,
                             Details = "Automatski generisana nekretnina broj 27 u gradu Bihać.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.806699999999999,
                             Location = "Splitska 37",
-                            Name = "Bright Flat 27",
+                            Longitude = 15.8597,
+                            Name = "Bright 27",
                             PricePerDay = 81m,
                             PricePerMonth = 1910m,
                             SquareMeters = 62.0,
@@ -6064,12 +6379,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 28,
-                            City = "Sarajevo",
+                            BuildingTypeId = 4,
+                            CityId = 1,
                             Details = "Automatski generisana nekretnina broj 28 u gradu Sarajevo.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.856299999999997,
                             Location = "Turalibegova 38",
-                            Name = "Green Loft 28",
+                            Longitude = 18.4221,
+                            Name = "Green 28",
                             PricePerDay = 84m,
                             PricePerMonth = 1990m,
                             SquareMeters = 63.0,
@@ -6079,12 +6397,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 29,
-                            City = "Mostar",
+                            BuildingTypeId = 5,
+                            CityId = 2,
                             Details = "Automatski generisana nekretnina broj 29 u gradu Mostar.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.3538,
                             Location = "Irac 39",
-                            Name = "Stylish Studio 29",
+                            Longitude = 17.811800000000002,
+                            Name = "Stylish 29",
                             PricePerDay = 87m,
                             PricePerMonth = 2070m,
                             SquareMeters = 64.0,
@@ -6094,12 +6415,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 30,
-                            City = "Tuzla",
+                            BuildingTypeId = 6,
+                            CityId = 3,
                             Details = "Automatski generisana nekretnina broj 30 u gradu Tuzla.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.537199999999999,
                             Location = "Cara Dušana 40",
-                            Name = "Modern Home 30",
+                            Longitude = 18.672499999999999,
+                            Name = "Modern 30",
                             PricePerDay = 45m,
                             PricePerMonth = 950m,
                             SquareMeters = 65.0,
@@ -6109,12 +6433,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 31,
-                            City = "Sarajevo",
+                            BuildingTypeId = 2,
+                            CityId = 1,
                             Details = "Automatski generisana nekretnina broj 31 u gradu Sarajevo.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.853299999999997,
                             Location = "Irac 41",
-                            Name = "Stylish Residence 31",
+                            Longitude = 18.408100000000001,
+                            Name = "Stylish 31",
                             PricePerDay = 48m,
                             PricePerMonth = 1030m,
                             SquareMeters = 66.0,
@@ -6124,12 +6451,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 32,
-                            City = "Mostar",
+                            BuildingTypeId = 3,
+                            CityId = 2,
                             Details = "Automatski generisana nekretnina broj 32 u gradu Mostar.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.3508,
                             Location = "Cara Dušana 42",
-                            Name = "Modern Flat 32",
+                            Longitude = 17.797799999999999,
+                            Name = "Modern 32",
                             PricePerDay = 51m,
                             PricePerMonth = 1110m,
                             SquareMeters = 67.0,
@@ -6139,12 +6469,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 33,
-                            City = "Tuzla",
+                            BuildingTypeId = 4,
+                            CityId = 3,
                             Details = "Automatski generisana nekretnina broj 33 u gradu Tuzla.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.534199999999998,
                             Location = "Kninska 43",
-                            Name = "Quiet Loft 33",
+                            Longitude = 18.679500000000001,
+                            Name = "Quiet 33",
                             PricePerDay = 54m,
                             PricePerMonth = 1190m,
                             SquareMeters = 68.0,
@@ -6154,12 +6487,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 34,
-                            City = "Banja Luka",
+                            BuildingTypeId = 5,
+                            CityId = 4,
                             Details = "Automatski generisana nekretnina broj 34 u gradu Banja Luka.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.778199999999998,
                             Location = "Grbavička 44",
-                            Name = "Elegant Studio 34",
+                            Longitude = 17.192,
+                            Name = "Elegant 34",
                             PricePerDay = 57m,
                             PricePerMonth = 1270m,
                             SquareMeters = 69.0,
@@ -6169,12 +6505,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 35,
-                            City = "Mostar",
+                            BuildingTypeId = 1,
+                            CityId = 2,
                             Details = "Automatski generisana nekretnina broj 35 u gradu Mostar.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.347799999999999,
                             Location = "Kninska 45",
-                            Name = "Quiet Apartment 35",
+                            Longitude = 17.8048,
+                            Name = "Quiet 35",
                             PricePerDay = 60m,
                             PricePerMonth = 1350m,
                             SquareMeters = 70.0,
@@ -6184,12 +6523,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 36,
-                            City = "Tuzla",
+                            BuildingTypeId = 2,
+                            CityId = 3,
                             Details = "Automatski generisana nekretnina broj 36 u gradu Tuzla.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.531199999999998,
                             Location = "Grbavička 46",
-                            Name = "Elegant Residence 36",
+                            Longitude = 18.665500000000002,
+                            Name = "Elegant 36",
                             PricePerDay = 63m,
                             PricePerMonth = 1430m,
                             SquareMeters = 71.0,
@@ -6199,12 +6541,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 37,
-                            City = "Banja Luka",
+                            BuildingTypeId = 3,
+                            CityId = 4,
                             Details = "Automatski generisana nekretnina broj 37 u gradu Banja Luka.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.775199999999998,
                             Location = "Vase Pelagića 47",
-                            Name = "Panorama Flat 37",
+                            Longitude = 17.199000000000002,
+                            Name = "Panorama 37",
                             PricePerDay = 66m,
                             PricePerMonth = 1510m,
                             SquareMeters = 72.0,
@@ -6214,12 +6559,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 38,
-                            City = "Zenica",
+                            BuildingTypeId = 4,
+                            CityId = 5,
                             Details = "Automatski generisana nekretnina broj 38 u gradu Zenica.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.195500000000003,
                             Location = "Bistrik 48",
-                            Name = "Comfort Loft 38",
+                            Longitude = 17.910799999999998,
+                            Name = "Comfort 38",
                             PricePerDay = 69m,
                             PricePerMonth = 1590m,
                             SquareMeters = 73.0,
@@ -6229,12 +6577,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 39,
-                            City = "Tuzla",
+                            BuildingTypeId = 6,
+                            CityId = 3,
                             Details = "Automatski generisana nekretnina broj 39 u gradu Tuzla.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.528199999999998,
                             Location = "Vase Pelagića 49",
-                            Name = "Panorama Home 39",
+                            Longitude = 18.672499999999999,
+                            Name = "Panorama 39",
                             PricePerDay = 72m,
                             PricePerMonth = 1670m,
                             SquareMeters = 74.0,
@@ -6244,12 +6595,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 40,
-                            City = "Banja Luka",
+                            BuildingTypeId = 1,
+                            CityId = 4,
                             Details = "Automatski generisana nekretnina broj 40 u gradu Banja Luka.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.772199999999998,
                             Location = "Bistrik 50",
-                            Name = "Comfort Apartment 40",
+                            Longitude = 17.184999999999999,
+                            Name = "Comfort 40",
                             PricePerDay = 75m,
                             PricePerMonth = 1750m,
                             SquareMeters = 35.0,
@@ -6259,12 +6613,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 41,
-                            City = "Zenica",
+                            BuildingTypeId = 2,
+                            CityId = 5,
                             Details = "Automatski generisana nekretnina broj 41 u gradu Zenica.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.213500000000003,
                             Location = "Hamze Hume 51",
-                            Name = "Bright Residence 41",
+                            Longitude = 17.9178,
+                            Name = "Bright 41",
                             PricePerDay = 78m,
                             PricePerMonth = 1830m,
                             SquareMeters = 36.0,
@@ -6274,12 +6631,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 42,
-                            City = "Bihać",
+                            BuildingTypeId = 3,
+                            CityId = 6,
                             Details = "Automatski generisana nekretnina broj 42 u gradu Bihać.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.8157,
                             Location = "Maršala Tita 52",
-                            Name = "Green Flat 42",
+                            Longitude = 15.871700000000001,
+                            Name = "Green 42",
                             PricePerDay = 81m,
                             PricePerMonth = 1910m,
                             SquareMeters = 37.0,
@@ -6289,12 +6649,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 43,
-                            City = "Banja Luka",
+                            BuildingTypeId = 5,
+                            CityId = 4,
                             Details = "Automatski generisana nekretnina broj 43 u gradu Banja Luka.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.769199999999998,
                             Location = "Hamze Hume 53",
-                            Name = "Bright Studio 43",
+                            Longitude = 17.192,
+                            Name = "Bright 43",
                             PricePerDay = 84m,
                             PricePerMonth = 1990m,
                             SquareMeters = 38.0,
@@ -6304,12 +6667,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 44,
-                            City = "Zenica",
+                            BuildingTypeId = 6,
+                            CityId = 5,
                             Details = "Automatski generisana nekretnina broj 44 u gradu Zenica.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.210500000000003,
                             Location = "Maršala Tita 54",
-                            Name = "Green Home 44",
+                            Longitude = 17.9038,
+                            Name = "Green 44",
                             PricePerDay = 87m,
                             PricePerMonth = 2070m,
                             SquareMeters = 39.0,
@@ -6319,12 +6685,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 45,
-                            City = "Bihać",
+                            BuildingTypeId = 1,
+                            CityId = 6,
                             Details = "Automatski generisana nekretnina broj 45 u gradu Bihać.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 44.8127,
                             Location = "Splitska 55",
-                            Name = "Stylish Apartment 45",
+                            Longitude = 15.857699999999999,
+                            Name = "Stylish 45",
                             PricePerDay = 45m,
                             PricePerMonth = 950m,
                             SquareMeters = 40.0,
@@ -6334,12 +6703,15 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 46,
-                            City = "Sarajevo",
+                            BuildingTypeId = 2,
+                            CityId = 1,
                             Details = "Automatski generisana nekretnina broj 46 u gradu Sarajevo.",
                             IsActiveOnApp = true,
                             IsRentingPerDay = true,
+                            Latitude = 43.862299999999998,
                             Location = "Turalibegova 56",
-                            Name = "Modern Residence 46",
+                            Longitude = 18.420100000000001,
+                            Name = "Modern 46",
                             PricePerDay = 48m,
                             PricePerMonth = 1030m,
                             SquareMeters = 41.0,
@@ -8982,9 +9354,8 @@ namespace Rentify.Services.Migrations
                     b.Property<DateTime?>("StartDateOfRenting")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("integer");
 
                     b.Property<int>("UserId")
                         .HasColumnType("integer");
@@ -8992,6 +9363,8 @@ namespace Rentify.Services.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("PropertyId");
+
+                    b.HasIndex("StatusId");
 
                     b.HasIndex("UserId");
 
@@ -9006,7 +9379,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2026, 1, 1, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 12
                         },
                         new
@@ -9017,7 +9390,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2026, 1, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 13
                         },
                         new
@@ -9028,7 +9401,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2026, 2, 1, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 14
                         },
                         new
@@ -9039,7 +9412,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2026, 2, 7, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 15
                         },
                         new
@@ -9050,7 +9423,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2026, 3, 1, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 16
                         },
                         new
@@ -9061,7 +9434,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2026, 3, 9, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 17
                         },
                         new
@@ -9072,7 +9445,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 18
                         },
                         new
@@ -9083,7 +9456,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2026, 4, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 19
                         },
                         new
@@ -9094,7 +9467,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2026, 4, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 20
                         },
                         new
@@ -9105,7 +9478,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 10,
                             StartDateOfRenting = new DateTime(2026, 5, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 21
                         },
                         new
@@ -9116,7 +9489,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2026, 4, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 22
                         },
                         new
@@ -9127,7 +9500,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 23
                         },
                         new
@@ -9138,7 +9511,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 11,
                             StartDateOfRenting = new DateTime(2025, 11, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 2
                         },
                         new
@@ -9149,7 +9522,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 1, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 2
                         },
                         new
@@ -9160,7 +9533,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 13,
                             StartDateOfRenting = new DateTime(2026, 4, 25, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 2
                         },
                         new
@@ -9171,7 +9544,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2026, 5, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Na čekanju",
+                            StatusId = 1,
                             UserId = 2
                         },
                         new
@@ -9182,7 +9555,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 15,
                             StartDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 2
                         },
                         new
@@ -9193,7 +9566,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 16,
                             StartDateOfRenting = new DateTime(2026, 4, 21, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 2
                         },
                         new
@@ -9204,7 +9577,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 17,
                             StartDateOfRenting = new DateTime(2026, 2, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 2
                         },
                         new
@@ -9215,7 +9588,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 18,
                             StartDateOfRenting = new DateTime(2026, 3, 5, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 2
                         },
                         new
@@ -9226,7 +9599,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 1, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 74
                         },
                         new
@@ -9237,7 +9610,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 1, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 78
                         },
                         new
@@ -9248,7 +9621,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 1, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 82
                         },
                         new
@@ -9259,7 +9632,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 1, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 86
                         },
                         new
@@ -9270,7 +9643,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 1, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 90
                         },
                         new
@@ -9281,7 +9654,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 1, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 94
                         },
                         new
@@ -9292,7 +9665,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 1, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 98
                         },
                         new
@@ -9303,7 +9676,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 1, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 102
                         },
                         new
@@ -9314,7 +9687,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 39,
                             StartDateOfRenting = new DateTime(2025, 1, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 106
                         },
                         new
@@ -9325,7 +9698,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 44,
                             StartDateOfRenting = new DateTime(2025, 1, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 110
                         },
                         new
@@ -9336,7 +9709,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 1, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 13
                         },
                         new
@@ -9347,7 +9720,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2025, 1, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 17
                         },
                         new
@@ -9358,7 +9731,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 15,
                             StartDateOfRenting = new DateTime(2025, 1, 28, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 21
                         },
                         new
@@ -9369,7 +9742,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 2, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 13
                         },
                         new
@@ -9380,7 +9753,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 2, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 17
                         },
                         new
@@ -9391,7 +9764,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 2, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 21
                         },
                         new
@@ -9402,7 +9775,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 2, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 25
                         },
                         new
@@ -9413,7 +9786,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 2, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 29
                         },
                         new
@@ -9424,7 +9797,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 2, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 33
                         },
                         new
@@ -9435,7 +9808,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 2, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 37
                         },
                         new
@@ -9446,7 +9819,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2025, 2, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 41
                         },
                         new
@@ -9457,7 +9830,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 44,
                             StartDateOfRenting = new DateTime(2025, 2, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 45
                         },
                         new
@@ -9468,7 +9841,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 2, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 49
                         },
                         new
@@ -9479,7 +9852,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2025, 2, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 53
                         },
                         new
@@ -9490,7 +9863,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 15,
                             StartDateOfRenting = new DateTime(2025, 2, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 57
                         },
                         new
@@ -9501,7 +9874,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 20,
                             StartDateOfRenting = new DateTime(2025, 2, 28, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 61
                         },
                         new
@@ -9512,7 +9885,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 3, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 53
                         },
                         new
@@ -9523,7 +9896,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 3, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 57
                         },
                         new
@@ -9534,7 +9907,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 3, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 61
                         },
                         new
@@ -9545,7 +9918,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 3, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 65
                         },
                         new
@@ -9556,7 +9929,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 3, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 69
                         },
                         new
@@ -9567,7 +9940,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 3, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 73
                         },
                         new
@@ -9578,7 +9951,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2025, 3, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 77
                         },
                         new
@@ -9589,7 +9962,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 10,
                             StartDateOfRenting = new DateTime(2025, 3, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 81
                         },
                         new
@@ -9600,7 +9973,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 3, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 85
                         },
                         new
@@ -9611,7 +9984,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2025, 3, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 89
                         },
                         new
@@ -9622,7 +9995,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 15,
                             StartDateOfRenting = new DateTime(2025, 3, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 93
                         },
                         new
@@ -9633,7 +10006,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 20,
                             StartDateOfRenting = new DateTime(2025, 3, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 97
                         },
                         new
@@ -9644,7 +10017,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 25,
                             StartDateOfRenting = new DateTime(2025, 3, 28, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 101
                         },
                         new
@@ -9655,7 +10028,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 4, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 93
                         },
                         new
@@ -9666,7 +10039,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 4, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 97
                         },
                         new
@@ -9677,7 +10050,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 4, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 101
                         },
                         new
@@ -9688,7 +10061,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 4, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 105
                         },
                         new
@@ -9699,7 +10072,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 4, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 109
                         },
                         new
@@ -9710,7 +10083,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2025, 4, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 12
                         },
                         new
@@ -9721,7 +10094,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 10,
                             StartDateOfRenting = new DateTime(2025, 4, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 16
                         },
                         new
@@ -9732,7 +10105,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 4, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 20
                         },
                         new
@@ -9743,7 +10116,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2025, 4, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 24
                         },
                         new
@@ -9754,7 +10127,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 15,
                             StartDateOfRenting = new DateTime(2025, 4, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 28
                         },
                         new
@@ -9765,7 +10138,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 20,
                             StartDateOfRenting = new DateTime(2025, 4, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 32
                         },
                         new
@@ -9776,7 +10149,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 25,
                             StartDateOfRenting = new DateTime(2025, 4, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 36
                         },
                         new
@@ -9787,7 +10160,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 30,
                             StartDateOfRenting = new DateTime(2025, 4, 28, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 40
                         },
                         new
@@ -9798,7 +10171,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 5, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 32
                         },
                         new
@@ -9809,7 +10182,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 5, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 36
                         },
                         new
@@ -9820,7 +10193,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 5, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 40
                         },
                         new
@@ -9831,7 +10204,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 5, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 44
                         },
                         new
@@ -9842,7 +10215,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2025, 5, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 48
                         },
                         new
@@ -9853,7 +10226,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 10,
                             StartDateOfRenting = new DateTime(2025, 5, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 52
                         },
                         new
@@ -9864,7 +10237,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 5, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 56
                         },
                         new
@@ -9875,7 +10248,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 5, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 60
                         },
                         new
@@ -9886,7 +10259,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 15,
                             StartDateOfRenting = new DateTime(2025, 5, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 64
                         },
                         new
@@ -9897,7 +10270,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 20,
                             StartDateOfRenting = new DateTime(2025, 5, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 68
                         },
                         new
@@ -9908,7 +10281,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 25,
                             StartDateOfRenting = new DateTime(2025, 5, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 72
                         },
                         new
@@ -9919,7 +10292,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 30,
                             StartDateOfRenting = new DateTime(2025, 5, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 76
                         },
                         new
@@ -9930,7 +10303,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 31,
                             StartDateOfRenting = new DateTime(2025, 5, 28, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 80
                         },
                         new
@@ -9941,7 +10314,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 6, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 72
                         },
                         new
@@ -9952,7 +10325,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 6, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 76
                         },
                         new
@@ -9963,7 +10336,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 6, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 80
                         },
                         new
@@ -9974,7 +10347,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2025, 6, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 84
                         },
                         new
@@ -9985,7 +10358,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 10,
                             StartDateOfRenting = new DateTime(2025, 6, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 88
                         },
                         new
@@ -9996,7 +10369,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 6, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 92
                         },
                         new
@@ -10007,7 +10380,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 6, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 96
                         },
                         new
@@ -10018,7 +10391,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 6, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 100
                         },
                         new
@@ -10029,7 +10402,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 20,
                             StartDateOfRenting = new DateTime(2025, 6, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 104
                         },
                         new
@@ -10040,7 +10413,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 25,
                             StartDateOfRenting = new DateTime(2025, 6, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 108
                         },
                         new
@@ -10051,7 +10424,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 30,
                             StartDateOfRenting = new DateTime(2025, 6, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 2
                         },
                         new
@@ -10062,7 +10435,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 31,
                             StartDateOfRenting = new DateTime(2025, 6, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 15
                         },
                         new
@@ -10073,7 +10446,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 36,
                             StartDateOfRenting = new DateTime(2025, 6, 28, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 19
                         },
                         new
@@ -10084,7 +10457,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 7, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 2
                         },
                         new
@@ -10095,7 +10468,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 7, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 15
                         },
                         new
@@ -10106,7 +10479,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2025, 7, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 19
                         },
                         new
@@ -10117,7 +10490,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 10,
                             StartDateOfRenting = new DateTime(2025, 7, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 23
                         },
                         new
@@ -10128,7 +10501,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 7, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 27
                         },
                         new
@@ -10139,7 +10512,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 7, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 31
                         },
                         new
@@ -10150,7 +10523,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 7, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 35
                         },
                         new
@@ -10161,7 +10534,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 7, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 39
                         },
                         new
@@ -10172,7 +10545,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 25,
                             StartDateOfRenting = new DateTime(2025, 7, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 43
                         },
                         new
@@ -10183,7 +10556,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 30,
                             StartDateOfRenting = new DateTime(2025, 7, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 47
                         },
                         new
@@ -10194,7 +10567,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 31,
                             StartDateOfRenting = new DateTime(2025, 7, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 51
                         },
                         new
@@ -10205,7 +10578,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 36,
                             StartDateOfRenting = new DateTime(2025, 7, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 55
                         },
                         new
@@ -10216,7 +10589,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 41,
                             StartDateOfRenting = new DateTime(2025, 7, 28, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 59
                         },
                         new
@@ -10227,7 +10600,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 8, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 51
                         },
                         new
@@ -10238,7 +10611,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2025, 8, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 55
                         },
                         new
@@ -10249,7 +10622,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 10,
                             StartDateOfRenting = new DateTime(2025, 8, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 59
                         },
                         new
@@ -10260,7 +10633,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 8, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 63
                         },
                         new
@@ -10271,7 +10644,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 8, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 67
                         },
                         new
@@ -10282,7 +10655,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 8, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 71
                         },
                         new
@@ -10293,7 +10666,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 8, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 75
                         },
                         new
@@ -10304,7 +10677,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 8, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 79
                         },
                         new
@@ -10315,7 +10688,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 30,
                             StartDateOfRenting = new DateTime(2025, 8, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 83
                         },
                         new
@@ -10326,7 +10699,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 31,
                             StartDateOfRenting = new DateTime(2025, 8, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 87
                         },
                         new
@@ -10337,7 +10710,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 36,
                             StartDateOfRenting = new DateTime(2025, 8, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 91
                         },
                         new
@@ -10348,7 +10721,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 41,
                             StartDateOfRenting = new DateTime(2025, 8, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 95
                         },
                         new
@@ -10359,7 +10732,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 46,
                             StartDateOfRenting = new DateTime(2025, 8, 28, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 99
                         },
                         new
@@ -10370,7 +10743,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2025, 9, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 91
                         },
                         new
@@ -10381,7 +10754,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 10,
                             StartDateOfRenting = new DateTime(2025, 9, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 95
                         },
                         new
@@ -10392,7 +10765,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 9, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 99
                         },
                         new
@@ -10403,7 +10776,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 9, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 103
                         },
                         new
@@ -10414,7 +10787,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 9, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 107
                         },
                         new
@@ -10425,7 +10798,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 9, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 111
                         },
                         new
@@ -10436,7 +10809,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 9, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 14
                         },
                         new
@@ -10447,7 +10820,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 9, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 18
                         },
                         new
@@ -10458,7 +10831,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 31,
                             StartDateOfRenting = new DateTime(2025, 9, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 22
                         },
                         new
@@ -10469,7 +10842,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 36,
                             StartDateOfRenting = new DateTime(2025, 9, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 26
                         },
                         new
@@ -10480,7 +10853,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 41,
                             StartDateOfRenting = new DateTime(2025, 9, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 30
                         },
                         new
@@ -10491,7 +10864,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 46,
                             StartDateOfRenting = new DateTime(2025, 9, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 34
                         },
                         new
@@ -10502,7 +10875,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 10,
                             StartDateOfRenting = new DateTime(2025, 10, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 27
                         },
                         new
@@ -10513,7 +10886,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 10, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 31
                         },
                         new
@@ -10524,7 +10897,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 10, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 35
                         },
                         new
@@ -10535,7 +10908,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 10, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 39
                         },
                         new
@@ -10546,7 +10919,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 10, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 43
                         },
                         new
@@ -10557,7 +10930,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 10, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 47
                         },
                         new
@@ -10568,7 +10941,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 10, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 51
                         },
                         new
@@ -10579,7 +10952,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 10, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 55
                         },
                         new
@@ -10590,7 +10963,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 36,
                             StartDateOfRenting = new DateTime(2025, 10, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 59
                         },
                         new
@@ -10601,7 +10974,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 41,
                             StartDateOfRenting = new DateTime(2025, 10, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 63
                         },
                         new
@@ -10612,7 +10985,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 46,
                             StartDateOfRenting = new DateTime(2025, 10, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 67
                         },
                         new
@@ -10623,7 +10996,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 10, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 71
                         },
                         new
@@ -10634,7 +11007,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 11, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 64
                         },
                         new
@@ -10645,7 +11018,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 11, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 68
                         },
                         new
@@ -10656,7 +11029,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 11, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 72
                         },
                         new
@@ -10667,7 +11040,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 11, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 76
                         },
                         new
@@ -10678,7 +11051,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 11, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 80
                         },
                         new
@@ -10689,7 +11062,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 11, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 84
                         },
                         new
@@ -10700,7 +11073,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 11, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 88
                         },
                         new
@@ -10711,7 +11084,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 11, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 92
                         },
                         new
@@ -10722,7 +11095,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 41,
                             StartDateOfRenting = new DateTime(2025, 11, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 96
                         },
                         new
@@ -10733,7 +11106,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 46,
                             StartDateOfRenting = new DateTime(2025, 11, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 100
                         },
                         new
@@ -10744,7 +11117,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 11, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 104
                         },
                         new
@@ -10755,7 +11128,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2025, 11, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 108
                         },
                         new
@@ -10766,7 +11139,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 2,
                             StartDateOfRenting = new DateTime(2025, 12, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 101
                         },
                         new
@@ -10777,7 +11150,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 3,
                             StartDateOfRenting = new DateTime(2025, 12, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 105
                         },
                         new
@@ -10788,7 +11161,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 4,
                             StartDateOfRenting = new DateTime(2025, 12, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 109
                         },
                         new
@@ -10799,7 +11172,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 5,
                             StartDateOfRenting = new DateTime(2025, 12, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 12
                         },
                         new
@@ -10810,7 +11183,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 6,
                             StartDateOfRenting = new DateTime(2025, 12, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 16
                         },
                         new
@@ -10821,7 +11194,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 7,
                             StartDateOfRenting = new DateTime(2025, 12, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 20
                         },
                         new
@@ -10832,7 +11205,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 8,
                             StartDateOfRenting = new DateTime(2025, 12, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 24
                         },
                         new
@@ -10843,7 +11216,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 9,
                             StartDateOfRenting = new DateTime(2025, 12, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 28
                         },
                         new
@@ -10854,7 +11227,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 46,
                             StartDateOfRenting = new DateTime(2025, 12, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 32
                         },
                         new
@@ -10865,7 +11238,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2025, 12, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 36
                         },
                         new
@@ -10876,7 +11249,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2025, 12, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 40
                         },
                         new
@@ -10887,7 +11260,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 17,
                             StartDateOfRenting = new DateTime(2025, 12, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 44
                         },
                         new
@@ -10898,7 +11271,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 11,
                             StartDateOfRenting = new DateTime(2026, 1, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 37
                         },
                         new
@@ -10909,7 +11282,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 1, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 41
                         },
                         new
@@ -10920,7 +11293,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 13,
                             StartDateOfRenting = new DateTime(2026, 1, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 45
                         },
                         new
@@ -10931,7 +11304,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2026, 1, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 49
                         },
                         new
@@ -10942,7 +11315,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 11,
                             StartDateOfRenting = new DateTime(2026, 1, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 53
                         },
                         new
@@ -10953,7 +11326,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 1, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 57
                         },
                         new
@@ -10964,7 +11337,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 13,
                             StartDateOfRenting = new DateTime(2026, 1, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 61
                         },
                         new
@@ -10975,7 +11348,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2026, 1, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 65
                         },
                         new
@@ -10986,7 +11359,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 1,
                             StartDateOfRenting = new DateTime(2026, 1, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 69
                         },
                         new
@@ -10997,7 +11370,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 1, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 73
                         },
                         new
@@ -11008,7 +11381,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 17,
                             StartDateOfRenting = new DateTime(2026, 1, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 77
                         },
                         new
@@ -11019,7 +11392,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 22,
                             StartDateOfRenting = new DateTime(2026, 1, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 81
                         },
                         new
@@ -11030,7 +11403,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 2, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 74
                         },
                         new
@@ -11041,7 +11414,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 13,
                             StartDateOfRenting = new DateTime(2026, 2, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 78
                         },
                         new
@@ -11052,7 +11425,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2026, 2, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 82
                         },
                         new
@@ -11063,7 +11436,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 11,
                             StartDateOfRenting = new DateTime(2026, 2, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 86
                         },
                         new
@@ -11074,7 +11447,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 2, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 90
                         },
                         new
@@ -11085,7 +11458,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 13,
                             StartDateOfRenting = new DateTime(2026, 2, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 94
                         },
                         new
@@ -11096,7 +11469,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2026, 2, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 98
                         },
                         new
@@ -11107,7 +11480,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 11,
                             StartDateOfRenting = new DateTime(2026, 2, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 102
                         },
                         new
@@ -11118,7 +11491,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 2, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 106
                         },
                         new
@@ -11129,7 +11502,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 17,
                             StartDateOfRenting = new DateTime(2026, 2, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 110
                         },
                         new
@@ -11140,7 +11513,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 22,
                             StartDateOfRenting = new DateTime(2026, 2, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 13
                         },
                         new
@@ -11151,7 +11524,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 23,
                             StartDateOfRenting = new DateTime(2026, 2, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 17
                         },
                         new
@@ -11162,7 +11535,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 13,
                             StartDateOfRenting = new DateTime(2026, 3, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 111
                         },
                         new
@@ -11173,7 +11546,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2026, 3, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 14
                         },
                         new
@@ -11184,7 +11557,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 11,
                             StartDateOfRenting = new DateTime(2026, 3, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 18
                         },
                         new
@@ -11195,7 +11568,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 3, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 22
                         },
                         new
@@ -11206,7 +11579,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 13,
                             StartDateOfRenting = new DateTime(2026, 3, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 26
                         },
                         new
@@ -11217,7 +11590,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2026, 3, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 30
                         },
                         new
@@ -11228,7 +11601,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 11,
                             StartDateOfRenting = new DateTime(2026, 3, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 34
                         },
                         new
@@ -11239,7 +11612,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 3, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 38
                         },
                         new
@@ -11250,7 +11623,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 17,
                             StartDateOfRenting = new DateTime(2026, 3, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 42
                         },
                         new
@@ -11261,7 +11634,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 22,
                             StartDateOfRenting = new DateTime(2026, 3, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 46
                         },
                         new
@@ -11272,7 +11645,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 23,
                             StartDateOfRenting = new DateTime(2026, 3, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 50
                         },
                         new
@@ -11283,7 +11656,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 28,
                             StartDateOfRenting = new DateTime(2026, 3, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odbijeno",
+                            StatusId = 4,
                             UserId = 54
                         },
                         new
@@ -11294,7 +11667,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2026, 4, 4, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 47
                         },
                         new
@@ -11305,7 +11678,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 11,
                             StartDateOfRenting = new DateTime(2026, 4, 6, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 51
                         },
                         new
@@ -11316,7 +11689,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 4, 8, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 55
                         },
                         new
@@ -11327,7 +11700,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 13,
                             StartDateOfRenting = new DateTime(2026, 4, 10, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 59
                         },
                         new
@@ -11338,7 +11711,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 14,
                             StartDateOfRenting = new DateTime(2026, 4, 12, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 63
                         },
                         new
@@ -11349,7 +11722,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 11,
                             StartDateOfRenting = new DateTime(2026, 4, 14, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 67
                         },
                         new
@@ -11360,7 +11733,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 12,
                             StartDateOfRenting = new DateTime(2026, 4, 16, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 71
                         },
                         new
@@ -11371,7 +11744,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 13,
                             StartDateOfRenting = new DateTime(2026, 4, 18, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 75
                         },
                         new
@@ -11382,7 +11755,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 22,
                             StartDateOfRenting = new DateTime(2026, 4, 20, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 79
                         },
                         new
@@ -11393,7 +11766,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = false,
                             PropertyId = 23,
                             StartDateOfRenting = new DateTime(2026, 4, 22, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Završeno",
+                            StatusId = 3,
                             UserId = 83
                         },
                         new
@@ -11404,7 +11777,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 28,
                             StartDateOfRenting = new DateTime(2026, 4, 24, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Odobreno",
+                            StatusId = 2,
                             UserId = 87
                         },
                         new
@@ -11415,7 +11788,7 @@ namespace Rentify.Services.Migrations
                             IsMonthly = true,
                             PropertyId = 33,
                             StartDateOfRenting = new DateTime(2026, 4, 26, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Status = "Otkazano",
+                            StatusId = 5,
                             UserId = 91
                         });
                 });
@@ -11431,21 +11804,34 @@ namespace Rentify.Services.Migrations
                     b.Property<DateTime>("ChangedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int?>("ChangedByUserId")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("NewStatusId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Note")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("OldStatusId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Reason")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
                     b.Property<int>("ReservationId")
                         .HasColumnType("integer");
 
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                    b.Property<int>("StatusId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ReservationId");
+
+                    b.HasIndex("StatusId");
 
                     b.ToTable("ReservationHistories");
                 });
@@ -11875,6 +12261,71 @@ namespace Rentify.Services.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Rentify.Services.Database.Status", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Statuses");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Name = "Na čekanju"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Name = "Odobreno"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Name = "Završeno"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Name = "Odbijeno"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Name = "Otkazano"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Name = "Procesiranje"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Name = "Plaćeno"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Name = "Neplaćeno"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Name = "Neuspješno"
+                        });
+                });
+
             modelBuilder.Entity("Rentify.Services.Database.User", b =>
                 {
                     b.Property<int>("Id")
@@ -11947,1555 +12398,1555 @@ namespace Rentify.Services.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(6811),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1375),
                             Email = "owner.testni@gmail.com",
                             FirstName = "Darko",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Hodzic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "owner1"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(6975),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1468),
                             Email = "usertestni089@gmail.com",
                             FirstName = "Ajla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Delic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "user1"
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7271),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1637),
                             Email = "amar.mehic10@rentify.dev",
                             FirstName = "Amar",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Mehic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "amameh10"
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7469),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1761),
                             Email = "amina.kurtovic11@rentify.dev",
                             FirstName = "Amina",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Kurtovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "amikur11"
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7523),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1777),
                             Email = "adnan.suljic12@rentify.dev",
                             FirstName = "Adnan",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Suljic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "adnsul12"
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7548),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1793),
                             Email = "aldin.salkic13@rentify.dev",
                             FirstName = "Aldin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Salkic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "aldsal13"
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7574),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1807),
                             Email = "armin.maric14@rentify.dev",
                             FirstName = "Armin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Maric",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "armmar14"
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7598),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1823),
                             Email = "belma.alic15@rentify.dev",
                             FirstName = "Belma",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Alic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "belali15"
                         },
                         new
                         {
                             Id = 9,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7621),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1835),
                             Email = "dino.karic16@rentify.dev",
                             FirstName = "Dino",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Karic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dinkar16"
                         },
                         new
                         {
                             Id = 10,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7723),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1886),
                             Email = "dzenan.muminovic17@rentify.dev",
                             FirstName = "Dzenan",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Muminovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dzemum17"
                         },
                         new
                         {
                             Id = 11,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7757),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1908),
                             Email = "dzejla.pranjic18@rentify.dev",
                             FirstName = "Dzejla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = true,
                             LastName = "Pranjic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dzepra18"
                         },
                         new
                         {
                             Id = 12,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7780),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1921),
                             Email = "aldin.kurtovic19@rentify.dev",
                             FirstName = "Aldin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kurtovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "aldkur19"
                         },
                         new
                         {
                             Id = 13,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7807),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1936),
                             Email = "armin.hadzic20@rentify.dev",
                             FirstName = "Armin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hadzic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "armhad20"
                         },
                         new
                         {
                             Id = 14,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7836),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1948),
                             Email = "belma.zukic21@rentify.dev",
                             FirstName = "Belma",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Zukic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "belzuk21"
                         },
                         new
                         {
                             Id = 15,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7879),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1969),
                             Email = "dino.pranjic22@rentify.dev",
                             FirstName = "Dino",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Pranjic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dinpra22"
                         },
                         new
                         {
                             Id = 16,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7905),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(1982),
                             Email = "dzenan.basic23@rentify.dev",
                             FirstName = "Dzenan",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Basic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dzebas23"
                         },
                         new
                         {
                             Id = 17,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(7998),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2017),
                             Email = "dzejla.music24@rentify.dev",
                             FirstName = "Dzejla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Music",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dzemus24"
                         },
                         new
                         {
                             Id = 18,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8025),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2043),
                             Email = "emina.alic25@rentify.dev",
                             FirstName = "Emina",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Alic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "emiali25"
                         },
                         new
                         {
                             Id = 19,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8041),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2058),
                             Email = "eldar.filipovic26@rentify.dev",
                             FirstName = "Eldar",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Filipovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "eldfil26"
                         },
                         new
                         {
                             Id = 20,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8056),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2070),
                             Email = "faris.delic27@rentify.dev",
                             FirstName = "Faris",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Delic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "fardel27"
                         },
                         new
                         {
                             Id = 21,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8068),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2083),
                             Email = "hana.suljic28@rentify.dev",
                             FirstName = "Hana",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Suljic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "hansul28"
                         },
                         new
                         {
                             Id = 22,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8081),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2096),
                             Email = "haris.jahic29@rentify.dev",
                             FirstName = "Haris",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Jahic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "harjah29"
                         },
                         new
                         {
                             Id = 23,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8094),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2107),
                             Email = "ilda.vranic30@rentify.dev",
                             FirstName = "Ilda",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Vranic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "ildvra30"
                         },
                         new
                         {
                             Id = 24,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8115),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2125),
                             Email = "iman.coric31@rentify.dev",
                             FirstName = "Iman",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Coric",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "imacor31"
                         },
                         new
                         {
                             Id = 25,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8128),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2137),
                             Email = "jasmin.begic32@rentify.dev",
                             FirstName = "Jasmin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Begic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "jasbeg32"
                         },
                         new
                         {
                             Id = 26,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8141),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2149),
                             Email = "jelena.catic33@rentify.dev",
                             FirstName = "Jelena",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Catic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "jelcat33"
                         },
                         new
                         {
                             Id = 27,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8160),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2163),
                             Email = "lejla.karic34@rentify.dev",
                             FirstName = "Lejla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Karic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "lejkar34"
                         },
                         new
                         {
                             Id = 28,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8178),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2179),
                             Email = "lamija.jukic35@rentify.dev",
                             FirstName = "Lamija",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Jukic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "lamjuk35"
                         },
                         new
                         {
                             Id = 29,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8194),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2194),
                             Email = "merjem.kovacevic36@rentify.dev",
                             FirstName = "Merjem",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kovacevic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "merkov36"
                         },
                         new
                         {
                             Id = 30,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8209),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2206),
                             Email = "minela.salkic37@rentify.dev",
                             FirstName = "Minela",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Salkic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "minsal37"
                         },
                         new
                         {
                             Id = 31,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8234),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2227),
                             Email = "naida.imsirovic38@rentify.dev",
                             FirstName = "Naida",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Imsirovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "naiims38"
                         },
                         new
                         {
                             Id = 32,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8249),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2240),
                             Email = "nejra.salihovic39@rentify.dev",
                             FirstName = "Nejra",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Salihovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "nejsal39"
                         },
                         new
                         {
                             Id = 33,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8262),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2253),
                             Email = "nermin.mehic40@rentify.dev",
                             FirstName = "Nermin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mehic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "nermeh40"
                         },
                         new
                         {
                             Id = 34,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8274),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2264),
                             Email = "nidal.hasic41@rentify.dev",
                             FirstName = "Nidal",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hasic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "nidhas41"
                         },
                         new
                         {
                             Id = 35,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8287),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2278),
                             Email = "samir.mujic42@rentify.dev",
                             FirstName = "Samir",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mujic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "sammuj42"
                         },
                         new
                         {
                             Id = 36,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8301),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2291),
                             Email = "selma.muminovic43@rentify.dev",
                             FirstName = "Selma",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Muminovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "selmum43"
                         },
                         new
                         {
                             Id = 37,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8315),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2304),
                             Email = "tarik.hodzic44@rentify.dev",
                             FirstName = "Tarik",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hodzic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "tarhod44"
                         },
                         new
                         {
                             Id = 38,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8338),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2327),
                             Email = "teodora.smajic45@rentify.dev",
                             FirstName = "Teodora",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Smajic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "teosma45"
                         },
                         new
                         {
                             Id = 39,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8353),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2342),
                             Email = "una.maric46@rentify.dev",
                             FirstName = "Una",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Maric",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "unamar46"
                         },
                         new
                         {
                             Id = 40,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8365),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2356),
                             Email = "vedad.masic47@rentify.dev",
                             FirstName = "Vedad",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Masic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "vedmas47"
                         },
                         new
                         {
                             Id = 41,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8379),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2368),
                             Email = "zehra.mikic48@rentify.dev",
                             FirstName = "Zehra",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mikic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "zehmik48"
                         },
                         new
                         {
                             Id = 42,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8398),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2386),
                             Email = "zejna.kurtovic49@rentify.dev",
                             FirstName = "Zejna",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kurtovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "zejkur49"
                         },
                         new
                         {
                             Id = 43,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8412),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2399),
                             Email = "mahir.hadzic50@rentify.dev",
                             FirstName = "Mahir",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hadzic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "mahhad50"
                         },
                         new
                         {
                             Id = 44,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8426),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2413),
                             Email = "mersiha.zukic51@rentify.dev",
                             FirstName = "Mersiha",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Zukic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "merzuk51"
                         },
                         new
                         {
                             Id = 45,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8440),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2425),
                             Email = "adela.pranjic52@rentify.dev",
                             FirstName = "Adela",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Pranjic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "adepra52"
                         },
                         new
                         {
                             Id = 46,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8452),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2438),
                             Email = "emir.basic53@rentify.dev",
                             FirstName = "Emir",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Basic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "emibas53"
                         },
                         new
                         {
                             Id = 47,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8465),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2450),
                             Email = "darko.music54@rentify.dev",
                             FirstName = "Darko",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Music",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "darmus54"
                         },
                         new
                         {
                             Id = 48,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8477),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2461),
                             Email = "ajla.alic55@rentify.dev",
                             FirstName = "Ajla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Alic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "ajlali55"
                         },
                         new
                         {
                             Id = 49,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8489),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2478),
                             Email = "amar.filipovic56@rentify.dev",
                             FirstName = "Amar",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Filipovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "amafil56"
                         },
                         new
                         {
                             Id = 50,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8510),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2489),
                             Email = "amina.delic57@rentify.dev",
                             FirstName = "Amina",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Delic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "amidel57"
                         },
                         new
                         {
                             Id = 51,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8523),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2502),
                             Email = "adnan.suljic58@rentify.dev",
                             FirstName = "Adnan",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Suljic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "adnsul58"
                         },
                         new
                         {
                             Id = 52,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8535),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2513),
                             Email = "aldin.jahic59@rentify.dev",
                             FirstName = "Aldin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Jahic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "aldjah59"
                         },
                         new
                         {
                             Id = 53,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8548),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2526),
                             Email = "armin.vranic60@rentify.dev",
                             FirstName = "Armin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Vranic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "armvra60"
                         },
                         new
                         {
                             Id = 54,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8560),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2537),
                             Email = "belma.coric61@rentify.dev",
                             FirstName = "Belma",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Coric",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "belcor61"
                         },
                         new
                         {
                             Id = 55,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8572),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2549),
                             Email = "dino.begic62@rentify.dev",
                             FirstName = "Dino",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Begic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dinbeg62"
                         },
                         new
                         {
                             Id = 56,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8585),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2561),
                             Email = "dzenan.catic63@rentify.dev",
                             FirstName = "Dzenan",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Catic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dzecat63"
                         },
                         new
                         {
                             Id = 57,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8604),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2578),
                             Email = "dzejla.karic64@rentify.dev",
                             FirstName = "Dzejla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Karic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dzekar64"
                         },
                         new
                         {
                             Id = 58,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8618),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2590),
                             Email = "emina.jukic65@rentify.dev",
                             FirstName = "Emina",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Jukic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "emijuk65"
                         },
                         new
                         {
                             Id = 59,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8631),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2603),
                             Email = "eldar.kovacevic66@rentify.dev",
                             FirstName = "Eldar",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kovacevic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "eldkov66"
                         },
                         new
                         {
                             Id = 60,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8644),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2615),
                             Email = "faris.salkic67@rentify.dev",
                             FirstName = "Faris",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Salkic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "farsal67"
                         },
                         new
                         {
                             Id = 61,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8656),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2628),
                             Email = "hana.imsirovic68@rentify.dev",
                             FirstName = "Hana",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Imsirovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "hanims68"
                         },
                         new
                         {
                             Id = 62,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8669),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2640),
                             Email = "haris.salihovic69@rentify.dev",
                             FirstName = "Haris",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Salihovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "harsal69"
                         },
                         new
                         {
                             Id = 63,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8680),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2651),
                             Email = "ilda.mehic70@rentify.dev",
                             FirstName = "Ilda",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mehic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "ildmeh70"
                         },
                         new
                         {
                             Id = 64,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8692),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2667),
                             Email = "iman.hasic71@rentify.dev",
                             FirstName = "Iman",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hasic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "imahas71"
                         },
                         new
                         {
                             Id = 65,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8718),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2680),
                             Email = "jasmin.mujic72@rentify.dev",
                             FirstName = "Jasmin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mujic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "jasmuj72"
                         },
                         new
                         {
                             Id = 66,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8732),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2694),
                             Email = "jelena.muminovic73@rentify.dev",
                             FirstName = "Jelena",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Muminovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "jelmum73"
                         },
                         new
                         {
                             Id = 67,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8745),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2707),
                             Email = "lejla.hodzic74@rentify.dev",
                             FirstName = "Lejla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hodzic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "lejhod74"
                         },
                         new
                         {
                             Id = 68,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8758),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2720),
                             Email = "lamija.smajic75@rentify.dev",
                             FirstName = "Lamija",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Smajic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "lamsma75"
                         },
                         new
                         {
                             Id = 69,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8770),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2732),
                             Email = "merjem.maric76@rentify.dev",
                             FirstName = "Merjem",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Maric",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "mermar76"
                         },
                         new
                         {
                             Id = 70,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8782),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2745),
                             Email = "minela.masic77@rentify.dev",
                             FirstName = "Minela",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Masic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "minmas77"
                         },
                         new
                         {
                             Id = 71,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8801),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2763),
                             Email = "naida.mikic78@rentify.dev",
                             FirstName = "Naida",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mikic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "naimik78"
                         },
                         new
                         {
                             Id = 72,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8814),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2776),
                             Email = "nejra.kurtovic79@rentify.dev",
                             FirstName = "Nejra",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kurtovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "nejkur79"
                         },
                         new
                         {
                             Id = 73,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8827),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2789),
                             Email = "nermin.hadzic80@rentify.dev",
                             FirstName = "Nermin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hadzic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "nerhad80"
                         },
                         new
                         {
                             Id = 74,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8838),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2801),
                             Email = "nidal.zukic81@rentify.dev",
                             FirstName = "Nidal",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Zukic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "nidzuk81"
                         },
                         new
                         {
                             Id = 75,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8852),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2814),
                             Email = "samir.pranjic82@rentify.dev",
                             FirstName = "Samir",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Pranjic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "sampra82"
                         },
                         new
                         {
                             Id = 76,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8864),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2826),
                             Email = "selma.basic83@rentify.dev",
                             FirstName = "Selma",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Basic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "selbas83"
                         },
                         new
                         {
                             Id = 77,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8876),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2838),
                             Email = "tarik.music84@rentify.dev",
                             FirstName = "Tarik",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Music",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "tarmus84"
                         },
                         new
                         {
                             Id = 78,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8889),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2856),
                             Email = "teodora.alic85@rentify.dev",
                             FirstName = "Teodora",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Alic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "teoali85"
                         },
                         new
                         {
                             Id = 79,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8913),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2869),
                             Email = "una.filipovic86@rentify.dev",
                             FirstName = "Una",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Filipovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "unafil86"
                         },
                         new
                         {
                             Id = 80,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8926),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2881),
                             Email = "vedad.delic87@rentify.dev",
                             FirstName = "Vedad",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Delic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "veddel87"
                         },
                         new
                         {
                             Id = 81,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8939),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2893),
                             Email = "zehra.suljic88@rentify.dev",
                             FirstName = "Zehra",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Suljic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "zehsul88"
                         },
                         new
                         {
                             Id = 82,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8951),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2905),
                             Email = "zejna.jahic89@rentify.dev",
                             FirstName = "Zejna",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Jahic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "zejjah89"
                         },
                         new
                         {
                             Id = 83,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8964),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2918),
                             Email = "mahir.vranic90@rentify.dev",
                             FirstName = "Mahir",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Vranic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "mahvra90"
                         },
                         new
                         {
                             Id = 84,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8976),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2930),
                             Email = "mersiha.coric91@rentify.dev",
                             FirstName = "Mersiha",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Coric",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "mercor91"
                         },
                         new
                         {
                             Id = 85,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(8988),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2942),
                             Email = "adela.begic92@rentify.dev",
                             FirstName = "Adela",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Begic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "adebeg92"
                         },
                         new
                         {
                             Id = 86,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9006),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2958),
                             Email = "emir.catic93@rentify.dev",
                             FirstName = "Emir",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Catic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "emicat93"
                         },
                         new
                         {
                             Id = 87,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9019),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2970),
                             Email = "darko.karic94@rentify.dev",
                             FirstName = "Darko",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Karic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "darkar94"
                         },
                         new
                         {
                             Id = 88,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9031),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2982),
                             Email = "ajla.jukic95@rentify.dev",
                             FirstName = "Ajla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Jukic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "ajljuk95"
                         },
                         new
                         {
                             Id = 89,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9043),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(2994),
                             Email = "amar.kovacevic96@rentify.dev",
                             FirstName = "Amar",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kovacevic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "amakov96"
                         },
                         new
                         {
                             Id = 90,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9068),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3017),
                             Email = "amina.salkic97@rentify.dev",
                             FirstName = "Amina",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Salkic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "amisal97"
                         },
                         new
                         {
                             Id = 91,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9081),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3033),
                             Email = "adnan.imsirovic98@rentify.dev",
                             FirstName = "Adnan",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Imsirovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "adnims98"
                         },
                         new
                         {
                             Id = 92,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9094),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3048),
                             Email = "aldin.salihovic99@rentify.dev",
                             FirstName = "Aldin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Salihovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "aldsal99"
                         },
                         new
                         {
                             Id = 93,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9108),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3069),
                             Email = "armin.mehic100@rentify.dev",
                             FirstName = "Armin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mehic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "armmeh100"
                         },
                         new
                         {
                             Id = 94,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9127),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3084),
                             Email = "belma.hasic101@rentify.dev",
                             FirstName = "Belma",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hasic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "belhas101"
                         },
                         new
                         {
                             Id = 95,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9140),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3098),
                             Email = "dino.mujic102@rentify.dev",
                             FirstName = "Dino",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mujic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dinmuj102"
                         },
                         new
                         {
                             Id = 96,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9154),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3114),
                             Email = "dzenan.muminovic103@rentify.dev",
                             FirstName = "Dzenan",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Muminovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dzemum103"
                         },
                         new
                         {
                             Id = 97,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9167),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3130),
                             Email = "dzejla.hodzic104@rentify.dev",
                             FirstName = "Dzejla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hodzic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "dzehod104"
                         },
                         new
                         {
                             Id = 98,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9180),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3145),
                             Email = "emina.smajic105@rentify.dev",
                             FirstName = "Emina",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Smajic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "emisma105"
                         },
                         new
                         {
                             Id = 99,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9192),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3159),
                             Email = "eldar.maric106@rentify.dev",
                             FirstName = "Eldar",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Maric",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "eldmar106"
                         },
                         new
                         {
                             Id = 100,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9204),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3174),
                             Email = "faris.masic107@rentify.dev",
                             FirstName = "Faris",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Masic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "farmas107"
                         },
                         new
                         {
                             Id = 101,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9223),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3196),
                             Email = "hana.mikic108@rentify.dev",
                             FirstName = "Hana",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Mikic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "hanmik108"
                         },
                         new
                         {
                             Id = 102,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9237),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3212),
                             Email = "haris.kurtovic109@rentify.dev",
                             FirstName = "Haris",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Kurtovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "harkur109"
                         },
                         new
                         {
                             Id = 103,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9249),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3228),
                             Email = "ilda.hadzic110@rentify.dev",
                             FirstName = "Ilda",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Hadzic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "ildhad110"
                         },
                         new
                         {
                             Id = 104,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9261),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3243),
                             Email = "iman.zukic111@rentify.dev",
                             FirstName = "Iman",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Zukic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "imazuk111"
                         },
                         new
                         {
                             Id = 105,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9274),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3259),
                             Email = "jasmin.pranjic112@rentify.dev",
                             FirstName = "Jasmin",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Pranjic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "jaspra112"
                         },
                         new
                         {
                             Id = 106,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9287),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3275),
                             Email = "jelena.basic113@rentify.dev",
                             FirstName = "Jelena",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Basic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "jelbas113"
                         },
                         new
                         {
                             Id = 107,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9300),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3290),
                             Email = "lejla.music114@rentify.dev",
                             FirstName = "Lejla",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Music",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "lejmus114"
                         },
                         new
                         {
                             Id = 108,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9319),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3310),
                             Email = "lamija.alic115@rentify.dev",
                             FirstName = "Lamija",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Alic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "lamali115"
                         },
                         new
                         {
                             Id = 109,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9333),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3327),
                             Email = "merjem.filipovic116@rentify.dev",
                             FirstName = "Merjem",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Filipovic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "merfil116"
                         },
                         new
                         {
                             Id = 110,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9346),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3343),
                             Email = "minela.delic117@rentify.dev",
                             FirstName = "Minela",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Delic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "mindel117"
                         },
                         new
                         {
                             Id = 111,
-                            CreatedAt = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9358),
+                            CreatedAt = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3358),
                             Email = "naida.suljic118@rentify.dev",
                             FirstName = "Naida",
                             IsActive = true,
                             IsLoggingFirstTime = false,
                             IsVlasnik = false,
                             LastName = "Suljic",
-                            PasswordHash = "ag78V288T1FJt1PTJSGpHKfyOQs2ZGzD5SifHEStxpQ=",
-                            PasswordSalt = "D2dTmBo3dz4ueGgwSfELEA==",
+                            PasswordHash = "EDpje8kNu/hh+qXS0JsaLVogn9U1ZDlHxgNIg7zAWyg=",
+                            PasswordSalt = "7+9WMRBdW5Cly2jK1Fn1Tw==",
                             Username = "naisul118"
                         });
                 });
@@ -13563,777 +14014,777 @@ namespace Rentify.Services.Migrations
                         {
                             UserId = 1,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9552),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3433),
                             Id = 0
                         },
                         new
                         {
                             UserId = 2,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9556),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3437),
                             Id = 0
                         },
                         new
                         {
                             UserId = 3,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9557),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3438),
                             Id = 0
                         },
                         new
                         {
                             UserId = 4,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9558),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3439),
                             Id = 0
                         },
                         new
                         {
                             UserId = 5,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9558),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3439),
                             Id = 0
                         },
                         new
                         {
                             UserId = 6,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9558),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3440),
                             Id = 0
                         },
                         new
                         {
                             UserId = 7,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9559),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3440),
                             Id = 0
                         },
                         new
                         {
                             UserId = 8,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9559),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3441),
                             Id = 0
                         },
                         new
                         {
                             UserId = 9,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9560),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3441),
                             Id = 0
                         },
                         new
                         {
                             UserId = 10,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9560),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3442),
                             Id = 0
                         },
                         new
                         {
                             UserId = 11,
                             RoleId = 2,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9560),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3442),
                             Id = 0
                         },
                         new
                         {
                             UserId = 12,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9561),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3443),
                             Id = 0
                         },
                         new
                         {
                             UserId = 13,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9561),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3443),
                             Id = 0
                         },
                         new
                         {
                             UserId = 14,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9562),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3444),
                             Id = 0
                         },
                         new
                         {
                             UserId = 15,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9562),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3444),
                             Id = 0
                         },
                         new
                         {
                             UserId = 16,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9563),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3445),
                             Id = 0
                         },
                         new
                         {
                             UserId = 17,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9563),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3445),
                             Id = 0
                         },
                         new
                         {
                             UserId = 18,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9564),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3446),
                             Id = 0
                         },
                         new
                         {
                             UserId = 19,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9564),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3447),
                             Id = 0
                         },
                         new
                         {
                             UserId = 20,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9565),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3447),
                             Id = 0
                         },
                         new
                         {
                             UserId = 21,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9565),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3447),
                             Id = 0
                         },
                         new
                         {
                             UserId = 22,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9566),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3448),
                             Id = 0
                         },
                         new
                         {
                             UserId = 23,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9566),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3448),
                             Id = 0
                         },
                         new
                         {
                             UserId = 24,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9566),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3449),
                             Id = 0
                         },
                         new
                         {
                             UserId = 25,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9567),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3449),
                             Id = 0
                         },
                         new
                         {
                             UserId = 26,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9567),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3450),
                             Id = 0
                         },
                         new
                         {
                             UserId = 27,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9568),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3450),
                             Id = 0
                         },
                         new
                         {
                             UserId = 28,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9568),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3451),
                             Id = 0
                         },
                         new
                         {
                             UserId = 29,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9569),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3452),
                             Id = 0
                         },
                         new
                         {
                             UserId = 30,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9569),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3453),
                             Id = 0
                         },
                         new
                         {
                             UserId = 31,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9570),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3454),
                             Id = 0
                         },
                         new
                         {
                             UserId = 32,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9570),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3455),
                             Id = 0
                         },
                         new
                         {
                             UserId = 33,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9571),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3457),
                             Id = 0
                         },
                         new
                         {
                             UserId = 34,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9571),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3457),
                             Id = 0
                         },
                         new
                         {
                             UserId = 35,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9571),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3458),
                             Id = 0
                         },
                         new
                         {
                             UserId = 36,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9572),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3458),
                             Id = 0
                         },
                         new
                         {
                             UserId = 37,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9572),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3459),
                             Id = 0
                         },
                         new
                         {
                             UserId = 38,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9573),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3460),
                             Id = 0
                         },
                         new
                         {
                             UserId = 39,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9573),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3461),
                             Id = 0
                         },
                         new
                         {
                             UserId = 40,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9573),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3461),
                             Id = 0
                         },
                         new
                         {
                             UserId = 41,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9574),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3462),
                             Id = 0
                         },
                         new
                         {
                             UserId = 42,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9574),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3462),
                             Id = 0
                         },
                         new
                         {
                             UserId = 43,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9575),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3463),
                             Id = 0
                         },
                         new
                         {
                             UserId = 44,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9575),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3463),
                             Id = 0
                         },
                         new
                         {
                             UserId = 45,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9575),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3464),
                             Id = 0
                         },
                         new
                         {
                             UserId = 46,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9576),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3464),
                             Id = 0
                         },
                         new
                         {
                             UserId = 47,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9576),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3465),
                             Id = 0
                         },
                         new
                         {
                             UserId = 48,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9576),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3465),
                             Id = 0
                         },
                         new
                         {
                             UserId = 49,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9577),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3466),
                             Id = 0
                         },
                         new
                         {
                             UserId = 50,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9577),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3466),
                             Id = 0
                         },
                         new
                         {
                             UserId = 51,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9578),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3467),
                             Id = 0
                         },
                         new
                         {
                             UserId = 52,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9578),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3467),
                             Id = 0
                         },
                         new
                         {
                             UserId = 53,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9578),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3468),
                             Id = 0
                         },
                         new
                         {
                             UserId = 54,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9579),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3468),
                             Id = 0
                         },
                         new
                         {
                             UserId = 55,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9579),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3469),
                             Id = 0
                         },
                         new
                         {
                             UserId = 56,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9580),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3469),
                             Id = 0
                         },
                         new
                         {
                             UserId = 57,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9580),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3470),
                             Id = 0
                         },
                         new
                         {
                             UserId = 58,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9580),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3476),
                             Id = 0
                         },
                         new
                         {
                             UserId = 59,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9581),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3476),
                             Id = 0
                         },
                         new
                         {
                             UserId = 60,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9581),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3477),
                             Id = 0
                         },
                         new
                         {
                             UserId = 61,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9582),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3477),
                             Id = 0
                         },
                         new
                         {
                             UserId = 62,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9582),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3478),
                             Id = 0
                         },
                         new
                         {
                             UserId = 63,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9582),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3478),
                             Id = 0
                         },
                         new
                         {
                             UserId = 64,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9583),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3479),
                             Id = 0
                         },
                         new
                         {
                             UserId = 65,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9583),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3479),
                             Id = 0
                         },
                         new
                         {
                             UserId = 66,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9590),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3480),
                             Id = 0
                         },
                         new
                         {
                             UserId = 67,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9590),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3481),
                             Id = 0
                         },
                         new
                         {
                             UserId = 68,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9590),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3481),
                             Id = 0
                         },
                         new
                         {
                             UserId = 69,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9591),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3482),
                             Id = 0
                         },
                         new
                         {
                             UserId = 70,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9591),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3482),
                             Id = 0
                         },
                         new
                         {
                             UserId = 71,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9592),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3483),
                             Id = 0
                         },
                         new
                         {
                             UserId = 72,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9592),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3483),
                             Id = 0
                         },
                         new
                         {
                             UserId = 73,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9592),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3484),
                             Id = 0
                         },
                         new
                         {
                             UserId = 74,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9593),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3484),
                             Id = 0
                         },
                         new
                         {
                             UserId = 75,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9593),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3485),
                             Id = 0
                         },
                         new
                         {
                             UserId = 76,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9594),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3485),
                             Id = 0
                         },
                         new
                         {
                             UserId = 77,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9594),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3486),
                             Id = 0
                         },
                         new
                         {
                             UserId = 78,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9594),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3486),
                             Id = 0
                         },
                         new
                         {
                             UserId = 79,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9595),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3487),
                             Id = 0
                         },
                         new
                         {
                             UserId = 80,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9595),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3487),
                             Id = 0
                         },
                         new
                         {
                             UserId = 81,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9596),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3488),
                             Id = 0
                         },
                         new
                         {
                             UserId = 82,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9596),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3488),
                             Id = 0
                         },
                         new
                         {
                             UserId = 83,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9596),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3489),
                             Id = 0
                         },
                         new
                         {
                             UserId = 84,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9597),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3489),
                             Id = 0
                         },
                         new
                         {
                             UserId = 85,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9597),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3490),
                             Id = 0
                         },
                         new
                         {
                             UserId = 86,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9598),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3490),
                             Id = 0
                         },
                         new
                         {
                             UserId = 87,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9598),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3491),
                             Id = 0
                         },
                         new
                         {
                             UserId = 88,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9598),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3491),
                             Id = 0
                         },
                         new
                         {
                             UserId = 89,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9599),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3492),
                             Id = 0
                         },
                         new
                         {
                             UserId = 90,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9599),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3492),
                             Id = 0
                         },
                         new
                         {
                             UserId = 91,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9600),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3493),
                             Id = 0
                         },
                         new
                         {
                             UserId = 92,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9600),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3493),
                             Id = 0
                         },
                         new
                         {
                             UserId = 93,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9600),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3494),
                             Id = 0
                         },
                         new
                         {
                             UserId = 94,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9601),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3494),
                             Id = 0
                         },
                         new
                         {
                             UserId = 95,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9601),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3495),
                             Id = 0
                         },
                         new
                         {
                             UserId = 96,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9602),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3495),
                             Id = 0
                         },
                         new
                         {
                             UserId = 97,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9602),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3496),
                             Id = 0
                         },
                         new
                         {
                             UserId = 98,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9602),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3496),
                             Id = 0
                         },
                         new
                         {
                             UserId = 99,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9603),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3497),
                             Id = 0
                         },
                         new
                         {
                             UserId = 100,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9603),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3497),
                             Id = 0
                         },
                         new
                         {
                             UserId = 101,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9604),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3498),
                             Id = 0
                         },
                         new
                         {
                             UserId = 102,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9604),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3498),
                             Id = 0
                         },
                         new
                         {
                             UserId = 103,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9604),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3499),
                             Id = 0
                         },
                         new
                         {
                             UserId = 104,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9605),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3499),
                             Id = 0
                         },
                         new
                         {
                             UserId = 105,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9605),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3500),
                             Id = 0
                         },
                         new
                         {
                             UserId = 106,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9606),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3500),
                             Id = 0
                         },
                         new
                         {
                             UserId = 107,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9606),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3501),
                             Id = 0
                         },
                         new
                         {
                             UserId = 108,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9606),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3501),
                             Id = 0
                         },
                         new
                         {
                             UserId = 109,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9607),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3502),
                             Id = 0
                         },
                         new
                         {
                             UserId = 110,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9607),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3502),
                             Id = 0
                         },
                         new
                         {
                             UserId = 111,
                             RoleId = 1,
-                            DateAssigned = new DateTime(2026, 4, 30, 0, 50, 24, 141, DateTimeKind.Utc).AddTicks(9608),
+                            DateAssigned = new DateTime(2026, 5, 29, 10, 57, 13, 806, DateTimeKind.Utc).AddTicks(3502),
                             Id = 0
                         });
                 });
@@ -14357,6 +14808,17 @@ namespace Rentify.Services.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Rentify.Services.Database.AppNotification", b =>
+                {
+                    b.HasOne("Rentify.Services.Database.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Rentify.Services.Database.Appointment", b =>
                 {
                     b.HasOne("Rentify.Services.Database.Property", "Property")
@@ -14364,6 +14826,31 @@ namespace Rentify.Services.Migrations
                         .HasForeignKey("PropertyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Rentify.Services.Database.Status", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Rentify.Services.Database.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Property");
+
+                    b.Navigation("Status");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Rentify.Services.Database.Expense", b =>
+                {
+                    b.HasOne("Rentify.Services.Database.Property", "Property")
+                        .WithMany()
+                        .HasForeignKey("PropertyId");
 
                     b.HasOne("Rentify.Services.Database.User", "User")
                         .WithMany()
@@ -14395,6 +14882,17 @@ namespace Rentify.Services.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Rentify.Services.Database.PasswordResetToken", b =>
+                {
+                    b.HasOne("Rentify.Services.Database.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Rentify.Services.Database.Payment", b =>
                 {
                     b.HasOne("Rentify.Services.Database.Reservation", "Reservation")
@@ -14403,16 +14901,40 @@ namespace Rentify.Services.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Rentify.Services.Database.Status", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Reservation");
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Property", b =>
                 {
+                    b.HasOne("Rentify.Services.Database.BuildingType", "BuildingType")
+                        .WithMany()
+                        .HasForeignKey("BuildingTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Rentify.Services.Database.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Rentify.Services.Database.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("BuildingType");
+
+                    b.Navigation("City");
 
                     b.Navigation("User");
                 });
@@ -14455,6 +14977,12 @@ namespace Rentify.Services.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Rentify.Services.Database.Status", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("Rentify.Services.Database.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -14462,6 +14990,8 @@ namespace Rentify.Services.Migrations
                         .IsRequired();
 
                     b.Navigation("Property");
+
+                    b.Navigation("Status");
 
                     b.Navigation("User");
                 });
@@ -14474,7 +15004,15 @@ namespace Rentify.Services.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Rentify.Services.Database.Status", "Status")
+                        .WithMany()
+                        .HasForeignKey("StatusId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Reservation");
+
+                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Rentify.Services.Database.Review", b =>

@@ -3,12 +3,14 @@ import 'package:rentify_mobile/screens/appointment_list_screen.dart';
 import 'package:rentify_mobile/screens/favorite_screen.dart';
 import 'package:rentify_mobile/screens/home_screen.dart';
 import 'package:rentify_mobile/screens/login_screen.dart';
+import 'package:rentify_mobile/screens/notification_screen.dart';
 import 'package:rentify_mobile/screens/payment_screen.dart';
 import 'package:rentify_mobile/screens/profile_screen.dart';
 import 'package:rentify_mobile/screens/property_screen.dart';
 import 'package:rentify_mobile/screens/question_screen.dart';
 import 'package:rentify_mobile/screens/register_screen.dart';
 import 'package:rentify_mobile/screens/reservation_list_screen.dart';
+import 'package:rentify_mobile/screens/property_map_screen.dart';
 import 'package:rentify_mobile/screens/tags_on_boarding_screen.dart';
 
 
@@ -24,6 +26,8 @@ class AppRoutes {
   static const String profile = '/profile';
   static const String favorites = '/favorites';
   static const String questions = "/questions";
+  static const String notifications = "/notifications";
+  static const String propertyMap = "/property-map";
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -56,6 +60,12 @@ class AppRoutes {
 
       case questions:
         return MaterialPageRoute(builder: (_) => const QuestionsScreen());
+
+      case notifications:
+        return MaterialPageRoute(builder: (_) => const NotificationScreen());
+
+      case propertyMap:
+        return MaterialPageRoute(builder: (_) => const PropertyMapScreen());
 
       default:
         return null;

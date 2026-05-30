@@ -1,4 +1,4 @@
-using MapsterMapper;
+﻿using MapsterMapper;
 using Rentify.Model.ResponseObjects;
 using Rentify.Services.Database;
 using Rentify.Services.Exceptions;
@@ -21,7 +21,7 @@ namespace Rentify.Services.AppointmentStateMachine
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            entity.Status = "Završeno";
+            entity.StatusId = 3;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);
@@ -33,7 +33,7 @@ namespace Rentify.Services.AppointmentStateMachine
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            entity.Status = "Otkazano";
+            entity.StatusId = 5;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);

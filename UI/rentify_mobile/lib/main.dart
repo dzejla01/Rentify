@@ -2,20 +2,26 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:rentify_mobile/l10n/app_localizations.dart';
 import 'package:rentify_mobile/providers/answer_provider.dart';
 import 'package:rentify_mobile/providers/appoitment_provider.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
+import 'package:rentify_mobile/providers/building_type_provider.dart';
+import 'package:rentify_mobile/providers/city_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/providers/favorite_provider.dart';
+import 'package:rentify_mobile/providers/notification_provider.dart';
 import 'package:rentify_mobile/providers/payment_provider.dart';
 import 'package:rentify_mobile/providers/property_image_provider.dart';
 import 'package:rentify_mobile/providers/property_provider.dart';
 import 'package:rentify_mobile/providers/question_provider.dart';
 import 'package:rentify_mobile/providers/reservation_provider.dart';
 import 'package:rentify_mobile/providers/review_provider.dart';
+import 'package:rentify_mobile/providers/status_provider.dart';
 import 'package:rentify_mobile/providers/user_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/screens/auth_gate_screen.dart';
@@ -71,6 +77,9 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => PropertyProvider()),
+        ChangeNotifierProvider(create: (_) => CityProvider()),
+        ChangeNotifierProvider(create: (_) => BuildingTypeProvider()),
+        ChangeNotifierProvider(create: (_) => StatusProvider()),
         ChangeNotifierProvider(create: (_) => PropertyImageProvider()),
         ChangeNotifierProvider(create: (_) => ReservationProvider()),
         ChangeNotifierProvider(create: (_) => PaymentProvider()),
@@ -80,6 +89,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => FavoriteProvider()),
         ChangeNotifierProvider(create: (_) => QuestionProvider()),
         ChangeNotifierProvider(create: (_) => AnswerProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const RentifyApp(),
     ),
@@ -95,6 +105,17 @@ class RentifyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Rentify',
       onGenerateRoute: AppRoutes.onGenerateRoute,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('bs'),
+        Locale('en'),
+      ],
+      locale: const Locale('bs'),
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: Colors.white,

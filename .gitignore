@@ -80,6 +80,9 @@ linux/flutter/ephemeral/
 *.keystore
 *.jks
 
+#claude
+.claude
+
 ####################################
 # Node / npm (ako koristiš alate)
 ####################################

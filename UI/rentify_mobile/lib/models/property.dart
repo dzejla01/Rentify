@@ -1,4 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:rentify_mobile/models/city.dart';
+import 'package:rentify_mobile/models/building_type.dart';
 import 'package:rentify_mobile/models/user.dart';
 
 part 'property.g.dart';
@@ -10,7 +12,10 @@ class Property {
   User? user;
   final String name;
   final String location;
-  final String city;
+  final int cityId;
+  City? city;
+  final int buildingTypeId;
+  BuildingType? buildingType;
   final double pricePerDay;
   final double pricePerMonth;
   final double squareMeters;
@@ -19,6 +24,9 @@ class Property {
   final bool isAvailable;
   final bool isRentingPerDay;
   final bool isActiveOnApp;
+  final String? whyRecommended;
+  final double? latitude;
+  final double? longitude;
 
   Property({
     required this.id,
@@ -26,7 +34,10 @@ class Property {
     this.user,
     required this.name,
     required this.location,
-    required this.city,
+    required this.cityId,
+    this.city,
+    required this.buildingTypeId,
+    this.buildingType,
     required this.pricePerDay,
     required this.pricePerMonth,
     required this.squareMeters,
@@ -35,6 +46,9 @@ class Property {
     required this.isAvailable,
     required this.isRentingPerDay,
     required this.isActiveOnApp,
+    this.whyRecommended,
+    this.latitude,
+    this.longitude,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) =>

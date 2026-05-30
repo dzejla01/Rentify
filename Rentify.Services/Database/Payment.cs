@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Rentify.Services.Database
 {
@@ -16,8 +12,9 @@ namespace Rentify.Services.Database
         [ForeignKey(nameof(ReservationId))]
         public int ReservationId { get; set; }
         public Reservation? Reservation { get; set; }
-        public string Name {get; set;}
-        public string Comment {get; set;}
+
+        public string Name { get; set; }
+        public string Comment { get; set; }
         public decimal Price { get; set; }
         public int MonthNumber { get; set; }
         public int YearNumber { get; set; }
@@ -26,6 +23,9 @@ namespace Rentify.Services.Database
         public DateTime? SecondWarningDate { get; set; }
         public string? StripePaymentIntentId { get; set; }
         public DateTime? PaidAt { get; set; }
-        public string PaymentStatus { get; set; } = "Na čekanju"; 
+
+        [ForeignKey(nameof(StatusId))]
+        public int StatusId { get; set; } = 1;
+        public Status? Status { get; set; }
     }
 }

@@ -4,6 +4,7 @@ using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
 using Rentify.Services.Interfaces;
+using System.Security.Claims;
 
 namespace Rentify.WebAPI.Controllers
 {
@@ -79,6 +80,9 @@ namespace Rentify.WebAPI.Controllers
         [Authorize(Roles = "Korisnik")]
         public override Task<AppointmentResponse> Create([FromBody] AppointmentUpsertRequest request)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out var userId))
+                request.UserId = userId;
             return _appointmentService.CreateAsync(request);
         }
     }

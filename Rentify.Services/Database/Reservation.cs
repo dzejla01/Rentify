@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Rentify.Services.Database
 {
@@ -20,11 +16,15 @@ namespace Rentify.Services.Database
         [ForeignKey(nameof(PropertyId))]
         public int PropertyId { get; set; }
         public Property? Property { get; set; }
-        public bool IsMonthly { get; set; }
-        public String Status { get; set; } = "Na čekanju";
-        public DateTime CreatedAt {get; set;}
-        public DateTime? StartDateOfRenting {get; set;}
-        public DateTime? EndDateOfRenting {get; set;}
 
+        public bool IsMonthly { get; set; }
+
+        [ForeignKey(nameof(StatusId))]
+        public int StatusId { get; set; } = 1;
+        public Status? Status { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+        public DateTime? StartDateOfRenting { get; set; }
+        public DateTime? EndDateOfRenting { get; set; }
     }
 }

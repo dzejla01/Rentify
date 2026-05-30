@@ -341,6 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     final uploadedFileName = await ImageAppProvider.upload(
                       file: _pickedImage!,
                       folder: "users",
+                      ownerUserId: Session.userId,
                     );
                     finalImage = uploadedFileName;
                   }
@@ -370,6 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       await ImageAppProvider.delete(
                         folder: "users",
                         fileName: oldImg,
+                        ownerUserId: Session.userId,
                       );
                     }
                   }
@@ -777,6 +779,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.pushNamed(context, AppRoutes.question);
               },
             ),
+            _dashboardCard(
+              icon: Icons.account_balance_wallet_rounded,
+              title: 'Troškovi',
+              onTap: () {
+                Navigator.pushNamed(context, AppRoutes.expenses);
+              },
+            ),
+            if (Session.roles.contains('Admin'))
+              _dashboardCard(
+                icon: Icons.tune_rounded,
+                title: 'Sifarnici',
+                onTap: () {
+                  Navigator.pushNamed(context, AppRoutes.referenceData);
+                },
+              ),
           ],
         ),
       ),

@@ -20,12 +20,17 @@ var rabbitSettings = new RabbitMqSettings
     VirtualHost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST") ?? "/"
 };
 
+var smtpUser = Environment.GetEnvironmentVariable("SMTP_USER")
+    ?? throw new InvalidOperationException("Env var SMTP_USER nije postavljen.");
+var smtpPass = Environment.GetEnvironmentVariable("SMTP_PASS")
+    ?? throw new InvalidOperationException("Env var SMTP_PASS nije postavljen.");
+
 var smtpSettings = new SmtpSettings
 {
     Host = Environment.GetEnvironmentVariable("SMTP_HOST") ?? "smtp.gmail.com",
     Port = int.Parse(Environment.GetEnvironmentVariable("SMTP_PORT") ?? "465"),
-    User = Environment.GetEnvironmentVariable("SMTP_USER") ?? "owner.testni@gmail.com",
-    Password = Environment.GetEnvironmentVariable("SMTP_PASS") ?? "jvbirwmajapudpcm",
+    User = smtpUser,
+    Password = smtpPass,
     FromEmail = Environment.GetEnvironmentVariable("FROM_EMAIL") ?? "Rentify@gmail.com",
     FromName = Environment.GetEnvironmentVariable("FROM_NAME") ?? "Rentify",
     UseSsl = bool.Parse(Environment.GetEnvironmentVariable("SMTP_SSL") ?? "true")

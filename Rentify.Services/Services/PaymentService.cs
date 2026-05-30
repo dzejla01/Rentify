@@ -1,5 +1,6 @@
 ﻿using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Rentify.EmailConsumer.Configuration;
 using Rentify.Model.RequestObjects;
@@ -19,6 +20,8 @@ namespace Rentify.Services.Services
         private readonly PushNotificationService _pushService;
         private readonly AppConfig _config;
         private readonly BasePaymentState _paymentStateService;
+        private readonly ILogger<PaymentService> _logger;
+        private readonly INotificationService _notificationService;
 
         public PaymentService(
             RentifyDbContext context,
@@ -27,7 +30,9 @@ namespace Rentify.Services.Services
             PushNotificationService push,
             IMapper mapper,
             IOptions<AppConfig> config,
-            BasePaymentState paymentStateService
+            BasePaymentState paymentStateService,
+            ILogger<PaymentService> logger,
+            INotificationService notificationService
         ) : base(context, mapper)
         {
             _deviceTokenService = deviceToken;
@@ -35,6 +40,8 @@ namespace Rentify.Services.Services
             _stripeService = stripeService;
             _config = config.Value;
             _paymentStateService = paymentStateService;
+            _logger = logger;
+            _notificationService = notificationService;
         }
 
         public override async Task<PagedResult<PaymentResponse>> GetAsync(PaymentSearchObject search)
@@ -46,7 +53,13 @@ namespace Rentify.Services.Services
         public override async Task<PaymentResponse?> GetByIdAsync(int id)
         {
             await ResolveExpiredPaymentDeadlinesAsync(id);
-            return await base.GetByIdAsync(id);
+
+            var entity = await _context.Payments
+                .Include(p => p.Reservation)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            if (entity == null) return null;
+            return MapToResponse(entity);
         }
 
         private async Task ResolveExpiredPaymentDeadlinesAsync(int? paymentId = null)
@@ -58,8 +71,8 @@ namespace Rentify.Services.Services
                 .Where(p => p.SecondWarningDate != null)
                 .Where(p => p.SecondWarningDate!.Value <= now)
                 .Where(p =>
-                    p.PaymentStatus == "Na čekanju" ||
-                    p.PaymentStatus == "Procesiranje");
+                    p.StatusId == 1 ||
+                    p.StatusId == 6);
 
             if (paymentId.HasValue)
                 query = query.Where(p => p.Id == paymentId.Value);
@@ -71,15 +84,15 @@ namespace Rentify.Services.Services
 
             foreach (var payment in expiredPayments)
             {
-                payment.PaymentStatus = "Neplaćeno";
+                payment.StatusId = 8;
                 payment.PaidAt = null;
 
                 if (payment.Reservation != null &&
-                    payment.Reservation.Status != "Otkazano" &&
-                    payment.Reservation.Status != "Završeno" &&
-                    payment.Reservation.Status != "Odbijeno")
+                    payment.Reservation.StatusId != 5 &&
+                    payment.Reservation.StatusId != 3 &&
+                    payment.Reservation.StatusId != 4)
                 {
-                    payment.Reservation.Status = "Otkazano";
+                    payment.Reservation.StatusId = 5;
                 }
             }
 
@@ -101,17 +114,17 @@ namespace Rentify.Services.Services
                     || (x.Reservation != null && x.Reservation.User != null && (x.Reservation.User.FirstName + " " + x.Reservation.User.LastName).ToLower().Contains(fts))
                     || (x.Reservation != null && x.Reservation.User != null && (x.Reservation.User.LastName + " " + x.Reservation.User.FirstName).ToLower().Contains(fts))
                     || (x.MonthNumber.ToString().PadLeft(2, '0') + "." + x.YearNumber.ToString()).Contains(fts)
-                    || ((x.PaymentStatus ?? "").ToLower().Contains(fts))
-                    || (fts.Contains("plaćeno") && x.PaymentStatus == "Plaćeno")
-                    || (fts.Contains("placeno") && x.PaymentStatus == "Plaćeno")
-                    || (fts.Contains("na čekanju") && x.PaymentStatus == "Na čekanju")
-                    || (fts.Contains("na cekanju") && x.PaymentStatus == "Na čekanju")
-                    || (fts.Contains("procesiranje") && x.PaymentStatus == "Procesiranje")
-                    || (fts.Contains("neplaćeno") && x.PaymentStatus == "Neplaćeno")
-                    || (fts.Contains("neplaceno") && x.PaymentStatus == "Neplaćeno")
-                    || (fts.Contains("otkazano") && x.PaymentStatus == "Otkazano")
-                    || (fts.Contains("neuspješno") && x.PaymentStatus == "Neuspješno")
-                    || (fts.Contains("neuspjesno") && x.PaymentStatus == "Neuspješno")
+                    || (x.Status != null && x.Status.Name.ToLower().Contains(fts))
+                    || (fts.Contains("plaćeno") && x.StatusId == 7)
+                    || (fts.Contains("placeno") && x.StatusId == 7)
+                    || (fts.Contains("na čekanju") && x.StatusId == 1)
+                    || (fts.Contains("na cekanju") && x.StatusId == 1)
+                    || (fts.Contains("procesiranje") && x.StatusId == 6)
+                    || (fts.Contains("neplaćeno") && x.StatusId == 8)
+                    || (fts.Contains("neplaceno") && x.StatusId == 8)
+                    || (fts.Contains("otkazano") && x.StatusId == 5)
+                    || (fts.Contains("neuspješno") && x.StatusId == 9)
+                    || (fts.Contains("neuspjesno") && x.StatusId == 9)
                 );
             }
 
@@ -124,8 +137,8 @@ namespace Rentify.Services.Services
             if (search.PropertyId.HasValue)
                 query = query.Where(x => x.Reservation != null && x.Reservation.PropertyId == search.PropertyId.Value);
 
-            if (!string.IsNullOrWhiteSpace(search.PaymentStatus))
-                query = query.Where(x => x.PaymentStatus == search.PaymentStatus);
+            if (search.StatusId.HasValue)
+                query = query.Where(x => x.StatusId == search.StatusId.Value);
 
             if (search.MonthNumber.HasValue)
                 query = query.Where(x => x.MonthNumber == search.MonthNumber.Value);
@@ -133,32 +146,35 @@ namespace Rentify.Services.Services
             if (search.YearNumber.HasValue)
                 query = query.Where(x => x.YearNumber == search.YearNumber.Value);
 
-            if (!string.IsNullOrWhiteSpace(search.ReservationStatus))
-                query = query.Where(x => x.Reservation != null && x.Reservation.Status == search.ReservationStatus);
+            if (search.ReservationStatusId.HasValue)
+                query = query.Where(x => x.Reservation != null && x.Reservation.StatusId == search.ReservationStatusId.Value);
 
             return base.ApplyFilter(query, search);
         }
 
         protected override IQueryable<Payment> AddInclude(IQueryable<Payment> query, PaymentSearchObject search)
         {
-            query = query.Include(x => x.Reservation);
+            query = query
+                .Include(x => x.Status)
+                .Include(x => x.Reservation!).ThenInclude(r => r.Status);
 
             if (search.IncludeUser == true)
                 query = query.Include(x => x.Reservation!).ThenInclude(x => x.User);
 
             if (search.IncludeProperty == true)
-                query = query.Include(x => x.Reservation!).ThenInclude(x => x.Property);
+                query = query.Include(x => x.Reservation!).ThenInclude(x => x.Property)
+                             .Include(x => x.Reservation!).ThenInclude(x => x.Property).ThenInclude(p => p.City)
+                             .Include(x => x.Reservation!).ThenInclude(x => x.Property).ThenInclude(p => p.BuildingType);
 
             return base.AddInclude(query, search);
         }
 
         protected override async Task BeforeInsert(Payment entity, PaymentUpsertRequest request)
         {
-            entity.PaymentStatus = string.IsNullOrWhiteSpace(entity.PaymentStatus)
-                ? "Na čekanju"
-                : entity.PaymentStatus;
+            if (entity.StatusId == 0)
+                entity.StatusId = 1;
 
-            entity.PaidAt = entity.PaymentStatus == "Plaćeno"
+            entity.PaidAt = entity.StatusId == 7
                 ? entity.PaidAt ?? DateTime.UtcNow
                 : null;
 
@@ -167,10 +183,12 @@ namespace Rentify.Services.Services
 
         protected override async Task BeforeUpdate(Payment entity, PaymentUpsertRequest request)
         {
-            if (entity.PaymentStatus == "Plaćeno" && entity.PaidAt == null)
+            var newStatusId = request.StatusId != 0 ? request.StatusId : entity.StatusId;
+
+            if (newStatusId == 7 && entity.PaidAt == null)
                 entity.PaidAt = DateTime.UtcNow;
 
-            if (entity.PaymentStatus != "Plaćeno")
+            if (newStatusId != 7)
                 entity.PaidAt = null;
 
             await base.BeforeUpdate(entity, request);
@@ -178,7 +196,7 @@ namespace Rentify.Services.Services
 
         protected override async Task AfterInsert(Payment entity, PaymentUpsertRequest request)
         {
-            if (entity.PaymentStatus != "Na čekanju")
+            if (entity.StatusId != 1)
                 return;
 
             var reservationUserId = await _context.Reservations
@@ -188,6 +206,15 @@ namespace Rentify.Services.Services
 
             if (reservationUserId == 0)
                 return;
+
+            await _notificationService.CreateForUserAsync(
+                reservationUserId,
+                "Novi zahtjev za placanje",
+                "Imate novi zahtjev za placanje.",
+                type: "payment_request",
+                referenceType: "payment",
+                referenceId: entity.Id
+            );
 
             try
             {
@@ -206,7 +233,7 @@ namespace Rentify.Services.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Push failed: {ex.Message}");
+                _logger.LogWarning(ex, "Slanje push notifikacije za novi zahtjev za placanje nije uspjelo.");
             }
         }
 
@@ -225,16 +252,19 @@ namespace Rentify.Services.Services
             if (payment.Reservation.UserId != req.UserId)
                 throw new UserException("Payment ne pripada korisniku.");
 
-            if (payment.PaymentStatus == "Plaćeno")
+            if (payment.StatusId == 7)
                 throw new UserException("Uplata je već plaćena.");
 
-            if (payment.PaymentStatus == "Otkazano")
+            if (payment.StatusId == 6 && !string.IsNullOrWhiteSpace(payment.StripePaymentIntentId))
+                throw new UserException("Plaćanje je već u toku. Sačekajte završetak tekuće transakcije.");
+
+            if (payment.StatusId == 5)
                 throw new UserException("Uplata je otkazana.");
 
-            if (payment.PaymentStatus == "Neplaćeno")
+            if (payment.StatusId == 8)
                 throw new UserException("Uplata je označena kao neplaćena.");
 
-            if (payment.PaymentStatus == "Neuspješno")
+            if (payment.StatusId == 9)
                 throw new UserException("Uplata je neuspješna. Kreirajte novi zahtjev za plaćanje.");
 
             var metadata = new Dictionary<string, string>
@@ -253,7 +283,7 @@ namespace Rentify.Services.Services
             payment.StripePaymentIntentId = intent.Id;
             await _context.SaveChangesAsync();
 
-            var state = GetPaymentStateForStatus(payment.PaymentStatus);
+            var state = GetPaymentStateForStatus(payment.StatusId);
             await state.ToProcessingAsync(payment.Id);
 
             return new
@@ -275,7 +305,10 @@ namespace Rentify.Services.Services
             if (payment == null)
                 return;
 
-            var state = GetPaymentStateForStatus(payment.PaymentStatus);
+            if (payment.StatusId == 7)
+                return;
+
+            var state = GetPaymentStateForStatus(payment.StatusId);
             await state.ToPaidAsync(payment.Id);
         }
 
@@ -289,7 +322,7 @@ namespace Rentify.Services.Services
             if (payment == null)
                 return;
 
-            var state = GetPaymentStateForStatus(payment.PaymentStatus);
+            var state = GetPaymentStateForStatus(payment.StatusId);
             await state.ToFailedAsync(payment.Id);
         }
 
@@ -303,7 +336,7 @@ namespace Rentify.Services.Services
             if (payment == null)
                 return;
 
-            var state = GetPaymentStateForStatus(payment.PaymentStatus);
+            var state = GetPaymentStateForStatus(payment.StatusId);
             await state.ToCancelledAsync(payment.Id);
         }
 
@@ -324,24 +357,27 @@ namespace Rentify.Services.Services
             if (payment == null)
                 return null;
 
-            payment.StripePaymentIntentId = paymentIntentId;
-            await _context.SaveChangesAsync();
+            if (string.IsNullOrWhiteSpace(payment.StripePaymentIntentId))
+            {
+                payment.StripePaymentIntentId = paymentIntentId;
+                await _context.SaveChangesAsync();
+            }
 
             return payment;
         }
 
-        private BasePaymentState GetPaymentStateForStatus(string? status)
+        private BasePaymentState GetPaymentStateForStatus(int statusId)
         {
-            return status switch
+            return statusId switch
             {
-                "Na čekanju" => _paymentStateService.GetState(nameof(PendingPaymentState)),
-                "Procesiranje" => _paymentStateService.GetState(nameof(ProcessingPaymentState)),
-                "Plaćeno" => _paymentStateService.GetState(nameof(PaidPaymentState)),
-                "Neplaćeno" => _paymentStateService.GetState(nameof(UnpaidPaymentState)),
-                "Otkazano" => _paymentStateService.GetState(nameof(CancelledPaymentState)),
-                "Neuspješno" => _paymentStateService.GetState(nameof(FailedPaymentState)),
+                1    => _paymentStateService.GetState(nameof(PendingPaymentState)),
+                6 => _paymentStateService.GetState(nameof(ProcessingPaymentState)),
+                7       => _paymentStateService.GetState(nameof(PaidPaymentState)),
+                8     => _paymentStateService.GetState(nameof(UnpaidPaymentState)),
+                5  => _paymentStateService.GetState(nameof(CancelledPaymentState)),
+                9     => _paymentStateService.GetState(nameof(FailedPaymentState)),
 
-                _ => throw new UserException($"Status uplate '{status}' nije podržan.")
+                _ => throw new UserException($"Status uplate '{statusId}' nije podržan.")
             };
         }
     }

@@ -1,4 +1,5 @@
 ﻿using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
@@ -10,6 +11,7 @@ using Rentify.Services.ReservationStateMachine;
 
 using System;
 using System.Linq;
+using System.Security.Claims;
 
 namespace Rentify.Services.Services
 {
@@ -18,14 +20,32 @@ namespace Rentify.Services.Services
           IReservationService
     {
         protected readonly BaseReservationState _baseState;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly INotificationService _notificationService;
 
         public ReservationService(
             RentifyDbContext context,
             IMapper mapper,
-            BaseReservationState baseState)
+            BaseReservationState baseState,
+            IHttpContextAccessor httpContextAccessor,
+            INotificationService notificationService)
             : base(context, mapper)
         {
             _baseState = baseState;
+            _httpContextAccessor = httpContextAccessor;
+            _notificationService = notificationService;
+        }
+
+        private int? GetLoggedInUserId()
+        {
+            var claim = _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(claim, out var id) ? id : null;
+        }
+
+        private bool IsAdmin()
+        {
+            return _httpContextAccessor.HttpContext?.User.IsInRole("Admin") ?? false;
         }
 
         protected override IQueryable<Reservation> ApplyFilter(IQueryable<Reservation> query, ReservationSearchObject search)
@@ -47,12 +67,12 @@ namespace Rentify.Services.Services
                     || (r.User != null && (r.User.LastName + " " + r.User.FirstName).ToLower().Contains(fts))
                     || (fts.Contains("najamnina") && r.IsMonthly)
                     || (fts.Contains("kratki boravak") && !r.IsMonthly)
-                    || (r.Status != null && r.Status.ToLower().Contains(fts))
-                    || (fts.Contains("odobreno") && r.Status == "Odobreno")
-                    || ((fts.Contains("zavrseno") || fts.Contains("završeno")) && r.Status == "Završeno")
-                    || ((fts.Contains("na cekanju") || fts.Contains("na čekanju")) && r.Status == "Na čekanju")
-                    || ((fts.Contains("otkazano")) && r.Status == "Otkazano")
-                    || ((fts.Contains("odbijeno")) && r.Status == "Odbijeno"));
+                    || (r.Status != null && r.Status.Name.ToLower().Contains(fts))
+                    || (fts.Contains("odobreno") && r.StatusId == 2)
+                    || ((fts.Contains("zavrseno") || fts.Contains("završeno")) && r.StatusId == 3)
+                    || ((fts.Contains("na cekanju") || fts.Contains("na čekanju")) && r.StatusId == 1)
+                    || (fts.Contains("otkazano") && r.StatusId == 5)
+                    || (fts.Contains("odbijeno") && r.StatusId == 4));
             }
 
             if (search.UserId.HasValue)
@@ -70,29 +90,22 @@ namespace Rentify.Services.Services
                 query = query.Where(r => r.IsMonthly == search.IsMonthly.Value);
             }
 
-            if (!string.IsNullOrWhiteSpace(search.Status))
-            {
-                var status = search.Status.Trim().ToLower();
-
-                query = query.Where(r =>
-                    r.Status != null &&
-                    r.Status.ToLower() == status);
-            }
+            if (search.StatusId.HasValue)
+                query = query.Where(r => r.StatusId == search.StatusId.Value);
 
             return base.ApplyFilter(query, search);
         }
 
         protected override IQueryable<Reservation> AddInclude(IQueryable<Reservation> query, ReservationSearchObject search)
         {
+            query = query.Include(r => r.Status);
+
             if (search.IncludeUser == true)
-            {
                 query = query.Include(p => p.User);
-            }
 
             if (search.IncludeProperty == true)
-            {
-                query = query.Include(p => p.Property);
-            }
+                query = query.Include(p => p.Property).ThenInclude(p => p.City)
+                             .Include(p => p.Property).ThenInclude(p => p.BuildingType);
 
             return base.AddInclude(query, search);
         }
@@ -101,16 +114,29 @@ namespace Rentify.Services.Services
         {
             await ValidateReservationInsertAsync(request);
             var baseState = _baseState.GetState("InitialReservationState");
-            return await baseState.CreateAsync(request);
+            var result = await baseState.CreateAsync(request);
+
+            var property = await _context.Properties.FindAsync(request.PropertyId);
+            if (property != null)
+            {
+                await _notificationService.CreateForUserAsync(
+                    property.UserId,
+                    "Nova rezervacija",
+                    $"Primili ste novi zahtjev za rezervaciju nekretnine '{property.Name}'.",
+                    type: "new_reservation",
+                    referenceType: "reservation",
+                    referenceId: result.Id
+                );
+            }
+
+            return result;
         }
 
         protected override async Task BeforeDelete(Reservation entity)
         {
-            var status = (entity.Status ?? "").Trim();
-
-            if (status != "Otkazano" &&
-                status != "Završeno" &&
-                status != "Odbijeno")
+            if (entity.StatusId != 5 &&
+                entity.StatusId != 3 &&
+                entity.StatusId != 4)
             {
                 throw new UserException(
                     "Brisanje je dozvoljeno samo za rezervacije sa statusom 'Otkazano', 'Završeno' ili 'Odbijeno'."
@@ -137,7 +163,7 @@ namespace Rentify.Services.Services
                 .AsNoTracking()
                 .Where(r => r.PropertyId == propertyId)
                 .Where(r => r.IsMonthly == true)
-                .Where(r => r.Status == "Odobreno")
+                .Where(r => r.StatusId == 2)
                 .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                 .Where(r =>
                     r.StartDateOfRenting!.Value.Date <= toUtc &&
@@ -208,23 +234,23 @@ namespace Rentify.Services.Services
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            var stateName = MapStatusToState(entity.Status);
+            var stateName = MapStatusToState(entity.StatusId);
             var baseState = _baseState.GetState(stateName);
 
             return baseState.AllowedActions(id);
         }
 
-        private string MapStatusToState(string? status)
+        private static string MapStatusToState(int statusId)
         {
-            return (status ?? string.Empty).Trim() switch
+            return statusId switch
             {
-                "" => "InitialReservationState",
-                "Na čekanju" => "PendingReservationState",
-                "Odobreno" => "ApprovedReservationState",
-                "Završeno" => "FinishedReservationState",
-                "Odbijeno" => "RejectedReservationState",
-                "Otkazano" => "CancelledReservationState",
-                _ => throw new UserException($"Nepoznat status rezervacije: {status}")
+                0                    => "InitialReservationState",
+                1    => "PendingReservationState",
+                2   => "ApprovedReservationState",
+                3   => "FinishedReservationState",
+                4   => "RejectedReservationState",
+                5  => "CancelledReservationState",
+                _ => throw new UserException($"Nepoznat status rezervacije: {statusId}")
             };
         }
 
@@ -253,7 +279,7 @@ namespace Rentify.Services.Services
                         r.UserId == request.UserId &&
                         r.PropertyId == request.PropertyId &&
                         r.IsMonthly == true &&
-                        r.Status == "Na čekanju");
+                        r.StatusId == 1);
 
                 if (hasPendingMonthlyForSameUserAndProperty)
                 {
@@ -268,7 +294,7 @@ namespace Rentify.Services.Services
                         r.UserId == request.UserId &&
                         r.PropertyId == request.PropertyId &&
                         r.IsMonthly == true &&
-                        r.Status == "Odobreno");
+                        r.StatusId == 2);
 
                 if (hasApprovedMonthlyForSameUserAndProperty)
                 {
@@ -282,7 +308,7 @@ namespace Rentify.Services.Services
                     .Where(r => r.UserId == request.UserId)
                     .Where(r => r.PropertyId != request.PropertyId)
                     .Where(r => r.IsMonthly == true)
-                    .Where(r => r.Status == "Na čekanju" || r.Status == "Odobreno")
+                    .Where(r => r.StatusId == 1 || r.StatusId == 2)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start <= r.EndDateOfRenting!.Value &&
@@ -304,7 +330,7 @@ namespace Rentify.Services.Services
                         r.UserId == request.UserId &&
                         r.PropertyId == request.PropertyId &&
                         r.IsMonthly == false &&
-                        r.Status == "Na čekanju");
+                        r.StatusId == 1);
 
                 if (hasPendingShortStayForSameUserAndProperty)
                 {
@@ -320,7 +346,7 @@ namespace Rentify.Services.Services
                     .AsNoTracking()
                     .Where(r => r.PropertyId == request.PropertyId)
                     .Where(r => r.IsMonthly == false)
-                    .Where(r => r.Status == "Odobreno")
+                    .Where(r => r.StatusId == 2)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start < r.EndDateOfRenting!.Value &&
@@ -341,7 +367,7 @@ namespace Rentify.Services.Services
                     .AsNoTracking()
                     .Where(r => r.PropertyId == request.PropertyId)
                     .Where(r => r.IsMonthly == true)
-                    .Where(r => r.Status == "Odobreno")
+                    .Where(r => r.StatusId == 2)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start <= r.EndDateOfRenting!.Value &&
@@ -359,7 +385,7 @@ namespace Rentify.Services.Services
                     .AsNoTracking()
                     .Where(r => r.PropertyId == request.PropertyId)
                     .Where(r => r.IsMonthly == false)
-                    .Where(r => r.Status == "Odobreno")
+                    .Where(r => r.StatusId == 2)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start < r.EndDateOfRenting!.Value &&
@@ -396,7 +422,7 @@ namespace Rentify.Services.Services
             var dateTimes = await _context.Appointments
                 .AsNoTracking()
                 .Where(a => a.PropertyId == propertyId)
-                .Where(a => a.Status == "Odobreno")
+                .Where(a => a.StatusId == 2)
                 .Where(a => a.DateAppointment != null)
                 .Where(a => a.DateAppointment!.Value >= fromUtc &&
                             a.DateAppointment!.Value < toUtc)
@@ -412,6 +438,55 @@ namespace Rentify.Services.Services
             };
         }
 
+        private void AddHistory(int reservationId, int oldStatusId, int newStatusId, string? reason = null)
+        {
+            var loggedInId = GetLoggedInUserId();
+            var note = loggedInId.HasValue
+                ? $"Promijenio: userId={loggedInId}"
+                : null;
+
+            _context.ReservationHistories.Add(new ReservationHistory
+            {
+                ReservationId = reservationId,
+                StatusId = newStatusId,
+                OldStatusId = oldStatusId,
+                NewStatusId = newStatusId,
+                ChangedByUserId = loggedInId,
+                Reason = reason,
+                Note = note,
+                ChangedAt = DateTime.UtcNow
+            });
+        }
+
+        private async Task CheckPropertyOwnershipAsync(int reservationId)
+        {
+            if (IsAdmin()) return;
+
+            var loggedInId = GetLoggedInUserId()
+                ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+            var propertyUserId = await _context.Reservations
+                .Where(r => r.Id == reservationId)
+                .Include(r => r.Property)
+                .Select(r => r.Property!.UserId)
+                .FirstOrDefaultAsync();
+
+            if (propertyUserId != loggedInId)
+                throw new ForbiddenException("Nemate pravo mijenjati rezervaciju za tuđu nekretninu.");
+        }
+
+        private async Task NotifyReservationUserAsync(int userId, int reservationId, string title, string message)
+        {
+            await _notificationService.CreateForUserAsync(
+                userId,
+                title,
+                message,
+                type: "reservation_status",
+                referenceType: "reservation",
+                referenceId: reservationId
+            );
+        }
+
         public async Task<ReservationResponse> ApproveAsync(int id)
         {
             var entity = await _context.Reservations.FindAsync(id);
@@ -419,10 +494,22 @@ namespace Rentify.Services.Services
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            var stateName = MapStatusToState(entity.Status);
+            await CheckPropertyOwnershipAsync(id);
+
+            var oldStatusId = entity.StatusId;
+            var stateName = MapStatusToState(oldStatusId);
             var baseState = _baseState.GetState(stateName);
 
-            return await baseState.ToApprovedAsync(id);
+            var result = await baseState.ToApprovedAsync(id);
+            AddHistory(id, oldStatusId, 2);
+            await NotifyReservationUserAsync(
+                entity.UserId,
+                id,
+                "Rezervacija odobrena",
+                "Vasa rezervacija je odobrena."
+            );
+            await _context.SaveChangesAsync();
+            return result;
         }
 
         public async Task<ReservationResponse> FinishAsync(int id)
@@ -432,36 +519,74 @@ namespace Rentify.Services.Services
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            var stateName = MapStatusToState(entity.Status);
+            await CheckPropertyOwnershipAsync(id);
+
+            var oldStatusId = entity.StatusId;
+            var stateName = MapStatusToState(oldStatusId);
             var baseState = _baseState.GetState(stateName);
 
-            return await baseState.ToFinishedAsync(id);
+            var result = await baseState.ToFinishedAsync(id);
+            AddHistory(id, oldStatusId, 3);
+            await NotifyReservationUserAsync(
+                entity.UserId,
+                id,
+                "Rezervacija zavrsena",
+                "Vasa rezervacija je oznacena kao zavrsena."
+            );
+            await _context.SaveChangesAsync();
+            return result;
         }
 
-        public async Task<ReservationResponse> RejectAsync(int id)
+        public async Task<ReservationResponse> RejectAsync(int id, string? reason = null)
         {
             var entity = await _context.Reservations.FindAsync(id);
 
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            var stateName = MapStatusToState(entity.Status);
+            await CheckPropertyOwnershipAsync(id);
+
+            var oldStatusId = entity.StatusId;
+            var stateName = MapStatusToState(oldStatusId);
             var baseState = _baseState.GetState(stateName);
 
-            return await baseState.ToRejectedAsync(id);
+            var result = await baseState.ToRejectedAsync(id);
+            AddHistory(id, oldStatusId, 4, reason);
+            await NotifyReservationUserAsync(
+                entity.UserId,
+                id,
+                "Rezervacija odbijena",
+                string.IsNullOrWhiteSpace(reason)
+                    ? "Vasa rezervacija je odbijena."
+                    : $"Vasa rezervacija je odbijena. Razlog: {reason}"
+            );
+            await _context.SaveChangesAsync();
+            return result;
         }
 
-        public async Task<ReservationResponse> CancelAsync(int id)
+        public async Task<ReservationResponse> CancelAsync(int id, string? reason = null)
         {
             var entity = await _context.Reservations.FindAsync(id);
 
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            var stateName = MapStatusToState(entity.Status);
+            var oldStatusId = entity.StatusId;
+            var stateName = MapStatusToState(oldStatusId);
             var baseState = _baseState.GetState(stateName);
 
-            return await baseState.ToCancelledAsync(id);
+            var result = await baseState.ToCancelledAsync(id);
+            AddHistory(id, oldStatusId, 5, reason);
+            await NotifyReservationUserAsync(
+                entity.UserId,
+                id,
+                "Rezervacija otkazana",
+                string.IsNullOrWhiteSpace(reason)
+                    ? "Rezervacija je otkazana."
+                    : $"Rezervacija je otkazana. Razlog: {reason}"
+            );
+            await _context.SaveChangesAsync();
+            return result;
         }
 
         public async Task<UnavailableDatesResponse> GetUnavailableReservationDatesAsync(
@@ -481,7 +606,7 @@ namespace Rentify.Services.Services
                 .AsNoTracking()
                 .Where(r => r.PropertyId == propertyId)
                 .Where(r => r.IsMonthly == false)
-                .Where(r => r.Status == "Odobreno")
+                .Where(r => r.StatusId == 2)
                 .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                 .Where(r =>
                     r.StartDateOfRenting!.Value.Date <= toUtc &&
@@ -506,7 +631,7 @@ namespace Rentify.Services.Services
                 if (end > toUtc)
                     end = toUtc;
 
-                for (var day = start; day <= end; day = day.AddDays(1))
+                for (var day = start; day < end; day = day.AddDays(1))
                 {
                     unavailableDates.Add(DateTime.SpecifyKind(day, DateTimeKind.Utc));
                 }

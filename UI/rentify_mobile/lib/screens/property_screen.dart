@@ -68,9 +68,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
 
           if (filter != null && filter.trim().isNotEmpty) "Name": filter.trim(),
 
-          if (extra?["City"] != null &&
-              extra!["City"].toString().trim().isNotEmpty)
-            "City": extra["City"].toString().trim(),
+          if (extra?["CityId"] != null) "CityId": extra?["CityId"],
 
           
           if (extra?["MinPrice"] != null) "MinPriceMonth": extra?["MinPrice"],
@@ -182,21 +180,44 @@ class _PropertyScreenState extends State<PropertyScreen> {
                     ],
                   ),
                 )
-              : BaseBody(
-                  paging: _propertiesPaging,
-                  showWelcome: false,
-                  sectionTitle: "Uvijek spremne i povoljne",
-                  sectionSubtitle: "Pretražite svoje željene nekretnine",
-                  showSearch: true,
-                  showFilter: true,
-                  searchController: _searchCtrl,
-                  onSearchChanged: _onSearchChanged,
-                  onClearSearch: () {
-                    _searchCtrl.clear();
-                    _propertiesPaging.search("");
-                    setState(() {});
-                  },
-                  onOpenFilter: _openFilterDialog,
+              : Stack(
+                  children: [
+                    BaseBody(
+                      paging: _propertiesPaging,
+                      showWelcome: false,
+                      sectionTitle: "Uvijek spremne i povoljne",
+                      sectionSubtitle: "Pretražite svoje željene nekretnine",
+                      showSearch: true,
+                      showFilter: true,
+                      searchController: _searchCtrl,
+                      onSearchChanged: _onSearchChanged,
+                      onClearSearch: () {
+                        _searchCtrl.clear();
+                        _propertiesPaging.search("");
+                        setState(() {});
+                      },
+                      onOpenFilter: _openFilterDialog,
+                    ),
+                    Positioned(
+                      right: 16,
+                      bottom: 20,
+                      child: FloatingActionButton.extended(
+                        heroTag: 'mapFab',
+                        backgroundColor: const Color(0xFF5F9F3B),
+                        foregroundColor: Colors.white,
+                        elevation: 4,
+                        icon: const Icon(Icons.map_rounded, size: 20),
+                        label: const Text(
+                          'Mapa',
+                          style: TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        onPressed: () => Navigator.pushNamed(
+                          context,
+                          AppRoutes.propertyMap,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
     );
   }

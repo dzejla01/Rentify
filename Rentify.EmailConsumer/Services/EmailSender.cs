@@ -2,7 +2,6 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using MimeKit;
 using Rentify.EmailConsumer.Configuration;
-using Rentify.EmailConsumer.Messages;
 
 namespace Rentify.EmailConsumer.Services;
 
@@ -16,51 +15,50 @@ public class EmailSender
     }
 
     public async Task SendResetPasswordEmailAsync(
-    string to,
-    string userName,
-    string newPassword)
-{
-    var message = new MimeMessage();
-    message.From.Add(
-        new MailboxAddress(_settings.FromName, _settings.FromEmail)
-    );
-    message.To.Add(MailboxAddress.Parse(to));
-    message.Subject = "Nova lozinka – Rentify";
-
-    message.Body = new TextPart("html")
+        string to,
+        string userName,
+        string resetCode)
     {
-        Text = $"""
-            <h2>Zdravo {userName},</h2>
+        var message = new MimeMessage();
+        message.From.Add(
+            new MailboxAddress(_settings.FromName, _settings.FromEmail)
+        );
+        message.To.Add(MailboxAddress.Parse(to));
+        message.Subject = "Kod za reset lozinke - Rentify";
 
-            <p>Vaša nova lozinka je:</p>
+        message.Body = new TextPart("html")
+        {
+            Text = $"""
+                <h2>Zdravo {userName},</h2>
 
-            <h3 style="color:#2c7be5">{newPassword}</h3>
+                <p>Vas kod za reset lozinke je:</p>
 
-            <p>
-                Preporučujemo da se odmah prijavite i promijenite lozinku.
-            </p>
+                <h3 style="color:#2c7be5">{resetCode}</h3>
 
-            <br/>
-            <small>Rentify tim</small>
-        """
-    };
+                <p>
+                    Kod vrijedi 15 minuta. Ako niste trazili reset lozinke, ignorisite ovu poruku.
+                </p>
 
-    using var client = new SmtpClient();
-    await client.ConnectAsync(
-        _settings.Host,
-        _settings.Port,
-        _settings.UseSsl
-            ? SecureSocketOptions.SslOnConnect
-            : SecureSocketOptions.StartTls
-    );
+                <br/>
+                <small>Rentify tim</small>
+            """
+        };
 
-    await client.AuthenticateAsync(
-        _settings.User,
-        _settings.Password
-    );
+        using var client = new SmtpClient();
+        await client.ConnectAsync(
+            _settings.Host,
+            _settings.Port,
+            _settings.UseSsl
+                ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTls
+        );
 
-    await client.SendAsync(message);
-    await client.DisconnectAsync(true);
-}
-    
+        await client.AuthenticateAsync(
+            _settings.User,
+            _settings.Password
+        );
+
+        await client.SendAsync(message);
+        await client.DisconnectAsync(true);
+    }
 }

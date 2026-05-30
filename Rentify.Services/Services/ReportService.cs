@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
@@ -28,7 +28,7 @@ namespace Rentify.Services.Services
                 .AsNoTracking()
                 .Include(p => p.Reservation)
                   .ThenInclude(p => p.Property)
-                .Where(p => p.PaymentStatus == "Plaćeno")
+                .Where(p => p.StatusId == 7)
                 .Where(p => p.Reservation.Property != null && p.Reservation.Property.UserId == search.OwnerId);
 
             var monthly = await baseQ
@@ -75,7 +75,7 @@ namespace Rentify.Services.Services
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
 
-            if (request.Year < 2000 || request.Year > DateTime.Now.Year + 1)
+            if (request.Year < 2000 || request.Year > DateTime.UtcNow.Year + 1)
                 throw new ArgumentException("Godina nije validna.");
 
             var reservations = await _context.Reservations
@@ -85,7 +85,8 @@ namespace Rentify.Services.Services
                 .Where(r =>
                     r.Property != null &&
                     r.Property.User != null &&
-                    r.CreatedAt.Year == request.Year)
+                    r.CreatedAt.Year == request.Year &&
+                    (r.StatusId == 3 || r.StatusId == 2))
                 .ToListAsync();
 
             var bestOwner = reservations

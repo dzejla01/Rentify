@@ -1,4 +1,4 @@
-using MapsterMapper;
+﻿using MapsterMapper;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Services.Database;
@@ -19,7 +19,7 @@ namespace Rentify.Services.ReservationStateMachine
             var entity = new Database.Reservation();
             _mapper.Map(request, entity);
 
-            entity.Status = "Na čekanju";
+            entity.StatusId = 1;
             entity.CreatedAt = DateTime.UtcNow;
 
             _context.Reservations.Add(entity);

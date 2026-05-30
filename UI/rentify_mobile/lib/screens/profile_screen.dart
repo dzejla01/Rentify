@@ -214,6 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final uploadedFileName = await ImageAppProvider.upload(
           file: _pickedImage!,
           folder: "users",
+          ownerUserId: userId,
         );
         finalImage = uploadedFileName;
       }
@@ -241,7 +242,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           oldImg != null &&
           oldImg.trim().isNotEmpty &&
           oldImg != finalImage) {
-        await ImageAppProvider.delete(folder: "users", fileName: oldImg);
+        await ImageAppProvider.delete(
+          folder: "users",
+          fileName: oldImg,
+          ownerUserId: userId,
+        );
       }
 
       Session.fullName = "$firstName $lastName".trim();

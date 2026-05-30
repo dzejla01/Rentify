@@ -13,7 +13,7 @@ namespace Rentify.Model.RequestObjects
 
         public bool IsMonthly { get; set; }
 
-        public String? Status { get; set; }
+        public int StatusId { get; set; } = 1;
         public DateTime? CreatedAt { get; set;}
         public DateTime? StartDateOfRenting {get; set;}
         public DateTime? EndDateOfRenting {get; set;}

@@ -53,6 +53,9 @@ namespace Rentify.WebAPI.Controllers
         [Authorize(Roles = "Vlasnik")]
         public override Task<PropertyResponse> Create([FromBody] PropertyInsertRequest request)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out var userId))
+                request.UserId = userId;
             return base.Create(request);
         }
 

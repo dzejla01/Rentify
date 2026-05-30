@@ -2,9 +2,8 @@ namespace Rentify.EmailConsumer.Messages
 {
     public class ResetPasswordEmailMessage
     {
-        public string To { get; set; }
-        public string NewPassword { get; set; }
-        public string UserName { get; set; }
+        public string To { get; set; } = string.Empty;
+        public string ResetCode { get; set; } = string.Empty;
+        public string UserName { get; set; } = string.Empty;
     }
 }
-

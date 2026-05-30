@@ -9,5 +9,6 @@ namespace Rentify.Services.Interfaces
     {
         Task<LoginResponse> LoginAsync(LoginRequest request);
         Task ForgotPasswordAsync(string email);
+        Task ResetPasswordAsync(ResetPasswordRequest request);
     }
 }

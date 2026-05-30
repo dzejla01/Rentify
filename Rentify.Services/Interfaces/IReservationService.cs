@@ -26,9 +26,9 @@ namespace Rentify.Services.Interfaces
 
         Task<ReservationResponse> FinishAsync(int id);
 
-        Task<ReservationResponse> RejectAsync(int id);
+        Task<ReservationResponse> RejectAsync(int id, string? reason = null);
 
-        Task<ReservationResponse> CancelAsync(int id);
+        Task<ReservationResponse> CancelAsync(int id, string? reason = null);
 
         List<string> AllowedActions(int id);
     }

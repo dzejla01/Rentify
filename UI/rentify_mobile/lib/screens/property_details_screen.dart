@@ -188,7 +188,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     BuildContext context,
     int propertyId, {
     required bool isMonthly,
-    required String status,
+    required int statusId,
   }) async {
     final userId = Session.userId;
     if (userId == null) return false;
@@ -200,7 +200,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         "userId": userId,
         "propertyId": propertyId,
         "isMonthly": isMonthly,
-        "status": status,
+        "statusId": statusId,
         "page": 0,
         "pageSize": 1,
         "includeTotalCount": false,
@@ -218,7 +218,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       context,
       propertyId,
       isMonthly: true,
-      status: "Odobreno",
+      statusId: 2,
     );
   }
 
@@ -230,7 +230,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       context,
       propertyId,
       isMonthly: true,
-      status: "Na čekanju",
+      statusId: 1,
     );
   }
 
@@ -242,7 +242,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       context,
       propertyId,
       isMonthly: false,
-      status: "Na čekanju",
+      statusId: 1,
     );
   }
 
@@ -428,7 +428,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final property = widget.property;
 
     final title = (property.name ?? "").trim();
-    final city = (property.city ?? "").trim();
+    final city = (property.city?.name ?? "").trim();
     final location = (property.location ?? "").trim();
     final details = (property.details ?? "").trim();
     final squares = (property.squareMeters ?? "");
@@ -558,6 +558,54 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         children: (property.tags ?? const <String>[])
                             .map((t) => _TagChip(text: t))
                             .toList(),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+
+                    if ((property.whyRecommended ?? "").trim().isNotEmpty) ...[
+                      _InfoCard(
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF6E5),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.lightbulb_outline_rounded,
+                                color: Color(0xFF5F9F3B),
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Zašto je preporučeno?",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      color: Color(0xFF2F2F2F),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    property.whyRecommended!.trim(),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF5F7A5F),
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 12),
                     ],

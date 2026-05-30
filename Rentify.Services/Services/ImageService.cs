@@ -24,6 +24,27 @@ namespace Rentify.Services
             _env = env;
         }
 
+        private static readonly Dictionary<string, byte[]> MagicBytes = new()
+        {
+            { ".jpg",  new byte[] { 0xFF, 0xD8, 0xFF } },
+            { ".jpeg", new byte[] { 0xFF, 0xD8, 0xFF } },
+            { ".png",  new byte[] { 0x89, 0x50, 0x4E, 0x47 } },
+            { ".webp", new byte[] { 0x52, 0x49, 0x46, 0x46 } }
+        };
+
+        private static async Task ValidateMagicBytesAsync(IFormFile file, string ext, CancellationToken ct)
+        {
+            if (!MagicBytes.TryGetValue(ext.ToLowerInvariant(), out var expected))
+                return;
+
+            var buffer = new byte[expected.Length];
+            using var stream = file.OpenReadStream();
+            var read = await stream.ReadAsync(buffer, 0, buffer.Length, ct);
+
+            if (read < expected.Length || !buffer.Take(expected.Length).SequenceEqual(expected))
+                throw new ArgumentException("Sadržaj fajla se ne poklapa sa deklarisanim formatom slike.");
+        }
+
         public async Task<string> SaveAsync(IFormFile file, string nameOfTheFolder, string? desiredFileName = null, CancellationToken ct = default)
         {
             if (file == null || file.Length == 0)
@@ -33,11 +54,13 @@ namespace Rentify.Services
                 throw new ArgumentException("Slika je prevelika (max 10MB).");
 
             var folder = NormalizeFolder(nameOfTheFolder);
-           
+
 
             var ext = Path.GetExtension(file.FileName);
             if (string.IsNullOrWhiteSpace(ext) || !AllowedExtensions.Contains(ext))
                 throw new ArgumentException("Nedozvoljen format slike. Dozvoljeno: jpg, jpeg, png, webp.");
+
+            await ValidateMagicBytesAsync(file, ext, ct);
 
             var safeFileName = MakeSafeFileName(desiredFileName);
             if (string.IsNullOrWhiteSpace(safeFileName))
@@ -104,9 +127,17 @@ namespace Rentify.Services
             return Path.Combine(webRoot, "images", folder);
         }
 
+        private static readonly HashSet<string> AllowedFolders = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "users", "properties"
+        };
+
         private static string NormalizeFolder(string folder)
         {
-            return (folder ?? "").Trim().ToLowerInvariant();
+            var normalized = (folder ?? "").Trim().ToLowerInvariant();
+            if (!AllowedFolders.Contains(normalized))
+                throw new ArgumentException($"Folder '{normalized}' nije dozvoljen. Dozvoljeni folderi: {string.Join(", ", AllowedFolders)}.");
+            return normalized;
         }
 
         private static string MakeSafeFileName(string? input)

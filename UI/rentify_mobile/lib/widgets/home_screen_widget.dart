@@ -224,10 +224,11 @@ class _PropertyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = (property.name ?? "").trim();
-    final city = (property.city ?? "").trim();
+    final city = (property.city?.name ?? "").trim();
     final pricePerMonth = property.pricePerMonth ?? 0;
     final pricePerDay = property.pricePerDay ?? 0;
     final supportsShortStay = property.isRentingPerDay;
+    final reason = (property.whyRecommended ?? "").trim();
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -327,6 +328,33 @@ class _PropertyCard extends StatelessWidget {
                           fontSize: 13,
                           color: accent,
                         ),
+                      ),
+                    ],
+                    if (reason.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.auto_awesome_rounded,
+                            size: 15,
+                            color: accent,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              reason,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 11,
+                                color: Color(0xFF6B7280),
+                                height: 1.25,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ],

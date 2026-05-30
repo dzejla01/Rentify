@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Rentify.Services.Database;
 using Rentify.Services.Helpers;
 using System.Text;
@@ -126,6 +126,36 @@ public static class SeedData
             owners: users.Where(x => x.IsVlasnik).ToList(),
             questions: questions,
             properties: properties
+        );
+
+        modelBuilder.Entity<City>().HasData(
+            new City { Id = 1, Name = "Sarajevo" },
+            new City { Id = 2, Name = "Mostar" },
+            new City { Id = 3, Name = "Tuzla" },
+            new City { Id = 4, Name = "Banja Luka" },
+            new City { Id = 5, Name = "Zenica" },
+            new City { Id = 6, Name = "Bihać" }
+        );
+
+        modelBuilder.Entity<Status>().HasData(
+            new Status { Id = 1, Name = "Na čekanju" },
+            new Status { Id = 2, Name = "Odobreno" },
+            new Status { Id = 3, Name = "Završeno" },
+            new Status { Id = 4, Name = "Odbijeno" },
+            new Status { Id = 5, Name = "Otkazano" },
+            new Status { Id = 6, Name = "Procesiranje" },
+            new Status { Id = 7, Name = "Plaćeno" },
+            new Status { Id = 8, Name = "Neplaćeno" },
+            new Status { Id = 9, Name = "Neuspješno" }
+        );
+
+        modelBuilder.Entity<BuildingType>().HasData(
+            new BuildingType { Id = 1, Name = "Apartman" },
+            new BuildingType { Id = 2, Name = "Kuća" },
+            new BuildingType { Id = 3, Name = "Studio" },
+            new BuildingType { Id = 4, Name = "Loft" },
+            new BuildingType { Id = 5, Name = "Vila" },
+            new BuildingType { Id = 6, Name = "Poslovni prostor" }
         );
 
         modelBuilder.Entity<Role>().HasData(roles);
@@ -271,6 +301,16 @@ public static class SeedData
             .ToList();
     }
 
+    private static readonly (double Lat, double Lng)[] CityCoordinates =
+    {
+        (43.8563, 18.4131), // 1 Sarajevo
+        (43.3438, 17.8078), // 2 Mostar
+        (44.5382, 18.6735), // 3 Tuzla
+        (44.7722, 17.1910), // 4 Banja Luka
+        (44.2035, 17.9078), // 5 Zenica
+        (44.8167, 15.8667), // 6 Bihać
+    };
+
     private static List<Property> GenerateProperties(List<User> owners)
     {
         var properties = new List<Property>();
@@ -284,17 +324,24 @@ public static class SeedData
 
             for (int i = 0; i < propertyCount; i++)
             {
-                var city = Cities[(ownerIndex + i) % Cities.Length];
+                var cityIndex = (ownerIndex + i) % Cities.Length;
+                var city = Cities[cityIndex];
+                var cityId = cityIndex + 1;
+                var buildingTypeId = (propertyId + ownerIndex) % 6 + 1;
                 var adjective = PropertyAdjectives[(propertyId + i) % PropertyAdjectives.Length];
-                var type = PropertyTypes[(propertyId + ownerIndex) % PropertyTypes.Length];
                 var street = StreetNames[(propertyId + i) % StreetNames.Length];
+
+                var (baseLat, baseLng) = CityCoordinates[cityIndex];
+                var offsetLat = ((propertyId * 7 + i * 3) % 21 - 10) * 0.0010;
+                var offsetLng = ((propertyId * 11 + i * 5) % 21 - 10) * 0.0010;
 
                 properties.Add(new Property
                 {
                     Id = propertyId,
                     UserId = owner.Id,
-                    Name = $"{adjective} {type} {propertyId}",
-                    City = city,
+                    Name = $"{adjective} {propertyId}",
+                    CityId = cityId,
+                    BuildingTypeId = buildingTypeId,
                     Location = $"{street} {10 + propertyId}",
                     PricePerDay = 45 + ((propertyId * 3) % 45),
                     PricePerMonth = 950 + ((propertyId * 80) % 1200),
@@ -308,7 +355,9 @@ public static class SeedData
                     SquareMeters = 35 + (propertyId % 40),
                     Details = $"Automatski generisana nekretnina broj {propertyId} u gradu {city}.",
                     IsRentingPerDay = true,
-                    IsActiveOnApp = true
+                    IsActiveOnApp = true,
+                    Latitude = Math.Round(baseLat + offsetLat, 6),
+                    Longitude = Math.Round(baseLng + offsetLng, 6)
                 });
 
                 propertyId++;
@@ -395,7 +444,7 @@ public static class SeedData
             UserId = otherRenters[0].Id,
             PropertyId = demoOwnerProperties[0].Id,
             IsMonthly = true,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2025, 12, 20, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 3, 1, 10, 0, 0, DateTimeKind.Utc)
@@ -407,7 +456,7 @@ public static class SeedData
             UserId = otherRenters[1].Id,
             PropertyId = demoOwnerProperties[1].Id,
             IsMonthly = false,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 1, 8, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 1, 12, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 1, 18, 10, 0, 0, DateTimeKind.Utc)
@@ -419,7 +468,7 @@ public static class SeedData
             UserId = otherRenters[2].Id,
             PropertyId = demoOwnerProperties[2].Id,
             IsMonthly = true,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 1, 28, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 2, 1, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, DateTimeKind.Utc)
@@ -431,7 +480,7 @@ public static class SeedData
             UserId = otherRenters[3].Id,
             PropertyId = demoOwnerProperties[3].Id,
             IsMonthly = false,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 2, 4, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 2, 7, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 2, 13, 10, 0, 0, DateTimeKind.Utc)
@@ -443,7 +492,7 @@ public static class SeedData
             UserId = otherRenters[4].Id,
             PropertyId = demoOwnerProperties[4].Id,
             IsMonthly = true,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 2, 24, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 3, 1, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc)
@@ -455,7 +504,7 @@ public static class SeedData
             UserId = otherRenters[5].Id,
             PropertyId = demoOwnerProperties[5].Id,
             IsMonthly = false,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 3, 5, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 3, 9, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 3, 15, 10, 0, 0, DateTimeKind.Utc)
@@ -467,7 +516,7 @@ public static class SeedData
             UserId = otherRenters[6].Id,
             PropertyId = demoOwnerProperties[6].Id,
             IsMonthly = true,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 3, 25, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc)
@@ -479,7 +528,7 @@ public static class SeedData
             UserId = otherRenters[7].Id,
             PropertyId = demoOwnerProperties[7].Id,
             IsMonthly = false,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 4, 3, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 4, 8, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 4, 14, 10, 0, 0, DateTimeKind.Utc)
@@ -491,7 +540,7 @@ public static class SeedData
             UserId = otherRenters[8].Id,
             PropertyId = demoOwnerProperties[8].Id,
             IsMonthly = true,
-            Status = "Odobreno",
+            StatusId = 2,
             CreatedAt = new DateTime(2026, 4, 10, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 4, 15, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 6, 15, 10, 0, 0, DateTimeKind.Utc)
@@ -503,7 +552,7 @@ public static class SeedData
             UserId = otherRenters[9].Id,
             PropertyId = demoOwnerProperties[9].Id,
             IsMonthly = false,
-            Status = "Na čekanju",
+            StatusId = 1,
             CreatedAt = new DateTime(2026, 4, 22, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 5, 12, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 5, 17, 10, 0, 0, DateTimeKind.Utc)
@@ -515,7 +564,7 @@ public static class SeedData
             UserId = otherRenters[10].Id,
             PropertyId = demoOwnerProperties[0].Id,
             IsMonthly = false,
-            Status = "Odbijeno",
+            StatusId = 4,
             CreatedAt = new DateTime(2026, 4, 11, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 4, 20, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 4, 25, 10, 0, 0, DateTimeKind.Utc)
@@ -527,7 +576,7 @@ public static class SeedData
             UserId = otherRenters[11].Id,
             PropertyId = demoOwnerProperties[1].Id,
             IsMonthly = true,
-            Status = "Otkazano",
+            StatusId = 5,
             CreatedAt = new DateTime(2026, 3, 18, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc)
@@ -541,7 +590,7 @@ public static class SeedData
             UserId = demoRenter.Id,
             PropertyId = nonOwner1Properties[0].Id,
             IsMonthly = false,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2025, 11, 10, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2025, 11, 15, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2025, 11, 20, 10, 0, 0, DateTimeKind.Utc)
@@ -553,7 +602,7 @@ public static class SeedData
             UserId = demoRenter.Id,
             PropertyId = nonOwner1Properties[1].Id,
             IsMonthly = true,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 1, 14, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 1, 20, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 3, 20, 10, 0, 0, DateTimeKind.Utc)
@@ -565,7 +614,7 @@ public static class SeedData
             UserId = demoRenter.Id,
             PropertyId = nonOwner1Properties[2].Id,
             IsMonthly = false,
-            Status = "Odobreno",
+            StatusId = 2,
             CreatedAt = new DateTime(2026, 4, 9, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 4, 25, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 4, 30, 10, 0, 0, DateTimeKind.Utc)
@@ -577,7 +626,7 @@ public static class SeedData
             UserId = demoRenter.Id,
             PropertyId = nonOwner1Properties[3].Id,
             IsMonthly = false,
-            Status = "Na čekanju",
+            StatusId = 1,
             CreatedAt = new DateTime(2026, 4, 24, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 5, 18, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 5, 23, 10, 0, 0, DateTimeKind.Utc)
@@ -589,7 +638,7 @@ public static class SeedData
             UserId = demoRenter.Id,
             PropertyId = nonOwner1Properties[4].Id,
             IsMonthly = true,
-            Status = "Otkazano",
+            StatusId = 5,
             CreatedAt = new DateTime(2026, 3, 10, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 4, 1, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc)
@@ -601,7 +650,7 @@ public static class SeedData
             UserId = demoRenter.Id,
             PropertyId = nonOwner1Properties[5].Id,
             IsMonthly = false,
-            Status = "Odbijeno",
+            StatusId = 4,
             CreatedAt = new DateTime(2026, 4, 5, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 4, 21, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 4, 26, 10, 0, 0, DateTimeKind.Utc)
@@ -613,7 +662,7 @@ public static class SeedData
             UserId = demoRenter.Id,
             PropertyId = nonOwner1Properties[6].Id,
             IsMonthly = false,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 2, 14, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 2, 18, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 2, 24, 10, 0, 0, DateTimeKind.Utc)
@@ -625,7 +674,7 @@ public static class SeedData
             UserId = demoRenter.Id,
             PropertyId = nonOwner1Properties[7].Id,
             IsMonthly = true,
-            Status = "Završeno",
+            StatusId = 3,
             CreatedAt = new DateTime(2026, 3, 1, 10, 0, 0, DateTimeKind.Utc),
             StartDateOfRenting = new DateTime(2026, 3, 5, 10, 0, 0, DateTimeKind.Utc),
             EndDateOfRenting = new DateTime(2026, 4, 5, 10, 0, 0, DateTimeKind.Utc)
@@ -665,30 +714,30 @@ public static class SeedData
                     ? startDate.AddMonths(1 + (i % 2))
                     : startDate.AddDays(3 + (i % 5));
 
-                string status;
+                int statusId;
 
                 bool isCancelled = reservationId % 11 == 0;
                 bool isRejected = reservationId % 13 == 0;
 
                 if (isCancelled)
                 {
-                    status = "Otkazano";
+                    statusId = 5;
                 }
                 else if (isRejected)
                 {
-                    status = "Odbijeno";
+                    statusId = 4;
                 }
                 else if (endDate < SeminarReferenceDate)
                 {
-                    status = "Završeno";
+                    statusId = 3;
                 }
                 else if (startDate <= SeminarReferenceDate || createdAt <= SeminarReferenceDate.AddDays(7))
                 {
-                    status = "Odobreno";
+                    statusId = 2;
                 }
                 else
                 {
-                    status = "Na čekanju";
+                    statusId = 1;
                 }
 
                 reservations.Add(new Reservation
@@ -697,7 +746,7 @@ public static class SeedData
                     UserId = renter.Id,
                     PropertyId = property.Id,
                     IsMonthly = isMonthly,
-                    Status = status,
+                    StatusId = statusId,
                     CreatedAt = createdAt,
                     StartDateOfRenting = startDate,
                     EndDateOfRenting = endDate
@@ -717,7 +766,7 @@ public static class SeedData
 
         foreach (var reservation in reservations)
         {
-            if (reservation.Status == "Na čekanju")
+            if (reservation.StatusId == 1)
                 continue;
 
             if (!propertyMap.TryGetValue(reservation.PropertyId, out var property))
@@ -728,7 +777,7 @@ public static class SeedData
 
        
             bool shouldSeedFinishedButUnpaid =
-                reservation.Status == "Završeno" &&
+                reservation.StatusId == 3 &&
                 reservation.Id % 7 == 0;
 
             if (reservation.IsMonthly)
@@ -744,7 +793,7 @@ public static class SeedData
                 {
                     var paymentDate = reservation.StartDateOfRenting.Value.AddMonths(m);
 
-                    string paymentStatus;
+                    int paymentStatusId;
                     DateTime? paidAt = null;
                     string comment;
 
@@ -753,7 +802,7 @@ public static class SeedData
                     if (!isLastInstallment)
                     {
    
-                        paymentStatus = "Plaćeno";
+                        paymentStatusId = 7;
                         paidAt = new DateTime(
                             paymentDate.Year,
                             paymentDate.Month,
@@ -767,17 +816,17 @@ public static class SeedData
                     }
                     else
                     {
-                        if (reservation.Status == "Završeno")
+                        if (reservation.StatusId == 3)
                         {
                             if (shouldSeedFinishedButUnpaid)
                             {
-                                paymentStatus = "Neplaćeno";
+                                paymentStatusId = 8;
                                 paidAt = null;
                                 comment = "Automatski generisan testni slučaj neplaćene završene rate.";
                             }
                             else
                             {
-                                paymentStatus = "Plaćeno";
+                                paymentStatusId = 7;
                                 paidAt = new DateTime(
                                     paymentDate.Year,
                                     paymentDate.Month,
@@ -792,7 +841,7 @@ public static class SeedData
                         }
                         else
                         {
-                            paymentStatus = "Na čekanju";
+                            paymentStatusId = 1;
                             comment = "Plaćanje je na čekanju.";
                         }
                     }
@@ -834,7 +883,7 @@ public static class SeedData
                             DateTimeKind.Utc
                         ),
                         PaidAt = paidAt,
-                        PaymentStatus = paymentStatus
+                        StatusId = paymentStatusId
                     });
                 }
             }
@@ -845,28 +894,28 @@ public static class SeedData
                     (reservation.EndDateOfRenting.Value - reservation.StartDateOfRenting.Value).Days
                 );
 
-                string paymentStatus;
+                int paymentStatusId;
                 DateTime? paidAt = null;
                 string comment;
 
-                if (reservation.Status == "Završeno")
+                if (reservation.StatusId == 3)
                 {
                     if (shouldSeedFinishedButUnpaid)
                     {
-                        paymentStatus = "Neplaćeno";
+                        paymentStatusId = 8;
                         paidAt = null;
                         comment = "Automatski generisan testni slučaj neplaćenog završenog kratkog boravka.";
                     }
                     else
                     {
-                        paymentStatus = "Plaćeno";
+                        paymentStatusId = 7;
                         paidAt = reservation.StartDateOfRenting.Value.AddDays(-1);
                         comment = "Automatski generisana evidentirana uplata.";
                     }
                 }
                 else
                 {
-                    paymentStatus = "Na čekanju";
+                    paymentStatusId = 1;
                     comment = "Plaćanje je na čekanju.";
                 }
 
@@ -883,7 +932,7 @@ public static class SeedData
                     WarningDateToPay = reservation.StartDateOfRenting.Value.AddDays(2),
                     SecondWarningDate = reservation.StartDateOfRenting.Value.AddDays(5),
                     PaidAt = paidAt,
-                    PaymentStatus = paymentStatus
+                    StatusId = paymentStatusId
                 });
             }
         }
@@ -901,18 +950,18 @@ public static class SeedData
             var renter = renters[i % renters.Count];
             var property = properties[(i * 2) % properties.Count];
 
-            string status;
+            int statusId;
 
             if (i % 7 == 0)
-                status = "Na čekanju";
+                statusId = 1;
             else if (i % 5 == 0)
-                status = "Odbijeno";
+                statusId = 4;
             else if (i % 3 == 0)
-                status = "Otkazano";
+                statusId = 5;
             else if (i % 2 == 0)
-                status = "Završeno";
+                statusId = 3;
             else
-                status = "Odobreno";
+                statusId = 2;
 
             appointments.Add(new Appointment
             {
@@ -928,7 +977,7 @@ public static class SeedData
                     0,
                     DateTimeKind.Utc
                 ),
-                Status = status
+                StatusId = statusId
             });
         }
 
@@ -941,7 +990,7 @@ public static class SeedData
         int reviewId = 1;
 
         var eligibleReservations = reservations
-            .Where(r => r.Status == "Završeno")
+            .Where(r => r.StatusId == 3)
             .OrderBy(r => r.Id)
             .Take(50)
             .ToList();

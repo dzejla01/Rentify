@@ -19,7 +19,10 @@ Appointment _$AppointmentFromJson(Map<String, dynamic> json) => Appointment(
   dateAppointment: json['dateAppointment'] == null
       ? null
       : DateTime.parse(json['dateAppointment'] as String),
-  status: json['status'] as String,
+  statusId: (json['statusId'] as num).toInt(),
+  status: json['status'] == null
+      ? null
+      : Status.fromJson(json['status'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$AppointmentToJson(Appointment instance) =>
@@ -30,5 +33,6 @@ Map<String, dynamic> _$AppointmentToJson(Appointment instance) =>
       'propertyId': instance.propertyId,
       'property': instance.property?.toJson(),
       'dateAppointment': instance.dateAppointment?.toIso8601String(),
-      'status': instance.status,
+      'statusId': instance.statusId,
+      'status': instance.status?.toJson(),
     };

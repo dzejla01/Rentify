@@ -1,4 +1,4 @@
-using MapsterMapper;
+﻿using MapsterMapper;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Services.Database;
@@ -19,8 +19,8 @@ namespace Rentify.Services.AppointmentStateMachine
         {
             var entity = _mapper.Map<Appointment>(request);
 
-            if (string.IsNullOrWhiteSpace(entity.Status))
-                entity.Status = "Na čekanju";
+            if (entity.StatusId == 0)
+                entity.StatusId = 1;
 
             _context.Appointments.Add(entity);
             await _context.SaveChangesAsync();

@@ -17,7 +17,7 @@ namespace Rentify.Services.PaymentStateMachine
         {
             var entity = await GetEntity(id);
 
-            entity.PaymentStatus = "Procesiranje";
+            entity.StatusId = 6;
             entity.PaidAt = null;
 
             await _context.SaveChangesAsync();
@@ -28,7 +28,7 @@ namespace Rentify.Services.PaymentStateMachine
         {
             var entity = await GetEntity(id);
 
-            entity.PaymentStatus = "Plaćeno";
+            entity.StatusId = 7;
             entity.PaidAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -39,7 +39,7 @@ namespace Rentify.Services.PaymentStateMachine
         {
             var entity = await GetEntity(id);
 
-            entity.PaymentStatus = "Neplaćeno";
+            entity.StatusId = 8;
             entity.PaidAt = null;
 
             await _context.SaveChangesAsync();
@@ -50,7 +50,7 @@ namespace Rentify.Services.PaymentStateMachine
         {
             var entity = await GetEntity(id);
 
-            entity.PaymentStatus = "Otkazano";
+            entity.StatusId = 5;
             entity.PaidAt = null;
 
             await _context.SaveChangesAsync();

@@ -14,7 +14,14 @@ Property _$PropertyFromJson(Map<String, dynamic> json) => Property(
       : User.fromJson(json['user'] as Map<String, dynamic>),
   name: json['name'] as String,
   location: json['location'] as String,
-  city: json['city'] as String,
+  cityId: (json['cityId'] as num).toInt(),
+  city: json['city'] == null
+      ? null
+      : City.fromJson(json['city'] as Map<String, dynamic>),
+  buildingTypeId: (json['buildingTypeId'] as num).toInt(),
+  buildingType: json['buildingType'] == null
+      ? null
+      : BuildingType.fromJson(json['buildingType'] as Map<String, dynamic>),
   pricePerDay: (json['pricePerDay'] as num).toDouble(),
   pricePerMonth: (json['pricePerMonth'] as num).toDouble(),
   squareMeters: (json['squareMeters'] as num).toDouble(),
@@ -23,6 +30,9 @@ Property _$PropertyFromJson(Map<String, dynamic> json) => Property(
   isAvailable: json['isAvailable'] as bool,
   isRentingPerDay: json['isRentingPerDay'] as bool,
   isActiveOnApp: json['isActiveOnApp'] as bool,
+  whyRecommended: json['whyRecommended'] as String?,
+  latitude: (json['latitude'] as num?)?.toDouble(),
+  longitude: (json['longitude'] as num?)?.toDouble(),
 );
 
 Map<String, dynamic> _$PropertyToJson(Property instance) => <String, dynamic>{
@@ -31,7 +41,10 @@ Map<String, dynamic> _$PropertyToJson(Property instance) => <String, dynamic>{
   'user': instance.user,
   'name': instance.name,
   'location': instance.location,
+  'cityId': instance.cityId,
   'city': instance.city,
+  'buildingTypeId': instance.buildingTypeId,
+  'buildingType': instance.buildingType,
   'pricePerDay': instance.pricePerDay,
   'pricePerMonth': instance.pricePerMonth,
   'squareMeters': instance.squareMeters,
@@ -40,4 +53,7 @@ Map<String, dynamic> _$PropertyToJson(Property instance) => <String, dynamic>{
   'isAvailable': instance.isAvailable,
   'isRentingPerDay': instance.isRentingPerDay,
   'isActiveOnApp': instance.isActiveOnApp,
+  'whyRecommended': instance.whyRecommended,
+  'latitude': instance.latitude,
+  'longitude': instance.longitude,
 };

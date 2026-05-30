@@ -11,17 +11,18 @@ class ForgotPasswordDialog extends StatefulWidget {
 
 class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
   static const Color _green = Color(0xFF5F9F3B);
-  static const Color _greenSoft = Color(0xFFEAF6E5);
-  static const Color _text = Color(0xFF1F2A1F);
   static const Color _muted = Color(0xFF6B7280);
   static const Color _border = Color(0xFFDFE6DA);
   static const double _radius = 18;
 
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _codeController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   String? error;
   String? success;
   bool isLoading = false;
+  bool codeSent = false;
 
   bool _isValidEmail(String email) {
     final regex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
@@ -44,29 +45,82 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
     setState(() => isLoading = true);
 
     try {
-      final userProvider = context.read<UserProvider>();
-      await userProvider.forgotPassword(email);
+      await context.read<UserProvider>().forgotPassword(email);
 
       if (!mounted) return;
 
       setState(() {
-        success = "Email je poslan. Provjerite inbox/spam folder.";
+        codeSent = true;
+        success = "Kod je poslan. Provjerite inbox/spam folder.";
       });
     } catch (_) {
       if (!mounted) return;
 
       setState(() {
-        error = "Neuspješno slanje. Provjerite email ili pokušajte ponovo.";
+        error = "Neuspjesno slanje. Provjerite email ili pokusajte ponovo.";
       });
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
   }
 
-  InputDecoration _inputDecoration() {
+  Future<void> _resetPassword() async {
+    setState(() {
+      error = null;
+      success = null;
+    });
+
+    final email = _emailController.text.trim();
+    final code = _codeController.text.trim();
+    final password = _passwordController.text;
+
+    if (!_isValidEmail(email)) {
+      setState(() => error = "Unesite ispravan email.");
+      return;
+    }
+
+    if (code.length < 6) {
+      setState(() => error = "Unesite kod iz emaila.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setState(() => error = "Nova lozinka mora imati najmanje 6 karaktera.");
+      return;
+    }
+
+    setState(() => isLoading = true);
+
+    try {
+      await context.read<UserProvider>().resetPassword(
+            email: email,
+            code: code,
+            newPassword: password,
+          );
+
+      if (!mounted) return;
+
+      setState(() {
+        success = "Lozinka je promijenjena. Mozete se prijaviti.";
+      });
+    } catch (_) {
+      if (!mounted) return;
+
+      setState(() {
+        error = "Kod nije validan ili je istekao.";
+      });
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  InputDecoration _inputDecoration({
+    String hintText = "Email adresa",
+    IconData icon = Icons.email_outlined,
+  }) {
     return InputDecoration(
-      hintText: "Email adresa",
-      prefixIcon: const Icon(Icons.email_outlined, size: 20, color: _green),
+      hintText: hintText,
+      prefixIcon: Icon(icon, size: 20, color: _green),
       filled: true,
       fillColor: Colors.white,
       isDense: true,
@@ -92,7 +146,8 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
   }) {
     final bg = isError ? const Color(0xFFFFE8E8) : const Color(0xFFEAF6E5);
     final fg = isError ? const Color(0xFFE53935) : _green;
-    final icon = isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded;
+    final icon =
+        isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded;
 
     return Container(
       width: double.infinity,
@@ -125,6 +180,8 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
   @override
   void dispose() {
     _emailController.dispose();
+    _codeController.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -157,8 +214,8 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                   color: _green,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(_radius)),
                 ),
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children: [
                     Icon(Icons.lock_reset_rounded, color: Colors.white, size: 20),
                     SizedBox(width: 10),
                     Text(
@@ -172,14 +229,13 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                   ],
                 ),
               ),
-
               Padding(
                 padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Unesite email povezan sa vašim nalogom i poslat ćemo vam novu lozinku.",
+                      "Unesite email povezan sa vasim nalogom. Poslat cemo vam kod za postavljanje nove lozinke.",
                       style: TextStyle(
                         fontSize: 13.2,
                         fontWeight: FontWeight.w700,
@@ -188,34 +244,55 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                       ),
                     ),
                     const SizedBox(height: 14),
-
                     TextField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      onSubmitted: (_) => isLoading ? null : _submit(),
+                      onSubmitted: (_) => isLoading
+                          ? null
+                          : (codeSent ? _resetPassword() : _submit()),
                       decoration: _inputDecoration(),
                     ),
-
+                    if (codeSent) ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _codeController,
+                        keyboardType: TextInputType.number,
+                        decoration: _inputDecoration(
+                          hintText: "Kod iz emaila",
+                          icon: Icons.pin_outlined,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _passwordController,
+                        obscureText: true,
+                        decoration: _inputDecoration(
+                          hintText: "Nova lozinka",
+                          icon: Icons.lock_outline,
+                        ),
+                      ),
+                    ],
                     if (error != null) ...[
                       const SizedBox(height: 12),
                       _messageBox(text: error!, isError: true),
                     ],
-
                     if (success != null) ...[
                       const SizedBox(height: 12),
                       _messageBox(text: success!, isError: false),
                     ],
-
                     const SizedBox(height: 16),
-
                     Row(
                       children: [
                         OutlinedButton(
-                          onPressed: isLoading ? null : () => Navigator.of(context).pop(),
+                          onPressed:
+                              isLoading ? null : () => Navigator.of(context).pop(),
                           style: OutlinedButton.styleFrom(
                             foregroundColor: _muted,
                             side: BorderSide(color: _muted.withOpacity(0.35)),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -227,12 +304,17 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                         ),
                         const Spacer(),
                         ElevatedButton.icon(
-                          onPressed: isLoading ? null : _submit,
+                          onPressed: isLoading
+                              ? null
+                              : (codeSent ? _resetPassword : _submit),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: _green,
                             foregroundColor: Colors.white,
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
@@ -248,7 +330,9 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
                                 )
                               : const Icon(Icons.send_rounded, size: 18),
                           label: Text(
-                            isLoading ? "Slanje..." : "Pošalji mail",
+                            isLoading
+                                ? "Slanje..."
+                                : (codeSent ? "Promijeni lozinku" : "Posalji kod"),
                             style: const TextStyle(fontWeight: FontWeight.w800),
                           ),
                         ),

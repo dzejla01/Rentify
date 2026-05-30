@@ -35,7 +35,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
 
   bool _metaLoading = false;
   String? _metaError;
-  String? _selectedStatus;
+  int? _selectedStatusId;
   int? _cancellingAppointmentId;
 
   @override
@@ -63,7 +63,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
           "pageSize": pageSize,
           "includeTotalCount": includeTotalCount,
           if (filter != null && filter.trim().isNotEmpty) "FTS": filter.trim(),
-          if (_selectedStatus != null) "status": _selectedStatus,
+          if (_selectedStatusId != null) "statusId": _selectedStatusId,
           ...?extra,
         };
 
@@ -100,11 +100,11 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
     });
   }
 
-  Future<void> _changeStatusFilter(String? status) async {
+  Future<void> _changeStatusFilter(int? statusId) async {
     if (!mounted) return;
 
     setState(() {
-      _selectedStatus = status;
+      _selectedStatusId = statusId;
     });
 
     await _paging.refresh();
@@ -289,13 +289,13 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
             ),
 
             _StatusFilterBar(
-              selectedStatus: _selectedStatus,
+              selectedStatusId: _selectedStatusId,
               onTapAll: () => _changeStatusFilter(null),
-              onTapApproved: () => _changeStatusFilter("Odobreno"),
-              onTapPending: () => _changeStatusFilter("Na čekanju"),
-              onTapFinished: () => _changeStatusFilter("Završeno"),
-              onTapRejected: () => _changeStatusFilter("Odbijeno"),
-              onTapCancelled: () => _changeStatusFilter("Otkazano"),
+              onTapApproved: () => _changeStatusFilter(2),
+              onTapPending: () => _changeStatusFilter(1),
+              onTapFinished: () => _changeStatusFilter(3),
+              onTapRejected: () => _changeStatusFilter(4),
+              onTapCancelled: () => _changeStatusFilter(5),
             ),
 
             Expanded(
@@ -323,7 +323,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
                         separatorHeight: 12,
                         itemBuilder: (context, a) {
                           final p = _propertiesMap[a.propertyId];
-                          final status = StatusMapper.fromStatus(a.status);
+                          final status = StatusMapper.fromStatus(a.status?.name);
 
                           final createdAtText = _maybeCreatedAtText(a);
 
@@ -390,7 +390,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
 
 class _StatusFilterBar extends StatelessWidget {
   const _StatusFilterBar({
-    required this.selectedStatus,
+    required this.selectedStatusId,
     required this.onTapAll,
     required this.onTapApproved,
     required this.onTapPending,
@@ -399,7 +399,7 @@ class _StatusFilterBar extends StatelessWidget {
     required this.onTapCancelled,
   });
 
-  final String? selectedStatus;
+  final int? selectedStatusId;
   final VoidCallback onTapAll;
   final VoidCallback onTapApproved;
   final VoidCallback onTapPending;
@@ -417,42 +417,42 @@ class _StatusFilterBar extends StatelessWidget {
           children: [
             _FilterChipButton(
               label: "Sve",
-              selected: selectedStatus == null,
+              selected: selectedStatusId == null,
               onTap: onTapAll,
               selectedColor: const Color(0xFF5F9F3B),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Odobreni",
-              selected: selectedStatus == "Odobreno",
+              selected: selectedStatusId == 2,
               onTap: onTapApproved,
               selectedColor: const Color(0xFF2E7D32),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Na čekanju",
-              selected: selectedStatus == "Na čekanju",
+              selected: selectedStatusId == 1,
               onTap: onTapPending,
               selectedColor: const Color(0xFFEF6C00),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Završeni",
-              selected: selectedStatus == "Završeno",
+              selected: selectedStatusId == 3,
               onTap: onTapFinished,
               selectedColor: const Color(0xFF1565C0),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Odbijeni",
-              selected: selectedStatus == "Odbijeno",
+              selected: selectedStatusId == 4,
               onTap: onTapRejected,
               selectedColor: const Color(0xFF6B7280),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Otkazani",
-              selected: selectedStatus == "Otkazano",
+              selected: selectedStatusId == 5,
               onTap: onTapCancelled,
               selectedColor: const Color(0xFFC62828),
             ),

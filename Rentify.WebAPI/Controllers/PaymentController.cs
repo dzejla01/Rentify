@@ -14,6 +14,7 @@ namespace Rentify.WebAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class PaymentController : BaseCRUDController<PaymentResponse, PaymentSearchObject, PaymentUpsertRequest, PaymentUpsertRequest>
     {
         private readonly StripeSettings _stripeSettings;
@@ -24,6 +25,60 @@ namespace Rentify.WebAPI.Controllers
         ) : base(paymentService)
         {
             _stripeSettings = stripeSettings;
+        }
+
+        [Authorize(Roles = "Admin,Vlasnik,Korisnik")]
+        public override async Task<PagedResult<PaymentResponse>> Get([FromQuery] PaymentSearchObject? search = null)
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var loggedInId))
+                throw new UnauthorizedAccessException("Neispravan token.");
+
+            var isAdmin = User.IsInRole("Admin");
+            if (!isAdmin)
+            {
+                search ??= new PaymentSearchObject();
+                search.UserId = loggedInId;
+            }
+
+            return await base.Get(search);
+        }
+
+        [Authorize(Roles = "Admin,Vlasnik,Korisnik")]
+        public override async Task<PaymentResponse?> GetById(int id)
+        {
+            var result = await base.GetById(id);
+            if (result == null) return null;
+
+            if (User.IsInRole("Admin") || User.IsInRole("Vlasnik"))
+                return result;
+
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var loggedInId))
+                throw new UnauthorizedAccessException("Neispravan token.");
+
+            if (result.Reservation?.UserId != loggedInId)
+                throw new UnauthorizedAccessException("Nemate pristup ovoj uplati.");
+
+            return result;
+        }
+
+        [Authorize(Roles = "Admin,Vlasnik")]
+        public override Task<PaymentResponse> Create([FromBody] PaymentUpsertRequest request)
+        {
+            return base.Create(request);
+        }
+
+        [Authorize(Roles = "Admin")]
+        public override Task<PaymentResponse?> Update(int id, [FromBody] PaymentUpsertRequest request)
+        {
+            return base.Update(id, request);
+        }
+
+        [Authorize(Roles = "Admin")]
+        public override Task<bool> Delete(int id)
+        {
+            return base.Delete(id);
         }
 
         [Authorize(Roles = "Korisnik,Admin")]
@@ -38,9 +93,8 @@ namespace Rentify.WebAPI.Controllers
                     return Unauthorized("Neispravan token.");
 
                 var isAdmin = User.IsInRole("Admin");
-
-                if (!isAdmin && req.UserId != loggedInUserId)
-                    return Forbid();
+                if (!isAdmin)
+                    req.UserId = loggedInUserId;
 
                 var result = await (_service as IPaymentService).CreateNewPaymentIntentAsync(req);
                 return Ok(result);

@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/reservation.dart';
+import 'package:rentify_mobile/models/status.dart';
 import 'package:rentify_mobile/models/user.dart';
 
 part 'payment.g.dart';
@@ -15,9 +15,10 @@ class Payment {
   final double price;
   final int monthNumber;
   final int yearNumber;
-  final String paymentStatus;
+  final int statusId;
+  Status? status;
   DateTime? dateToPay;
-  DateTime? warningDateToPay;  
+  DateTime? warningDateToPay;
   DateTime? secondWarningDate;
 
   Payment({
@@ -27,9 +28,10 @@ class Payment {
     required this.name,
     required this.comment,
     required this.price,
-    required this.paymentStatus,
     required this.monthNumber,
     required this.yearNumber,
+    required this.statusId,
+    this.status,
     this.dateToPay,
     this.warningDateToPay,
     this.secondWarningDate,

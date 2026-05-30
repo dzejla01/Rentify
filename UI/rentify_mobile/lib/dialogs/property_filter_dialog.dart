@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/base_dialogs.dart';
 import 'package:rentify_mobile/helper/text_editing_controller_helper.dart'; // Fields
+import 'package:rentify_mobile/models/city.dart';
+import 'package:rentify_mobile/providers/city_provider.dart';
 import 'package:rentify_mobile/validation/validation_model/validation_field_rule.dart';
 import 'package:rentify_mobile/validation/validation_model/validation_rules.dart';
 import 'package:rentify_mobile/validation/validation_use/universal_error_removal.dart';
@@ -19,13 +22,15 @@ class PropertyFilterDialogState extends State<PropertyFilterDialog> {
   late final Fields _fields;
 
   final Map<String, String?> _errors = {};
+  List<City> _cities = [];
+  int? _selectedCityId;
+  bool _citiesLoading = false;
 
   @override
   void initState() {
     super.initState();
 
     _fields = Fields.fromNames(const [
-      "City",
       "MinPrice",
       "MaxPrice",
       "MinDailyPrice",
@@ -39,6 +44,22 @@ class PropertyFilterDialogState extends State<PropertyFilterDialog> {
         controller: _fields.controller(name),
         setState: () => setState(() {}),
       );
+    }
+
+    _loadCities();
+  }
+
+  Future<void> _loadCities() async {
+    setState(() => _citiesLoading = true);
+
+    try {
+      final result = await context.read<CityProvider>().get(
+        filter: {"retrieveAll": true, "page": 0, "pageSize": 1000},
+      );
+      if (!mounted) return;
+      setState(() => _cities = result.items);
+    } finally {
+      if (mounted) setState(() => _citiesLoading = false);
     }
   }
 
@@ -124,7 +145,7 @@ class PropertyFilterDialogState extends State<PropertyFilterDialog> {
   }
 
   void _onReset() {
-    _fields.setText("City", "");
+    _selectedCityId = null;
     _fields.setText("MinPrice", "");
     _fields.setText("MaxPrice", "");
     _fields.setText("MinDailyPrice", "");
@@ -140,15 +161,13 @@ class PropertyFilterDialogState extends State<PropertyFilterDialog> {
 
     final data = <String, dynamic>{};
 
-    final city = _fields.text("City").trim();
-
     final minMonthly = _tryParseDouble(_fields.text("MinPrice"));
     final maxMonthly = _tryParseDouble(_fields.text("MaxPrice"));
 
     final minDaily = _tryParseDouble(_fields.text("MinDailyPrice"));
     final maxDaily = _tryParseDouble(_fields.text("MaxDailyPrice"));
 
-    if (city.isNotEmpty) data["City"] = city;
+    if (_selectedCityId != null) data["CityId"] = _selectedCityId;
 
     if (minMonthly != null) data["MinPrice"] = minMonthly;
     if (maxMonthly != null) data["MaxPrice"] = maxMonthly;
@@ -169,11 +188,35 @@ class PropertyFilterDialogState extends State<PropertyFilterDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _field(
-              ctrl: _fields.controller("City"),
-              hint: "Grad (City)",
-              icon: Icons.location_city_rounded,
-              errorText: _errors["City"],
+            DropdownButtonFormField<int>(
+              value: _cities.any((x) => x.id == _selectedCityId)
+                  ? _selectedCityId
+                  : null,
+              items: _cities
+                  .map(
+                    (city) => DropdownMenuItem<int>(
+                      value: city.id,
+                      child: Text(city.name),
+                    ),
+                  )
+                  .toList(),
+              onChanged: _citiesLoading
+                  ? null
+                  : (value) => setState(() => _selectedCityId = value),
+              decoration: InputDecoration(
+                hintText: _citiesLoading ? "Ucitavam gradove..." : "Grad",
+                prefixIcon: const Icon(Icons.location_city_rounded),
+                filled: true,
+                fillColor: const Color(0xFFF6F7F8),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide.none,
+                ),
+              ),
             ),
             const SizedBox(height: 10),
         

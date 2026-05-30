@@ -35,7 +35,7 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
 
   Payment get p => widget.payment;
 
-  String get _paymentStatus => (p.paymentStatus).trim();
+  String get _paymentStatus => (p.status?.name ?? "").trim();
 
   @override
   void initState() {
@@ -96,6 +96,23 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
     return "Ovaj zahtjev je označen kao neplaćen zbog neizmirene obaveze u predviđenom roku.";
   }
 
+  Future<void> _confirmAndPay() async {
+    if (!_canPay()) return;
+
+    final confirmed = await ConfirmDialogs.yesNoConfirmation(
+      context,
+      title: "Potvrda placanja",
+      question:
+          "Potvrdjujete placanje zahtjeva za '${widget.property.name}' u iznosu od ${p.price.toStringAsFixed(2)} KM?",
+      yesText: "Plati",
+      noText: "Odustani",
+    );
+
+    if (!confirmed || !mounted) return;
+
+    await _payNow();
+  }
+
   Future<void> _payNow() async {
     if (!_canPay()) return;
 
@@ -129,7 +146,7 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
 
       setState(() => _loading = false);
 
-      final status = (refreshed.paymentStatus).trim();
+      final status = (refreshed.status?.name ?? "").trim();
 
       if (status == "Plaćeno") {
         await ConfirmDialogs.paymentSuccessDialog(
@@ -353,7 +370,7 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          "${widget.property.city} • ${widget.property.location}",
+                          "${widget.property.city?.name ?? ""} • ${widget.property.location}",
                           style: TextStyle(
                             color: Colors.grey.shade700,
                             fontWeight: FontWeight.w600,
@@ -506,7 +523,7 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
                     SizedBox(
                       height: 54,
                       child: ElevatedButton.icon(
-                        onPressed: _payNow,
+                        onPressed: _confirmAndPay,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: hasAdditionalDeadline
                               ? const Color(0xFFD32F2F) // danger

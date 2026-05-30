@@ -5,6 +5,7 @@ using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
 using Rentify.Services.Interfaces;
 using Rentify.Services.ReservationStateMachine;
+using System.Security.Claims;
 
 namespace Rentify.WebAPI.Controllers
 {
@@ -70,12 +71,15 @@ namespace Rentify.WebAPI.Controllers
         [Authorize(Roles = "Vlasnik,Korisnik")]
         public override Task<ReservationResponse?> Update(int id, [FromBody] ReservationUpsertRequest request)
         {
-            return _reservationService.UpdateAsync(id, request);
+            throw new NotSupportedException("Direktno ažuriranje rezervacije nije dozvoljeno. Koristite akcije: approve, finish, reject, cancel.");
         }
 
         [Authorize(Roles = "Korisnik")]
         public override Task<ReservationResponse> Create([FromBody] ReservationUpsertRequest request)
         {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out var userId))
+                request.UserId = userId;
             return _reservationService.CreateAsync(request);
         }
 
@@ -102,16 +106,16 @@ namespace Rentify.WebAPI.Controllers
 
         [HttpPut("{id}/reject")]
         [Authorize(Roles = "Vlasnik")]
-        public async Task<ReservationResponse> Reject(int id)
+        public async Task<ReservationResponse> Reject(int id, [FromBody] ReasonRequest? body = null)
         {
-            return await _reservationService.RejectAsync(id);
+            return await _reservationService.RejectAsync(id, body?.Reason);
         }
 
         [HttpPut("{id}/cancel")]
         [Authorize(Roles = "Vlasnik,Korisnik")]
-        public async Task<ReservationResponse> Cancel(int id)
+        public async Task<ReservationResponse> Cancel(int id, [FromBody] ReasonRequest? body = null)
         {
-            return await _reservationService.CancelAsync(id);
+            return await _reservationService.CancelAsync(id, body?.Reason);
         }
 
     }

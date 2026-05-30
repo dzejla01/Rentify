@@ -24,7 +24,10 @@ namespace Rentify.WebAPI.Controllers
         [HttpGet("")]
         public virtual async Task<PagedResult<T>> Get([FromQuery]TSearch? search = null)
         {
-            return await _service.GetAsync(search ?? new TSearch());
+            var s = search ?? new TSearch();
+            if (s.RetrieveAll && !User.IsInRole("Admin"))
+                s.RetrieveAll = false;
+            return await _service.GetAsync(s);
         }
 
         [HttpGet("{id}")]

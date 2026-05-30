@@ -221,6 +221,15 @@ class BaseMobileScreen extends StatelessWidget {
                       Navigator.pushNamed(context, AppRoutes.questions);
                     },
                   ),
+                  _drawerItem(
+                    context,
+                    icon: Icons.notifications_rounded,
+                    text: "Notifikacije",
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, AppRoutes.notifications);
+                    },
+                  ),
 
                   const SizedBox(height: 8),
                   const Divider(height: 1),

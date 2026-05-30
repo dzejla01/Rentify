@@ -16,20 +16,26 @@ namespace Rentify.Services.Services
           IAppointmentService
     {
         private readonly BaseAppointmentState _baseState;
+        private readonly INotificationService _notificationService;
 
         public AppointmentService(
             RentifyDbContext context,
             IMapper mapper,
-            BaseAppointmentState baseState
+            BaseAppointmentState baseState,
+            INotificationService notificationService
         ) : base(context, mapper)
         {
             _baseState = baseState;
+            _notificationService = notificationService;
         }
 
         protected override IQueryable<Appointment> AddInclude(IQueryable<Appointment> query, AppointmentSearchObject search)
         {
+            query = query.Include(a => a.Status);
+
             if (search.IncludeProperty == true)
-                query = query.Include(p => p.Property);
+                query = query.Include(p => p.Property).ThenInclude(p => p.City)
+                             .Include(p => p.Property).ThenInclude(p => p.BuildingType);
 
             if (search.IncludeUser == true)
                 query = query.Include(p => p.User);
@@ -50,8 +56,8 @@ namespace Rentify.Services.Services
             if (search.PropertyId.HasValue)
                 query = query.Where(x => x.PropertyId == search.PropertyId.Value);
 
-            if (!string.IsNullOrWhiteSpace(search.Status))
-                query = query.Where(x => x.Status == search.Status);
+            if (search.StatusId.HasValue)
+                query = query.Where(x => x.StatusId == search.StatusId.Value);
 
             if (search.DateFrom.HasValue)
                 query = query.Where(x => x.DateAppointment >= search.DateFrom.Value);
@@ -69,12 +75,12 @@ namespace Rentify.Services.Services
                     || (a.User != null && a.User.LastName.ToLower().Contains(fts))
                     || (a.User != null && (a.User.FirstName + " " + a.User.LastName).ToLower().Contains(fts))
                     || (a.User != null && (a.User.LastName + " " + a.User.FirstName).ToLower().Contains(fts))
-                    || ((a.Status ?? "").ToLower().Contains(fts))
-                    || (fts.Contains("odobreno") && a.Status == "Odobreno")
-                    || (fts.Contains("odbijeno") && a.Status == "Odbijeno")
-                    || ((fts.Contains("na čekanju") || fts.Contains("na cekanju")) && a.Status == "Na čekanju")
-                    || (fts.Contains("otkazano") && a.Status == "Otkazano")
-                    || ((fts.Contains("završeno") || fts.Contains("zavrseno")) && a.Status == "Završeno")
+                    || (a.Status != null && a.Status.Name.ToLower().Contains(fts))
+                    || (fts.Contains("odobreno") && a.StatusId == 2)
+                    || (fts.Contains("odbijeno") && a.StatusId == 4)
+                    || ((fts.Contains("na čekanju") || fts.Contains("na cekanju")) && a.StatusId == 1)
+                    || (fts.Contains("otkazano") && a.StatusId == 5)
+                    || ((fts.Contains("završeno") || fts.Contains("zavrseno")) && a.StatusId == 3)
                 );
             }
 
@@ -85,7 +91,22 @@ namespace Rentify.Services.Services
         {
             await ValidateAppointmentsAsync(request);
             var baseState = _baseState.GetState(nameof(InitialAppointmentState));
-            return await baseState.CreateAsync(request);
+            var result = await baseState.CreateAsync(request);
+
+            var property = await _context.Properties.FindAsync(request.PropertyId);
+            if (property != null)
+            {
+                await _notificationService.CreateForUserAsync(
+                    property.UserId,
+                    "Novi zahtjev za termin",
+                    $"Korisnik je zahtijevao termin za nekretninu '{property.Name}'.",
+                    type: "new_appointment",
+                    referenceType: "appointment",
+                    referenceId: result.Id
+                );
+            }
+
+            return result;
         }
 
         private async Task ValidateAppointmentsAsync(AppointmentUpsertRequest request)
@@ -108,7 +129,7 @@ namespace Rentify.Services.Services
                 .AsNoTracking()
                 .AnyAsync(x =>
                     x.UserId == request.UserId &&
-                    (x.Status == "Na čekanju" || x.Status == "Odobreno") &&
+                    (x.StatusId == 1 || x.StatusId == 2) &&
                     x.DateAppointment.HasValue &&
                     x.DateAppointment.Value == appointmentDate
                 );
@@ -125,7 +146,7 @@ namespace Rentify.Services.Services
                 .AnyAsync(x =>
                     x.UserId == request.UserId &&
                     x.PropertyId == request.PropertyId &&
-                    (x.Status == "Na čekanju" || x.Status == "Odobreno")
+                    (x.StatusId == 1 || x.StatusId == 2)
                 );
 
             if (hasSamePropertyAppointment)
@@ -139,7 +160,7 @@ namespace Rentify.Services.Services
                 .AsNoTracking()
                 .AnyAsync(x =>
                     x.PropertyId == request.PropertyId &&
-                    x.Status == "Odobreno" &&
+                    x.StatusId == 2 &&
                     x.DateAppointment.HasValue &&
                     x.DateAppointment.Value == appointmentDate
                 );
@@ -159,23 +180,21 @@ namespace Rentify.Services.Services
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            var requestedStatus = (request.Status ?? "").Trim();
-            var currentStatus = (entity.Status ?? "").Trim();
+            var requestedStatusId = request.StatusId;
+            var currentStatusId = entity.StatusId;
 
-            var stateName = MapStatusToState(currentStatus);
+            var stateName = MapStatusToState(currentStatusId);
             var baseState = _baseState.GetState(stateName);
 
-            if (string.IsNullOrWhiteSpace(requestedStatus) || requestedStatus == currentStatus)
-            {
+            if (requestedStatusId == 0 || requestedStatusId == currentStatusId)
                 return await baseState.UpdateAsync(id, request);
-            }
 
-            return requestedStatus switch
+            return requestedStatusId switch
             {
-                "Odobreno" => await baseState.ToApprovedAsync(id),
-                "Završeno" => await baseState.ToFinishedAsync(id),
-                "Odbijeno" => await baseState.ToRejectedAsync(id),
-                "Otkazano" => await baseState.ToCancelledAsync(id),
+                2  => await baseState.ToApprovedAsync(id),
+                3  => await baseState.ToFinishedAsync(id),
+                4  => await baseState.ToRejectedAsync(id),
+                5 => await baseState.ToCancelledAsync(id),
                 _ => throw new UserException("Nepodržana promjena statusa.")
             };
         }
@@ -186,10 +205,20 @@ namespace Rentify.Services.Services
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            var stateName = MapStatusToState(entity.Status);
+            var stateName = MapStatusToState(entity.StatusId);
             var baseState = _baseState.GetState(stateName);
+            var result = await baseState.ToApprovedAsync(id);
 
-            return await baseState.ToApprovedAsync(id);
+            await _notificationService.CreateForUserAsync(
+                entity.UserId,
+                "Termin odobren",
+                "Vaš zahtjev za termin je odobren.",
+                type: "appointment_status",
+                referenceType: "appointment",
+                referenceId: id
+            );
+
+            return result;
         }
 
         public async Task<AppointmentResponse> FinishAsync(int id)
@@ -198,10 +227,20 @@ namespace Rentify.Services.Services
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            var stateName = MapStatusToState(entity.Status);
+            var stateName = MapStatusToState(entity.StatusId);
             var baseState = _baseState.GetState(stateName);
+            var result = await baseState.ToFinishedAsync(id);
 
-            return await baseState.ToFinishedAsync(id);
+            await _notificationService.CreateForUserAsync(
+                entity.UserId,
+                "Termin završen",
+                "Vaš termin je označen kao završen.",
+                type: "appointment_status",
+                referenceType: "appointment",
+                referenceId: id
+            );
+
+            return result;
         }
 
         public async Task<AppointmentResponse> RejectAsync(int id)
@@ -210,10 +249,20 @@ namespace Rentify.Services.Services
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            var stateName = MapStatusToState(entity.Status);
+            var stateName = MapStatusToState(entity.StatusId);
             var baseState = _baseState.GetState(stateName);
+            var result = await baseState.ToRejectedAsync(id);
 
-            return await baseState.ToRejectedAsync(id);
+            await _notificationService.CreateForUserAsync(
+                entity.UserId,
+                "Termin odbijen",
+                "Vaš zahtjev za termin je odbijen.",
+                type: "appointment_status",
+                referenceType: "appointment",
+                referenceId: id
+            );
+
+            return result;
         }
 
         public async Task<AppointmentResponse> CancelAsync(int id)
@@ -222,10 +271,20 @@ namespace Rentify.Services.Services
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            var stateName = MapStatusToState(entity.Status);
+            var stateName = MapStatusToState(entity.StatusId);
             var baseState = _baseState.GetState(stateName);
+            var result = await baseState.ToCancelledAsync(id);
 
-            return await baseState.ToCancelledAsync(id);
+            await _notificationService.CreateForUserAsync(
+                entity.UserId,
+                "Termin otkazan",
+                "Vaš termin je otkazan.",
+                type: "appointment_status",
+                referenceType: "appointment",
+                referenceId: id
+            );
+
+            return result;
         }
 
         public List<string> AllowedActions(int id)
@@ -234,7 +293,7 @@ namespace Rentify.Services.Services
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            var stateName = MapStatusToState(entity.Status);
+            var stateName = MapStatusToState(entity.StatusId);
             var baseState = _baseState.GetState(stateName);
 
             return baseState.AllowedActions(id);
@@ -258,7 +317,7 @@ namespace Rentify.Services.Services
             var dates = await _context.Appointments
                 .AsNoTracking()
                 .Where(a => a.PropertyId == propertyId)
-                .Where(a => a.Status == "Odobreno")
+                .Where(a => a.StatusId == 2)
                 .Where(a => a.DateAppointment != null)
                 .Where(a => a.DateAppointment!.Value >= fromUtc && a.DateAppointment!.Value < toUtc)
                 .Select(a => a.DateAppointment!.Value)
@@ -289,9 +348,7 @@ namespace Rentify.Services.Services
 
         protected override async Task BeforeDelete(Appointment entity)
         {
-            var status = (entity.Status ?? "").Trim();
-
-            if (status != "Odbijeno" && status != "Završeno")
+            if (entity.StatusId != 4 && entity.StatusId != 3)
             {
                 throw new UserException(
                     "Brisanje je dozvoljeno samo za termine sa statusom 'Odbijeno' ili 'Završeno'."
@@ -301,16 +358,16 @@ namespace Rentify.Services.Services
             await base.BeforeDelete(entity);
         }
 
-        private string MapStatusToState(string? status)
+        private static string MapStatusToState(int statusId)
         {
-            return (status ?? "").Trim() switch
+            return statusId switch
             {
-                "Na čekanju" => nameof(PendingAppointmentState),
-                "Odobreno" => nameof(ApprovedAppointmentState),
-                "Odbijeno" => nameof(RejectedAppointmentState),
-                "Otkazano" => nameof(CancelledAppointmentState),
-                "Završeno" => nameof(FinishedAppointmentState),
-                _ => nameof(InitialAppointmentState)
+                1   => nameof(PendingAppointmentState),
+                2  => nameof(ApprovedAppointmentState),
+                4  => nameof(RejectedAppointmentState),
+                5 => nameof(CancelledAppointmentState),
+                3  => nameof(FinishedAppointmentState),
+                _                   => nameof(InitialAppointmentState)
             };
         }
     }

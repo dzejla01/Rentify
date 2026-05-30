@@ -14,6 +14,7 @@ using Rentify.Services.Interfaces;
 using Rentify.Services.Services;
 using System;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -26,16 +27,19 @@ namespace Rentify.Services
     {
         private readonly IConfiguration _configuration;
         private readonly IConnection _rabbitConnection;
+        private readonly INotificationService _notificationService;
 
         public UserService(
             RentifyDbContext context,
             IConfiguration configuration,
             IMapper mapper,
-            IConnection rabbitConnection
+            IConnection rabbitConnection,
+            INotificationService notificationService
         ) : base(context, mapper)
         {
             _configuration = configuration;
             _rabbitConnection = rabbitConnection;
+            _notificationService = notificationService;
         }
 
         protected override IQueryable<User> ApplyFilter(IQueryable<User> query, UserSearchObject search)
@@ -164,18 +168,30 @@ namespace Rentify.Services
                 .FirstOrDefaultAsync(x => x.Email == email);
 
             if (user == null)
-                throw new NotFoundException("Email nije povezan ni sa jednim nalogom.");
+                return;
 
-            var newPassword = UserHelper.GenerateSecurePassword(12);
+            var code = RandomNumberGenerator.GetInt32(100000, 1000000).ToString();
+            var tokenHash = HashResetToken(code);
+            var now = DateTime.UtcNow;
 
-            UserHelper.CreatePasswordHash(newPassword, out string hash, out string salt);
+            var oldTokens = await _context.PasswordResetTokens
+                .Where(x => x.UserId == user.Id && x.UsedAt == null)
+                .ToListAsync();
 
-            user.PasswordHash = hash;
-            user.PasswordSalt = salt;
+            foreach (var oldToken in oldTokens)
+                oldToken.UsedAt = now;
+
+            _context.PasswordResetTokens.Add(new PasswordResetToken
+            {
+                UserId = user.Id,
+                TokenHash = tokenHash,
+                CreatedAt = now,
+                ExpiresAt = now.AddMinutes(15)
+            });
 
             await _context.SaveChangesAsync();
 
-            var channel = await _rabbitConnection.CreateChannelAsync();
+            await using var channel = await _rabbitConnection.CreateChannelAsync();
 
             await channel.QueueDeclareAsync(
                 queue: "email.reset-password",
@@ -189,16 +205,71 @@ namespace Rentify.Services
             {
                 To = user.Email!,
                 UserName = user.Username ?? user.FirstName ?? "Korisnik",
-                NewPassword = newPassword
+                ResetCode = code
             };
 
             var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message));
+            var properties = new BasicProperties
+            {
+                Persistent = true,
+                ContentType = "application/json"
+            };
 
             await channel.BasicPublishAsync(
                 exchange: "",
                 routingKey: "email.reset-password",
+                mandatory: false,
+                basicProperties: properties,
                 body: body
             );
+        }
+
+        public async Task ResetPasswordAsync(ResetPasswordRequest request)
+        {
+            var user = await _context.Users
+                .FirstOrDefaultAsync(x => x.Email == request.Email);
+
+            if (user == null)
+                throw new UserException("Kod nije validan ili je istekao.");
+
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6)
+                throw new UserException("Nova lozinka mora imati najmanje 6 karaktera.");
+
+            var tokenHash = HashResetToken(request.Code);
+            var now = DateTime.UtcNow;
+
+            var token = await _context.PasswordResetTokens
+                .Where(x => x.UserId == user.Id)
+                .Where(x => x.TokenHash == tokenHash)
+                .Where(x => x.UsedAt == null)
+                .Where(x => x.ExpiresAt >= now)
+                .OrderByDescending(x => x.CreatedAt)
+                .FirstOrDefaultAsync();
+
+            if (token == null)
+                throw new UserException("Kod nije validan ili je istekao.");
+
+            UserHelper.CreatePasswordHash(request.NewPassword, out string hash, out string salt);
+
+            user.PasswordHash = hash;
+            user.PasswordSalt = salt;
+            token.UsedAt = now;
+
+            await _context.SaveChangesAsync();
+
+            await _notificationService.CreateForUserAsync(
+                user.Id,
+                "Lozinka promijenjena",
+                "Vaša lozinka je uspješno promijenjena. Ako niste vi pokrenuli ovu promjenu, kontaktirajte podršku.",
+                type: "password_reset"
+            );
+        }
+
+        private static string HashResetToken(string token)
+        {
+            var normalized = (token ?? "").Trim();
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(normalized));
+            return Convert.ToHexString(bytes);
         }
     }
 }

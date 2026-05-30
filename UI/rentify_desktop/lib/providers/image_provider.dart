@@ -10,13 +10,22 @@ class ImageAppProvider {
 
   static Future<String> upload({
     required File file,
-    required String folder, 
+    required String folder,
+    int? ownerUserId,
+    int? propertyId,
   }) async {
-    final uri = Uri.parse(
-      '${ApiConfig.apiBase}/api/images/upload?folder=$folder',
+    final uri = Uri.parse('${ApiConfig.apiBase}/api/images/upload').replace(
+      queryParameters: {
+        'folder': folder,
+        if (ownerUserId != null) 'ownerUserId': ownerUserId.toString(),
+        if (propertyId != null) 'propertyId': propertyId.toString(),
+      },
     );
 
     final request = http.MultipartRequest('POST', uri);
+    request.headers.addAll(
+      HttpHelper.getHeaders()..remove('Content-Type'),
+    );
 
     request.files.add(
       await http.MultipartFile.fromPath(
@@ -39,13 +48,22 @@ class ImageAppProvider {
   static Future<void> delete({
     required String folder,
     required String fileName,
+    int? ownerUserId,
+    int? propertyId,
   }) async {
-    final uri = Uri.parse(
-      '${ApiConfig.apiBase}/api/images'
-      '?folder=$folder&fileName=$fileName',
+    final uri = Uri.parse('${ApiConfig.apiBase}/api/images').replace(
+      queryParameters: {
+        'folder': folder,
+        'fileName': fileName,
+        if (ownerUserId != null) 'ownerUserId': ownerUserId.toString(),
+        if (propertyId != null) 'propertyId': propertyId.toString(),
+      },
     );
 
-    final res = await http.delete(uri);
+    final res = await http.delete(
+      uri,
+      headers: HttpHelper.getHeaders(),
+    );
 
     HttpHelper.checkResponse(res);
   }

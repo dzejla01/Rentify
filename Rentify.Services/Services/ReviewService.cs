@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using MapsterMapper;
 using Rentify.Model.SearchObjects;
@@ -8,6 +9,7 @@ using Rentify.Model.ResponseObjects;
 using Rentify.Services.Database;
 using Rentify.Services.Interfaces;
 using Rentify.Services.Exceptions;
+using System.Security.Claims;
 
 namespace Rentify.Services.Services
 {
@@ -15,10 +17,23 @@ namespace Rentify.Services.Services
         : BaseCRUDService<ReviewResponse, ReviewSearchObject, Review, ReviewUpsertRequest, ReviewUpsertRequest>,
           IReviewService
     {
-        public ReviewService(RentifyDbContext context, IMapper mapper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public ReviewService(RentifyDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
             : base(context, mapper)
         {
+            _httpContextAccessor = httpContextAccessor;
         }
+
+        private int? GetLoggedInUserId()
+        {
+            var claim = _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(claim, out var id) ? id : null;
+        }
+
+        private bool IsAdmin()
+            => _httpContextAccessor.HttpContext?.User.IsInRole("Admin") ?? false;
 
         protected override IQueryable<Review> ApplyFilter(IQueryable<Review> query, ReviewSearchObject search)
         {
@@ -94,12 +109,18 @@ namespace Rentify.Services.Services
             if (reservation == null)
                 throw new NotFoundException("Rezervacija ne postoji.");
 
-            if (reservation.Status != "Odobreno" && reservation.Status != "Završeno")
+            if (reservation.StatusId != 3)
             {
                 throw new InvalidOperationException(
-                    "Recenziju je moguće ostaviti samo za odobrenu ili završenu rezervaciju."
+                    "Recenziju je moguće ostaviti samo za završenu rezervaciju."
                 );
             }
+
+            var loggedInId = GetLoggedInUserId()
+                ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+            if (reservation.UserId != loggedInId)
+                throw new ForbiddenException("Recenziju može ostaviti samo korisnik koji je napravio rezervaciju.");
 
             var alreadyReviewed = await _context.Reviews
                 .AsNoTracking()
@@ -126,12 +147,21 @@ namespace Rentify.Services.Services
             if (request.StarRate < 1 || request.StarRate > 5)
                 throw new InvalidOperationException("Ocjena mora biti u rasponu od 1 do 5.");
 
-            var reservationExists = await _context.Reservations
+            var reservation = await _context.Reservations
                 .AsNoTracking()
-                .AnyAsync(x => x.Id == request.ReservationId);
+                .FirstOrDefaultAsync(x => x.Id == request.ReservationId);
 
-            if (!reservationExists)
+            if (reservation == null)
                 throw new NotFoundException("Rezervacija ne postoji.");
+
+            if (!IsAdmin())
+            {
+                var loggedInId = GetLoggedInUserId()
+                    ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+                if (reservation.UserId != loggedInId)
+                    throw new ForbiddenException("Samo autor recenzije ili admin može mijenjati recenziju.");
+            }
 
             var duplicateReview = await _context.Reviews
                 .AsNoTracking()
@@ -145,6 +175,23 @@ namespace Rentify.Services.Services
             }
 
             await base.BeforeUpdate(entity, request);
+        }
+
+        protected override async Task BeforeDelete(Review entity)
+        {
+            if (IsAdmin()) return;
+
+            var loggedInId = GetLoggedInUserId()
+                ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+            var reservation = await _context.Reservations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == entity.ReservationId);
+
+            if (reservation == null || reservation.UserId != loggedInId)
+                throw new ForbiddenException("Samo autor recenzije ili admin može obrisati recenziju.");
+
+            await base.BeforeDelete(entity);
         }
     }
 }

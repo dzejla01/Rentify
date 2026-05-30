@@ -32,7 +32,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   bool _loading = false;
 
   String _fts = "";
-  String? _selectedStatus;
+  int? _selectedStatusId;
 
   List<Appointment> _items = [];
 
@@ -63,7 +63,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           "includeUser": true,
           "includeProperty": true,
           "ownerId": Session.userId,
-          "status": _selectedStatus,
+          "statusId": _selectedStatusId,
         }..removeWhere((k, v) => v == null),
       );
 
@@ -81,6 +81,26 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   }
 
   int get _maxPage => _totalCount == 0 ? 0 : ((_totalCount - 1) ~/ _pageSize);
+
+  String _statusName(Appointment a) =>
+      (a.status?.name ?? _statusLabel(a.statusId)).trim();
+
+  String _statusLabel(int statusId) {
+    switch (statusId) {
+      case 1:
+        return "Na cekanju";
+      case 2:
+        return "Odobreno";
+      case 3:
+        return "Zavrseno";
+      case 4:
+        return "Odbijeno";
+      case 5:
+        return "Otkazano";
+      default:
+        return "-";
+    }
+  }
 
   List<String> _getAllowedStatusesForUi(String? currentStatus) {
     final s = (currentStatus ?? "").trim();
@@ -165,14 +185,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   Future<void> _changeStatus(Appointment a) async {
     final provider = context.read<AppoitmentProvider>();
 
-    final currentStatus = (a.status?.trim().isNotEmpty == true)
-        ? a.status!.trim()
+    final currentStatus = (_statusName(a).isNotEmpty == true)
+        ? _statusName(a)
         : "Na čekanju";
 
     String selectedStatus = currentStatus;
 
-    final allowedStatuses = _getAllowedStatusesForUi(a.status);
-    final isLocked = _isLockedStatus(a.status);
+    final allowedStatuses = _getAllowedStatusesForUi(currentStatus);
+    final isLocked = _isLockedStatus(currentStatus);
 
     final saved = await showDialog<bool>(
       context: context,
@@ -346,7 +366,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       if (!mounted) return;
 
       setState(() {
-        _selectedStatus = selectedStatus;
+        _selectedStatusId = null;
         _page = 0;
       });
 
@@ -379,9 +399,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     }
   }
 
-  Future<void> _setStatusFilter(String? status) async {
+  Future<void> _setStatusFilter(int? statusId) async {
     setState(() {
-      _selectedStatus = status;
+      _selectedStatusId = statusId;
       _page = 0;
     });
 
@@ -395,38 +415,38 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       children: [
         _StatusChip(
           label: "Sve",
-          selected: _selectedStatus == null,
+          selected: _selectedStatusId == null,
           onTap: () => _setStatusFilter(null),
           color: const Color(0xFF5F9F3B),
         ),
         _StatusChip(
           label: "Odobreni",
-          selected: _selectedStatus == "Odobreno",
-          onTap: () => _setStatusFilter("Odobreno"),
+          selected: _selectedStatusId == 2,
+          onTap: () => _setStatusFilter(2),
           color: Colors.green,
         ),
         _StatusChip(
           label: "Na čekanju",
-          selected: _selectedStatus == "Na čekanju",
-          onTap: () => _setStatusFilter("Na čekanju"),
+          selected: _selectedStatusId == 1,
+          onTap: () => _setStatusFilter(1),
           color: const Color(0xFF5F9F3B),
         ),
         _StatusChip(
           label: "Završeni",
-          selected: _selectedStatus == "Završeno",
-          onTap: () => _setStatusFilter("Završeno"),
+          selected: _selectedStatusId == 3,
+          onTap: () => _setStatusFilter(3),
           color: Colors.blue,
         ),
         _StatusChip(
           label: "Odbijeni",
-          selected: _selectedStatus == "Odbijeno",
-          onTap: () => _setStatusFilter("Odbijeno"),
+          selected: _selectedStatusId == 4,
+          onTap: () => _setStatusFilter(4),
           color: const Color(0xFF6B7280),
         ),
         _StatusChip(
           label: "Otkazani",
-          selected: _selectedStatus == "Otkazano",
-          onTap: () => _setStatusFilter("Otkazano"),
+          selected: _selectedStatusId == 5,
+          onTap: () => _setStatusFilter(5),
           color: Colors.red,
         ),
       ],
@@ -531,18 +551,18 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: _statusColor(x.status).withOpacity(0.12),
+                    color: _statusColor(_statusName(x)).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
-                      color: _statusColor(x.status).withOpacity(0.28),
+                      color: _statusColor(_statusName(x)).withOpacity(0.28),
                     ),
                   ),
                   child: Text(
-                    x.status ?? "-",
+                    _statusName(x),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: _statusColor(x.status),
+                      color: _statusColor(_statusName(x)),
                     ),
                   ),
                 ),

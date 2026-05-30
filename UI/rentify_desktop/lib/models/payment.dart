@@ -1,6 +1,6 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:rentify_desktop/models/property.dart';
 import 'package:rentify_desktop/models/reservation.dart';
+import 'package:rentify_desktop/models/status.dart';
 import 'package:rentify_desktop/models/user.dart';
 
 part 'payment.g.dart';
@@ -15,7 +15,8 @@ class Payment {
   final double price;
   final int monthNumber;
   final int yearNumber;
-  final String paymentStatus;
+  final int statusId;
+  Status? status;
   DateTime? dateToPay;
   DateTime? warningDateToPay;
   DateTime? secondWarningDate;
@@ -27,16 +28,20 @@ class Payment {
     required this.name,
     required this.comment,
     required this.price,
-    required this.paymentStatus,
     required this.monthNumber,
     required this.yearNumber,
+    required this.statusId,
+    this.status,
     this.dateToPay,
     this.warningDateToPay,
-    this.secondWarningDate
+    this.secondWarningDate,
   });
 
   factory Payment.fromJson(Map<String, dynamic> json) =>
       _$PaymentFromJson(json);
+
+  String? get paymentStatus => status?.name;
+  String? get reservationStatus => reservation?.status?.name;
 
   Map<String, dynamic> toJson() => _$PaymentToJson(this);
 }

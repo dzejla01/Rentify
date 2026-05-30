@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Rentify.Model.ResponseObjects
 {
@@ -7,17 +7,17 @@ namespace Rentify.Model.ResponseObjects
         public int Id { get; set; }
 
         public int UserId { get; set; }
-        public UserResponse? User {get; set;}
+        public UserResponse? User { get; set; }
         public int PropertyId { get; set; }
-        public PropertyResponse? Property {get; set;}
+        public PropertyResponse? Property { get; set; }
 
         public bool IsMonthly { get; set; }
 
-        public string? Status { get; set; }
+        public int StatusId { get; set; }
+        public StatusResponse? Status { get; set; }
 
-        public DateTime? CreatedAt {get; set;}
-
-        public DateTime? StartDateOfRenting {get; set;}
-        public DateTime? EndDateOfRenting {get; set;}
+        public DateTime? CreatedAt { get; set; }
+        public DateTime? StartDateOfRenting { get; set; }
+        public DateTime? EndDateOfRenting { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-using MapsterMapper;
+﻿using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Rentify.Model;
 using Rentify.Model.RequestObjects;
@@ -48,7 +48,7 @@ namespace Rentify.Services.ReservationStateMachine
                     .Where(r => r.Id != entity.Id)
                     .Where(r => r.PropertyId == entity.PropertyId)
                     .Where(r => r.IsMonthly == true)
-                    .Where(r => r.Status == "Odobreno")
+                    .Where(r => r.StatusId == 2)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start <= r.EndDateOfRenting!.Value &&
@@ -67,7 +67,7 @@ namespace Rentify.Services.ReservationStateMachine
                     .Where(r => r.Id != entity.Id)
                     .Where(r => r.PropertyId == entity.PropertyId)
                     .Where(r => r.IsMonthly == false)
-                    .Where(r => r.Status == "Odobreno")
+                    .Where(r => r.StatusId == 2)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start < r.EndDateOfRenting!.Value &&
@@ -88,7 +88,7 @@ namespace Rentify.Services.ReservationStateMachine
                     .Where(r => r.Id != entity.Id)
                     .Where(r => r.PropertyId == entity.PropertyId)
                     .Where(r => r.IsMonthly == false)
-                    .Where(r => r.Status == "Odobreno")
+                    .Where(r => r.StatusId == 2)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start < r.EndDateOfRenting!.Value &&
@@ -107,7 +107,7 @@ namespace Rentify.Services.ReservationStateMachine
                     .Where(r => r.Id != entity.Id)
                     .Where(r => r.PropertyId == entity.PropertyId)
                     .Where(r => r.IsMonthly == true)
-                    .Where(r => r.Status == "Odobreno")
+                    .Where(r => r.StatusId == 2)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start <= r.EndDateOfRenting!.Value &&
@@ -122,7 +122,7 @@ namespace Rentify.Services.ReservationStateMachine
                 }
             }
 
-            entity.Status = "Odobreno";
+            entity.StatusId = 2;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);
@@ -134,7 +134,7 @@ namespace Rentify.Services.ReservationStateMachine
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            entity.Status = "Odbijeno";
+            entity.StatusId = 4;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);
@@ -146,7 +146,7 @@ namespace Rentify.Services.ReservationStateMachine
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            entity.Status = "Otkazano";
+            entity.StatusId = 5;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);

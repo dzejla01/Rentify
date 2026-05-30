@@ -98,6 +98,9 @@ builder.Services.AddSingleton(TypeAdapterConfig.GlobalSettings);
 builder.Services.AddScoped<IMapper, ServiceMapper>();
 
 // SERVICES
+builder.Services.AddScoped<ICityService, CityService>();
+builder.Services.AddScoped<IStatusService, StatusService>();
+builder.Services.AddScoped<IBuildingTypeService, BuildingTypeService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
@@ -110,6 +113,8 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IExpenseService, ExpenseService>();
 builder.Services.AddScoped<PushNotificationService>();
 
 // STATE MACHINE
@@ -177,7 +182,7 @@ builder.Services.AddSingleton<IConnection>(_ =>
 });
 
 var firebasePath =
-    // GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_LOCAL") ??
+    //GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_LOCAL");
     GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_DOCKER");
 
 if (string.IsNullOrWhiteSpace(firebasePath))
@@ -226,6 +231,11 @@ app.UseExceptionHandler(errorApp =>
 
             case NotFoundException ex:
                 context.Response.StatusCode = StatusCodes.Status404NotFound;
+                await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+                break;
+
+            case NotSupportedException ex:
+                context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
                 await context.Response.WriteAsJsonAsync(new { message = ex.Message });
                 break;
 

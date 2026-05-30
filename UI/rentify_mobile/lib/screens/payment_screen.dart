@@ -82,8 +82,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
       );
 
       final reservations = reservationResult.items.where((r) {
-        final status = (r.status ?? "").trim();
-        return status != "Odbijeno";
+        return r.statusId != 4;
       }).toList();
 
       final Map<int, Property> loadedProperties = {};
@@ -168,10 +167,10 @@ class _PaymentScreenState extends State<PaymentScreen> {
       final propertyName = (property?.name ?? "").toLowerCase();
       final reservationType =
           reservation.isMonthly == true ? "najamnina" : "kratki boravak";
-      final reservationStatus = (reservation.status ?? "").toLowerCase();
+      final reservationStatus = (reservation.status?.name ?? "").toLowerCase();
 
       final latestPayment = _getLatestPaymentForReservation(reservation.id);
-      final paymentStatus = (latestPayment?.paymentStatus ?? "").toLowerCase();
+      final paymentStatus = (latestPayment?.status?.name ?? "").toLowerCase();
 
       return propertyName.contains(query) ||
           reservationType.contains(query) ||
@@ -194,11 +193,11 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
   List<Reservation> _visibleReservations() {
     if (_selectedTab == _PaymentTab.active) {
-      return _filteredReservations.where((r) => r.status == "Odobreno").toList();
+      return _filteredReservations.where((r) => r.statusId == 2).toList();
     }
 
     return _filteredReservations
-        .where((r) => r.status == "Završeno" || r.status == "Otkazano")
+        .where((r) => r.statusId == 3 || r.statusId == 5)
         .toList();
   }
 
@@ -214,7 +213,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final latestPayment = _getLatestPaymentForReservation(reservation.id);
     if (latestPayment == null) return false;
 
-    return latestPayment.paymentStatus == "Neplaćeno";
+    return latestPayment.statusId == 8;
   }
 
   bool _hasShortStayUnpaid(Reservation reservation) {
@@ -223,7 +222,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
     final latestPayment = _getLatestPaymentForReservation(reservation.id);
     if (latestPayment == null) return false;
 
-    return latestPayment.paymentStatus == "Neplaćeno";
+    return latestPayment.statusId == 8;
   }
 
   bool _shouldHighlightInRed(Reservation reservation) {
@@ -343,7 +342,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                     isMonthly: r.isMonthly == true,
                                     start: r.startDateOfRenting,
                                     end: r.endDateOfRenting,
-                                    reservationStatus: r.status,
+                                    reservationStatus: r.status?.name,
                                     payment: payment,
                                     warningText: _warningText(r),
                                     highlightRed: _shouldHighlightInRed(r),
@@ -358,7 +357,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
                                                       PaymentListScreen(
                                                     property: property,
                                                     reservationStatus:
-                                                        r.status ?? "-",
+                                                        r.status?.name ?? "-",
                                                   ),
                                                 ),
                                               );
@@ -600,7 +599,7 @@ class _PaymentCard extends StatelessWidget {
                   ),
                 ),
                 _StatusChip(
-                  paymentStatus: payment?.paymentStatus,
+                  paymentStatus: payment?.status?.name,
                   reservationStatus: reservationStatus,
                 ),
               ],

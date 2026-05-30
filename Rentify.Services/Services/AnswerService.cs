@@ -1,19 +1,32 @@
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
 using Rentify.Services.Database;
+using Rentify.Services.Exceptions;
 using Rentify.Services.Interfaces;
+using System.Security.Claims;
 
 namespace Rentify.Services.Services
 {
-    public class AnswerService 
+    public class AnswerService
         : BaseCRUDService<AnswerResponse, AnswerSearchObject, Answer, AnswerUpsertRequest, AnswerUpsertRequest>, IAnswerService
     {
-        public AnswerService(RentifyDbContext context, IMapper mapper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public AnswerService(RentifyDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
             : base(context, mapper)
         {
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private int? GetLoggedInUserId()
+        {
+            var claim = _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(claim, out var id) ? id : null;
         }
 
         protected override IQueryable<Answer> ApplyFilter(IQueryable<Answer> query, AnswerSearchObject search)
@@ -48,12 +61,37 @@ namespace Rentify.Services.Services
         {
             entity.CreatedAt = DateTime.UtcNow;
 
-            var question = await _context.Questions.FindAsync(new object[] { request.QuestionId });
-            if (question != null)
-            {
-                question.IsAnswered = true;
-            }
+            var question = await _context.Questions
+                .Include(q => q.Property)
+                .FirstOrDefaultAsync(q => q.Id == request.QuestionId);
+
+            if (question == null)
+                throw new NotFoundException("Pitanje ne postoji.");
+
+            var loggedInId = GetLoggedInUserId()
+                ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+            if (question.Property == null || question.Property.UserId != loggedInId)
+                throw new ForbiddenException("Možete odgovarati samo na pitanja za vaše nekretnine.");
+
+            var existingAnswer = await _context.Answers
+                .AnyAsync(a => a.QuestionId == request.QuestionId);
+
+            if (existingAnswer)
+                throw new InvalidOperationException("Pitanje već ima odgovor. Koristite update za izmjenu.");
+
+            question.IsAnswered = true;
+
             await base.BeforeInsert(entity, request);
+        }
+
+        protected override async Task BeforeDelete(Answer entity)
+        {
+            var question = await _context.Questions.FindAsync(entity.QuestionId);
+            if (question != null)
+                question.IsAnswered = false;
+
+            await base.BeforeDelete(entity);
         }
     }
 }

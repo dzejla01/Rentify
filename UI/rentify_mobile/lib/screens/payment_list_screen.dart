@@ -59,7 +59,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
         final f = <String, dynamic>{
           "userId": userId,
           "propertyId": widget.property.id,
-          "reservationStatus": widget.reservationStatus,
+          "ReservationStatusId": _reservationStatusId(widget.reservationStatus),
           "page": page,
           "pageSize": pageSize,
           "includeTotalCount": includeTotalCount,
@@ -83,6 +83,17 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
     });
   }
 
+  int? _reservationStatusId(String name) {
+    switch (name) {
+      case "Na čekanju": return 1;
+      case "Odobreno": return 2;
+      case "Završeno": return 3;
+      case "Odbijeno": return 4;
+      case "Otkazano": return 5;
+      default: return null;
+    }
+  }
+
   String _periodText(Payment p) {
     if (p.monthNumber == 0 && p.yearNumber == 0) return "-";
     return "${p.monthNumber.toString().padLeft(2, '0')}.${p.yearNumber}";
@@ -91,17 +102,12 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
   bool _isAdditionalDeadlineActive(Payment p) {
-    final paymentStatus = (p.paymentStatus ?? "").trim();
-
     if (widget.reservationStatus == "Završeno" ||
         widget.reservationStatus == "Otkazano") {
       return false;
     }
 
-    if (paymentStatus == "Plaćeno" ||
-        paymentStatus == "Neplaćeno" ||
-        paymentStatus == "Otkazano" ||
-        paymentStatus == "Neuspješno") {
+    if (p.statusId == 7 || p.statusId == 8 || p.statusId == 5 || p.statusId == 9) {
       return false;
     }
 
@@ -115,7 +121,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
   }
 
   bool _isUnpaid(Payment p) {
-    return (p.paymentStatus ?? "").trim() == "Neplaćeno";
+    return p.statusId == 8;
   }
 
   bool _shouldHighlightRed(Payment p) {
@@ -229,7 +235,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
                   itemBuilder: (context, p) {
                     final showAdditionalDeadline = _isAdditionalDeadlineActive(p);
                     final isUnpaid = _isUnpaid(p);
-                    final paymentStatus = (p.paymentStatus ?? "").trim();
+                    final paymentStatus = (p.status?.name ?? "").trim();
 
                     return Container(
                       padding: const EdgeInsets.all(14),

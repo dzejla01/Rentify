@@ -10,9 +10,13 @@ import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/helper/tags.dart';
 import 'package:rentify_desktop/helper/property_image_display_helper.dart';
 import 'package:rentify_desktop/helper/text_editing_controller_helper.dart';
+import 'package:rentify_desktop/models/building_type.dart';
+import 'package:rentify_desktop/models/city.dart';
 import 'package:rentify_desktop/models/property.dart';
 import 'package:http/http.dart' as http;
 import 'package:rentify_desktop/models/property_images.dart';
+import 'package:rentify_desktop/providers/building_type_provider.dart';
+import 'package:rentify_desktop/providers/city_provider.dart';
 import 'package:rentify_desktop/providers/image_provider.dart';
 import 'package:rentify_desktop/providers/property_image_provider.dart';
 import 'package:rentify_desktop/providers/property_provider.dart';
@@ -45,10 +49,17 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
   late Fields fields;
   late PropertyProvider _propertyProvider;
   late PropertyImageProvider _propertyImageProvider;
+  late CityProvider _cityProvider;
+  late BuildingTypeProvider _buildingTypeProvider;
 
   final TextEditingController _tagController = TextEditingController();
   final FocusNode _tagFocus = FocusNode();
   List<String> _selectedTags = [];
+  List<City> _cities = [];
+  List<BuildingType> _buildingTypes = [];
+  int? _selectedCityId;
+  int? _selectedBuildingTypeId;
+  bool _isLoadingReferences = false;
 
   String? _selectedTag;
 
@@ -201,6 +212,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           await ImageAppProvider.delete(
             folder: "properties",
             fileName: imagePath,
+            propertyId: propertyId,
           );
         }
 
@@ -216,6 +228,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           final uploadedFileName = await ImageAppProvider.upload(
             file: imgDisplay.localFile!,
             folder: 'properties',
+            propertyId: propertyId,
           );
           img.propertyImg = uploadedFileName;
         }
@@ -287,7 +300,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
         3,
         "Naziv mora imati bar 3 karaktera",
       ),
-      Rules.requiredText('city', fields.text('city'), "Grad je obavezan"),
       Rules.requiredText(
         'square',
         fields.text('square'),
@@ -342,8 +354,16 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       ),
     ], _addError);
 
+    if (_selectedCityId == null) {
+      _addError('cityId', "Grad je obavezan");
+    }
+
+    if (_selectedBuildingTypeId == null) {
+      _addError('buildingTypeId', "Tip nekretnine je obavezan");
+    }
+
     setState(() {});
-    return isValid;
+    return isValid && _selectedCityId != null && _selectedBuildingTypeId != null;
   }
 
   Future<void> saveChanges() async {
@@ -357,7 +377,8 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
         final payload = <String, dynamic>{
           'userId': Session.userId,
           'name': fields.text('name').trim(),
-          'city': fields.text('city').trim(),
+          'cityId': _selectedCityId,
+          'buildingTypeId': _selectedBuildingTypeId,
           'location': fields.text('location').trim(),
           'pricePerDay': _isRentingPerDay
               ? double.tryParse(fields.controller('pricePerDay').text) ?? 0.0
@@ -432,6 +453,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           await ImageAppProvider.delete(
             folder: 'properties',
             fileName: imagePath,
+            propertyId: propertyId,
           );
         }
 
@@ -530,6 +552,7 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
 
     addingErrorAutoRemovals();
     isEditingOrNot();
+    _loadReferenceData();
   }
 
   void creatingProviders() {
@@ -538,6 +561,45 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       listen: false,
     );
     _propertyProvider = Provider.of<PropertyProvider>(context, listen: false);
+    _cityProvider = Provider.of<CityProvider>(context, listen: false);
+    _buildingTypeProvider = Provider.of<BuildingTypeProvider>(
+      context,
+      listen: false,
+    );
+  }
+
+  Future<void> _loadReferenceData() async {
+    setState(() => _isLoadingReferences = true);
+
+    try {
+      final cityResult = await _cityProvider.get(
+        filter: {"retrieveAll": true, "page": 0, "pageSize": 1000},
+      );
+      final buildingTypeResult = await _buildingTypeProvider.get(
+        filter: {"retrieveAll": true, "page": 0, "pageSize": 1000},
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _cities = cityResult.items;
+        _buildingTypes = buildingTypeResult.items;
+
+        _selectedCityId ??= widget.property?.cityId;
+        _selectedBuildingTypeId ??= widget.property?.buildingTypeId;
+
+        if (_selectedCityId == null && _cities.isNotEmpty) {
+          _selectedCityId = _cities.first.id;
+        }
+        if (_selectedBuildingTypeId == null && _buildingTypes.isNotEmpty) {
+          _selectedBuildingTypeId = _buildingTypes.first.id;
+        }
+      });
+    } catch (e) {
+      debugPrint('_loadReferenceData error: $e');
+    } finally {
+      if (mounted) setState(() => _isLoadingReferences = false);
+    }
   }
 
   void creatingTextFieldsAndOther() {
@@ -547,7 +609,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       'square',
       'details',
       'location',
-      'city',
       'pricePerDay',
     ]);
   }
@@ -560,8 +621,9 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       fields.setText('square', p.squareMeters.toString());
       fields.setText('details', p.details);
       fields.setText('location', p.location);
-      fields.setText('city', p.city);
       fields.setText('pricePerDay', p.pricePerDay.toString());
+      _selectedCityId = p.cityId;
+      _selectedBuildingTypeId = p.buildingTypeId;
 
       if (p.tags != null) {
         _selectedTags = List<String>.from(p.tags!);
@@ -574,13 +636,6 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       field: 'name',
       fieldErrors: _fieldErrors,
       controller: fields.controller('name'),
-      setState: () => setState(() {}),
-    );
-
-    ErrorAutoRemoval.removeErrorOnTextField(
-      field: 'city',
-      fieldErrors: _fieldErrors,
-      controller: fields.controller('city'),
       setState: () => setState(() {}),
     );
 
@@ -1077,7 +1132,13 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           ],
         ),
         const SizedBox(height: 14),
-        _cityField(),
+        Row(
+          children: [
+            Expanded(child: _cityField()),
+            const SizedBox(width: 14),
+            Expanded(child: _buildingTypeField()),
+          ],
+        ),
       ],
     );
   }
@@ -1245,18 +1306,78 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 6),
-        TextField(
-          onChanged: (value) {
-            setState(() {
-              _isEditedForCreateButton = true;
-            });
-          },
-          enabled: _isEditing,
-          controller: fields.controller('city'),
+        DropdownButtonFormField<int>(
+          value: _cities.any((x) => x.id == _selectedCityId)
+              ? _selectedCityId
+              : null,
+          items: _cities
+              .map(
+                (city) => DropdownMenuItem<int>(
+                  value: city.id,
+                  child: Text(city.name),
+                ),
+              )
+              .toList(),
+          onChanged: !_isEditing || _isLoadingReferences
+              ? null
+              : (value) {
+                  setState(() {
+                    _selectedCityId = value;
+                    _fieldErrors.remove('cityId');
+                    _isEditedForCreateButton = true;
+                  });
+                },
           decoration: InputDecoration(
+            hintText: _isLoadingReferences ? "Ucitavanje..." : "Odaberite grad",
             filled: true,
             fillColor: lightFill,
-            errorText: _fieldErrors['city'],
+            errorText: _fieldErrors['cityId'],
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildingTypeField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Tip nekretnine:",
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<int>(
+          value: _buildingTypes.any((x) => x.id == _selectedBuildingTypeId)
+              ? _selectedBuildingTypeId
+              : null,
+          items: _buildingTypes
+              .map(
+                (type) => DropdownMenuItem<int>(
+                  value: type.id,
+                  child: Text(type.name),
+                ),
+              )
+              .toList(),
+          onChanged: !_isEditing || _isLoadingReferences
+              ? null
+              : (value) {
+                  setState(() {
+                    _selectedBuildingTypeId = value;
+                    _fieldErrors.remove('buildingTypeId');
+                    _isEditedForCreateButton = true;
+                  });
+                },
+          decoration: InputDecoration(
+            hintText: _isLoadingReferences ? "Ucitavanje..." : "Odaberite tip",
+            filled: true,
+            fillColor: lightFill,
+            errorText: _fieldErrors['buildingTypeId'],
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,

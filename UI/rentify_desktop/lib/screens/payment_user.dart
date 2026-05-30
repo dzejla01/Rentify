@@ -43,6 +43,9 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
 
   ReservationViewFilter _selectedFilter = ReservationViewFilter.active;
 
+  String _reservationStatusName(Reservation reservation) =>
+      (reservation.status?.name ?? "").trim();
+
   @override
   void initState() {
     super.initState();
@@ -78,36 +81,45 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
     });
 
     try {
-      final propertiesResult = await _propertyProvider.get(
-        filter: {
-          "userId": Session.userId,
-          "retrieveAll": true,
-          "page": 0,
-          "pageSize": 1000,
-          "includeTotalCount": false,
-        },
-      );
-
-      final ownerPropertyIds = propertiesResult.items.map((p) => p.id).toSet();
+      final ownerId = Session.userId;
+      if (ownerId == null) {
+        throw Exception("Korisnik nije prijavljen.");
+      }
 
       final reservationResult = await _reservationProvider.get(
         filter: {
           "userId": widget.user.id,
+          "ownerId": ownerId,
           "retrieveAll": true,
           "page": 0,
           "pageSize": 1000,
           "includeTotalCount": false,
+          "includeProperty": true,
         },
       );
 
       final relevantReservations = reservationResult.items.where((r) {
-        final status = (r.status!).trim();
-        if (status == "Odbijeno") return false;
-        return ownerPropertyIds.contains(r.propertyId);
+        final status = _reservationStatusName(r);
+        return status != "Odbijeno";
       }).toList();
 
       final propertiesMap = <int, Property>{};
-      for (final property in propertiesResult.items) {
+      for (final reservation in relevantReservations) {
+        final property = reservation.property;
+        if (property != null) {
+          propertiesMap[property.id] = property;
+        }
+      }
+
+      final missingPropertyIds = relevantReservations
+          .where(
+            (reservation) => !propertiesMap.containsKey(reservation.propertyId),
+          )
+          .map((reservation) => reservation.propertyId)
+          .toSet();
+
+      for (final propertyId in missingPropertyIds) {
+        final property = await _propertyProvider.getById(propertyId);
         propertiesMap[property.id] = property;
       }
 
@@ -181,7 +193,7 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
       final propertyName = (property?.name ?? "").toLowerCase();
       final reservationType =
           reservation.isMonthly == true ? "najamnina" : "kratki boravak";
-      final status = reservation.status!.toLowerCase();
+      final status = _reservationStatusName(reservation).toLowerCase();
 
       return propertyName.contains(query) ||
           reservationType.contains(query) ||
@@ -240,20 +252,28 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
 
   List<Reservation> _visibleReservations() {
     if (_selectedFilter == ReservationViewFilter.active) {
-      return _filteredReservations.where((r) => r.status == "Odobreno").toList();
+      return _filteredReservations
+          .where((r) => _reservationStatusName(r) == "Odobreno")
+          .toList();
     }
 
     return _filteredReservations
-        .where((r) => r.status == "Završeno" || r.status == "Otkazano")
+        .where((r) =>
+            _reservationStatusName(r) == "Završeno" ||
+            _reservationStatusName(r) == "Otkazano")
         .toList();
   }
 
   Widget _buildFilterChips() {
   final activeCount =
-      _filteredReservations.where((r) => r.status == "Odobreno").length;
+      _filteredReservations
+          .where((r) => _reservationStatusName(r) == "Odobreno")
+          .length;
 
   final inactiveCount = _filteredReservations
-      .where((r) => r.status == "Završeno" || r.status == "Otkazano")
+      .where((r) =>
+          _reservationStatusName(r) == "Završeno" ||
+          _reservationStatusName(r) == "Otkazano")
       .length;
 
   Widget buildItem({
@@ -387,11 +407,13 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
 
   Widget _statusChip(Reservation reservation) {
     Color bg;
-    if (reservation.status == "Odobreno") {
+    final status = _reservationStatusName(reservation);
+
+    if (status == "Odobreno") {
       bg = const Color(0xFF5F9F3B);
-    } else if (reservation.status == "Završeno") {
+    } else if (status == "Završeno") {
       bg = const Color(0xFF4B5563);
-    } else if (reservation.status == "Otkazano") {
+    } else if (status == "Otkazano") {
       bg = const Color(0xFF9CA3AF);
     } else {
       bg = const Color(0xFF6B7280);
@@ -404,7 +426,7 @@ class _PaymentUserScreenState extends State<PaymentUserScreen> {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        reservation.status!,
+        status.isEmpty ? "-" : status,
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w700,

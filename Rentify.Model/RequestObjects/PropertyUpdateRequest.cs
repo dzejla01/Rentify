@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Rentify.Model.RequestObjects
@@ -9,7 +9,10 @@ namespace Rentify.Model.RequestObjects
         public string Name { get; set; } = null!;
 
         [Required]
-        public string City { get; set; }
+        public int CityId { get; set; }
+
+        [Required]
+        public int BuildingTypeId { get; set; }
 
         [Required]
         public string Location { get; set; } = null!;
@@ -29,8 +32,8 @@ namespace Rentify.Model.RequestObjects
 
         public bool IsAvailable { get; set; } = true;
 
-        public bool IsRentingPerDay {get; set;}
+        public bool IsRentingPerDay { get; set; }
 
-        public bool IsActiveOnApp {get; set;}
+        public bool IsActiveOnApp { get; set; }
     }
 }

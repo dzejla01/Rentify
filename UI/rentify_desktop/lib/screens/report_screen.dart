@@ -154,14 +154,19 @@ class _ReportScreenState extends State<ReportScreen> {
 
   String _km(num v) => "${v.toStringAsFixed(0)} KM";
 
-  List<int> get _incomeYearOptions => const [2025, 2026];
+  List<int> get _incomeYearOptions {
+    final currentYear = DateTime.now().year;
+    return List.generate(currentYear - 2024, (i) => 2025 + i);
+  }
 
   List<int> get _incomeMonthOptions {
-    if (_selectedIncomeYear == 2025) {
+    if (_selectedIncomeYear == null) return [];
+    final now = DateTime.now();
+    if (_selectedIncomeYear! < now.year) {
       return List.generate(12, (i) => i + 1);
     }
-    if (_selectedIncomeYear == 2026) {
-      return List.generate(4, (i) => i + 1);
+    if (_selectedIncomeYear! == now.year) {
+      return List.generate(now.month, (i) => i + 1);
     }
     return [];
   }

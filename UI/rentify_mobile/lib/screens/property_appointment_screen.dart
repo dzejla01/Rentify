@@ -200,12 +200,7 @@ class _PropertyAppointmentUniversalScreenState
       _fieldErrors = errors;
     });
 
-    if (errors.isNotEmpty) {
-      SnackbarHelper.showError(context, errors.values.first);
-      return false;
-    }
-
-    return true;
+    return errors.isEmpty;
   }
 
   Future<void> _submit() async {
@@ -241,7 +236,7 @@ class _PropertyAppointmentUniversalScreenState
         "userId": userId,
         "propertyId": widget.property.id,
         "dateAppointment": appointmentLocal.toUtc().toIso8601String(),
-        "status": "Na čekanju",
+        "statusId": 1,
       };
 
       await Provider.of<AppoitmentProvider>(
@@ -704,7 +699,7 @@ class _PropertyMiniHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = property.name.trim();
-    final city = property.city.trim();
+    final city = (property.city?.name ?? "").trim();
 
     return Container(
       padding: const EdgeInsets.all(14),

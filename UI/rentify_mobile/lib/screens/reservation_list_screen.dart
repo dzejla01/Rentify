@@ -44,7 +44,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
   String _fullName = "";
   bool _userLoading = false;
 
-  String? _selectedStatus;
+  int? _selectedStatusId;
   int? _cancellingReservationId;
 
   Future<String> _getUserFullName(int userId) async {
@@ -106,7 +106,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
               "includeTotalCount": includeTotalCount,
               if (filter != null && filter.trim().isNotEmpty)
                 "FTS": filter.trim(),
-              if (_selectedStatus != null) "status": _selectedStatus,
+              if (_selectedStatusId != null) "statusId": _selectedStatusId,
               ...?extra,
             };
 
@@ -144,11 +144,11 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     });
   }
 
-  Future<void> _changeStatusFilter(String? status) async {
+  Future<void> _changeStatusFilter(int? statusId) async {
     if (!mounted) return;
 
     setState(() {
-      _selectedStatus = status;
+      _selectedStatusId = statusId;
     });
 
     await _paging.refresh();
@@ -202,7 +202,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
           .toSet();
 
       for (final r in reservations) {
-        if (r.id != null && r.status?.trim() == "Završeno") {
+        if (r.id != null && r.statusId == 3) {
           loadedReviewed[r.id!] = reviewedReservationIds.contains(r.id!);
         }
       }
@@ -402,13 +402,13 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
               hint: "Pretraga (nekretnina / period / tip...)",
             ),
             _StatusFilterBar(
-              selectedStatus: _selectedStatus,
+              selectedStatusId: _selectedStatusId,
               onTapAll: () => _changeStatusFilter(null),
-              onTapApproved: () => _changeStatusFilter("Odobreno"),
-              onTapPending: () => _changeStatusFilter("Na čekanju"),
-              onTapFinished: () => _changeStatusFilter("Završeno"),
-              onTapRejected: () => _changeStatusFilter("Odbijeno"),
-              onTapCancelled: () => _changeStatusFilter("Otkazano"),
+              onTapApproved: () => _changeStatusFilter(2),
+              onTapPending: () => _changeStatusFilter(1),
+              onTapFinished: () => _changeStatusFilter(3),
+              onTapRejected: () => _changeStatusFilter(4),
+              onTapCancelled: () => _changeStatusFilter(5),
             ),
             Expanded(
               child: RefreshIndicator(
@@ -436,7 +436,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
                         itemBuilder: (context, r) {
                           final p = _propertiesMap[r.propertyId];
                           final status = ReservationStatusMapper.fromString(
-                            r.status,
+                            r.status?.name,
                           );
 
                           final canReview =
@@ -710,7 +710,7 @@ class _ReviewDialogState extends State<_ReviewDialog> {
 
 class _StatusFilterBar extends StatelessWidget {
   const _StatusFilterBar({
-    required this.selectedStatus,
+    required this.selectedStatusId,
     required this.onTapAll,
     required this.onTapApproved,
     required this.onTapPending,
@@ -719,7 +719,7 @@ class _StatusFilterBar extends StatelessWidget {
     required this.onTapCancelled,
   });
 
-  final String? selectedStatus;
+  final int? selectedStatusId;
   final VoidCallback onTapAll;
   final VoidCallback onTapApproved;
   final VoidCallback onTapPending;
@@ -737,42 +737,42 @@ class _StatusFilterBar extends StatelessWidget {
           children: [
             _FilterChipButton(
               label: "Sve",
-              selected: selectedStatus == null,
+              selected: selectedStatusId == null,
               onTap: onTapAll,
               selectedColor: const Color(0xFF5F9F3B),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Odobrene",
-              selected: selectedStatus == "Odobreno",
+              selected: selectedStatusId == 2,
               onTap: onTapApproved,
               selectedColor: const Color(0xFF2E7D32),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Na čekanju",
-              selected: selectedStatus == "Na čekanju",
+              selected: selectedStatusId == 1,
               onTap: onTapPending,
               selectedColor: const Color(0xFFEF6C00),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Završene",
-              selected: selectedStatus == "Završeno",
+              selected: selectedStatusId == 3,
               onTap: onTapFinished,
               selectedColor: const Color(0xFF1565C0),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Odbijene",
-              selected: selectedStatus == "Odbijeno",
+              selected: selectedStatusId == 4,
               onTap: onTapRejected,
               selectedColor: const Color(0xFF6B7280),
             ),
             const SizedBox(width: 8),
             _FilterChipButton(
               label: "Otkazane",
-              selected: selectedStatus == "Otkazano",
+              selected: selectedStatusId == 5,
               onTap: onTapCancelled,
               selectedColor: const Color(0xFFC62828),
             ),

@@ -22,6 +22,12 @@ public class RentifyDbContext : DbContext
     public DbSet<Answer> Answers { get; set; }
     public DbSet<ReservationHistory> ReservationHistories { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
+    public DbSet<City> Cities { get; set; }
+    public DbSet<Status> Statuses { get; set; }
+    public DbSet<BuildingType> BuildingTypes { get; set; }
+    public DbSet<AppNotification> AppNotifications { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+    public DbSet<Expense> Expenses { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,17 +37,23 @@ public class RentifyDbContext : DbContext
             .HasKey(x => new { x.UserId, x.RoleId });
 
         modelBuilder.Entity<UserDeviceToken>()
-    .HasIndex(x => x.Token)
-    .IsUnique();
+            .HasIndex(x => x.Token)
+            .IsUnique();
 
         modelBuilder.Entity<UserDeviceToken>()
             .HasIndex(x => new { x.UserId, x.IsActive });
 
+        modelBuilder.Entity<AppNotification>()
+            .HasIndex(x => new { x.UserId, x.IsRead, x.CreatedAt });
+
+        modelBuilder.Entity<PasswordResetToken>()
+            .HasIndex(x => new { x.UserId, x.TokenHash, x.UsedAt });
+
         modelBuilder.Entity<Question>()
-                .HasOne(q => q.User)
-                .WithMany()
-                .HasForeignKey(q => q.UserId)
-                .OnDelete(DeleteBehavior.Restrict);
+            .HasOne(q => q.User)
+            .WithMany()
+            .HasForeignKey(q => q.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Question>()
             .HasOne(q => q.Property)
@@ -66,6 +78,12 @@ public class RentifyDbContext : DbContext
             .HasForeignKey(rh => rh.ReservationId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        modelBuilder.Entity<ReservationHistory>()
+            .HasOne(rh => rh.Status)
+            .WithMany()
+            .HasForeignKey(rh => rh.StatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         modelBuilder.Entity<Favorite>()
             .HasOne(f => f.User)
             .WithMany()
@@ -86,7 +104,36 @@ public class RentifyDbContext : DbContext
             .HasIndex(x => x.ReservationId)
             .IsUnique();
 
-        SeedData.Seed(modelBuilder);
+        modelBuilder.Entity<Property>()
+            .HasOne(p => p.City)
+            .WithMany()
+            .HasForeignKey(p => p.CityId)
+            .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<Property>()
+            .HasOne(p => p.BuildingType)
+            .WithMany()
+            .HasForeignKey(p => p.BuildingTypeId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Reservation>()
+            .HasOne(r => r.Status)
+            .WithMany()
+            .HasForeignKey(r => r.StatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Appointment>()
+            .HasOne(a => a.Status)
+            .WithMany()
+            .HasForeignKey(a => a.StatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Payment>()
+            .HasOne(p => p.Status)
+            .WithMany()
+            .HasForeignKey(p => p.StatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        SeedData.Seed(modelBuilder);
     }
 }

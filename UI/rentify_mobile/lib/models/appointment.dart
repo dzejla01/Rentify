@@ -1,4 +1,5 @@
 import 'package:json_annotation/json_annotation.dart';
+import 'package:rentify_mobile/models/status.dart';
 import 'user.dart';
 import 'property.dart';
 
@@ -14,7 +15,8 @@ class Appointment {
   final Property? property;
 
   final DateTime? dateAppointment;
-  final String status;
+  final int statusId;
+  Status? status;
 
   Appointment({
     required this.id,
@@ -23,7 +25,8 @@ class Appointment {
     required this.propertyId,
     this.property,
     this.dateAppointment,
-    required this.status,
+    required this.statusId,
+    this.status,
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) =>

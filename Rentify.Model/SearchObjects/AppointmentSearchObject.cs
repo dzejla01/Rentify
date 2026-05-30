@@ -1,5 +1,4 @@
-﻿using System;
-using Rentify.Model.SearchObjects;
+using System;
 
 namespace Rentify.Model.SearchObjects
 {
@@ -8,10 +7,10 @@ namespace Rentify.Model.SearchObjects
         public int? UserId { get; set; }
         public int? OwnerId { get; set; }
         public int? PropertyId { get; set; }
-        public string? Status { get; set; }
+        public int? StatusId { get; set; }
         public DateTime? DateFrom { get; set; }
         public DateTime? DateTo { get; set; }
-        public bool? IncludeUser {get; set;}
-        public bool? IncludeProperty {get; set;}
+        public bool? IncludeUser { get; set; }
+        public bool? IncludeProperty { get; set; }
     }
 }

@@ -24,33 +24,34 @@ namespace Rentify.Services.Services
             _mapper = mapper;
         }
 
+        private const int DefaultPageSize = 10;
+        private const int MaxPageSize = 100;
+
         public virtual async Task<PagedResult<T>> GetAsync(TSearch search)
         {
             var query = _context.Set<TEntity>().AsQueryable();
 
             query = AddInclude(query, search);
             query = ApplyFilter(query, search);
-            
+
             int? totalCount = null;
-            if (search.IncludeTotalCount){
+            if (search.IncludeTotalCount)
+            {
                 totalCount = await query.CountAsync();
             }
 
             if (!search.RetrieveAll)
             {
-                if (search.Page.HasValue)
-                {
-                    query = query.Skip(search.Page.Value * search.PageSize.Value);
-                }
-                if (search.PageSize.HasValue)
-                {
-                    query = query.Take(search.PageSize.Value);
-                }
+                var page = Math.Max(search.Page ?? 0, 0);
+                var pageSize = Math.Min(search.PageSize ?? DefaultPageSize, MaxPageSize);
+                if (pageSize <= 0) pageSize = DefaultPageSize;
+
+                query = query.Skip(page * pageSize).Take(pageSize);
             }
-            
+
             var list = await query.ToListAsync();
             return new PagedResult<T>
-            {   
+            {
                 Items = list.Select(MapToResponse).ToList(),
                 TotalCount = totalCount
             };

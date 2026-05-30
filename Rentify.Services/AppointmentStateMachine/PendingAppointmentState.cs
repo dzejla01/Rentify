@@ -1,4 +1,4 @@
-using MapsterMapper;
+﻿using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
@@ -42,7 +42,7 @@ namespace Rentify.Services.AppointmentStateMachine
                 .AsNoTracking()
                 .Where(x => x.Id != entity.Id)
                 .Where(x => x.PropertyId == entity.PropertyId)
-                .Where(x => x.Status == "Odobreno")
+                .Where(x => x.StatusId == 2)
                 .Where(x => x.DateAppointment != null)
                 .AnyAsync(x => x.DateAppointment == entity.DateAppointment);
 
@@ -53,19 +53,7 @@ namespace Rentify.Services.AppointmentStateMachine
                 );
             }
 
-            entity.Status = "Odobreno";
-
-            await _context.SaveChangesAsync();
-            return _mapper.Map<AppointmentResponse>(entity);
-        }
-
-        public override async Task<AppointmentResponse> ToFinishedAsync(int id)
-        {
-            var entity = await _context.Appointments.FindAsync(id);
-            if (entity == null)
-                throw new UserException("Termin nije pronađen.");
-
-            entity.Status = "Završeno";
+            entity.StatusId = 2;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);
@@ -77,7 +65,7 @@ namespace Rentify.Services.AppointmentStateMachine
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            entity.Status = "Odbijeno";
+            entity.StatusId = 4;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);
@@ -89,7 +77,7 @@ namespace Rentify.Services.AppointmentStateMachine
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            entity.Status = "Otkazano";
+            entity.StatusId = 5;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);
@@ -101,7 +89,6 @@ namespace Rentify.Services.AppointmentStateMachine
             {
                 nameof(UpdateAsync),
                 nameof(ToApprovedAsync),
-                nameof(ToFinishedAsync),
                 nameof(ToRejectedAsync),
                 nameof(ToCancelledAsync)
             };

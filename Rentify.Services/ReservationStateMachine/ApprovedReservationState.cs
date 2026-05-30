@@ -1,9 +1,8 @@
-using MapsterMapper;
+﻿using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Rentify.Model;
 using Rentify.Model.ResponseObjects;
-using Rentify.Services.AppointmentStateMachine;
 using Rentify.Services.Database;
 using Rentify.Services.Exceptions;
 
@@ -28,7 +27,7 @@ namespace Rentify.Services.ReservationStateMachine
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            entity.Status = "Završeno";
+            entity.StatusId = 3;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);
@@ -53,7 +52,7 @@ namespace Rentify.Services.ReservationStateMachine
 
             if (isOwner)
             {
-                entity.Status = "Otkazano";
+                entity.StatusId = 5;
 
                 await _context.SaveChangesAsync();
                 return _mapper.Map<ReservationResponse>(entity);
@@ -70,9 +69,9 @@ namespace Rentify.Services.ReservationStateMachine
                     if (payments.Any())
                     {
                         var hasBlockingPayments = payments.Any(p =>
-    p.PaymentStatus == "Na čekanju" ||
-    p.PaymentStatus == "Procesiranje" ||
-    p.PaymentStatus == "Neplaćeno");
+    p.StatusId == 1 ||
+    p.StatusId == 6 ||
+    p.StatusId == 8);
 
                         if (hasBlockingPayments)
                         {
@@ -100,7 +99,7 @@ namespace Rentify.Services.ReservationStateMachine
                 }
             }
 
-            entity.Status = "Otkazano";
+            entity.StatusId = 5;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);

@@ -26,19 +26,18 @@ namespace Rentify.Services.Services
 
         protected override IQueryable<Property> AddInclude(IQueryable<Property> query, PropertySearchObject search)
         {
+            query = query.Include(p => p.City).Include(p => p.BuildingType);
+
             if (search.IncludeUser.HasValue)
-            {
                 query = query.Include(u => u.User);
-            }
+
             return base.AddInclude(query, search);
         }
 
         protected override IQueryable<Property> ApplyFilter(IQueryable<Property> query, PropertySearchObject search)
         {
             if (search.IsActiveOnApp.HasValue)
-            {
                 query = query.Where(x => x.IsActiveOnApp == search.IsActiveOnApp);
-            }
 
             if (!string.IsNullOrWhiteSpace(search.Name))
             {
@@ -46,11 +45,11 @@ namespace Rentify.Services.Services
                 query = query.Where(x => x.Name.ToLower().Contains(name));
             }
 
-            if (!string.IsNullOrWhiteSpace(search.City))
-            {
-                var city = search.City.Trim().ToLower();
-                query = query.Where(x => x.City.ToLower().Contains(city));
-            }
+            if (search.CityId.HasValue)
+                query = query.Where(x => x.CityId == search.CityId.Value);
+
+            if (search.BuildingTypeId.HasValue)
+                query = query.Where(x => x.BuildingTypeId == search.BuildingTypeId.Value);
 
             if (!string.IsNullOrWhiteSpace(search.FTS))
             {
@@ -58,7 +57,8 @@ namespace Rentify.Services.Services
 
                 query = query.Where(x =>
                     x.Name.ToLower().Contains(fts)
-                    || x.City.ToLower().Contains(fts)
+                    || x.City.Name.ToLower().Contains(fts)
+                    || x.BuildingType.Name.ToLower().Contains(fts)
                     || x.Location.ToLower().Contains(fts)
                     || x.Details.ToLower().Contains(fts)
                     || x.User.FirstName.ToLower().Contains(fts)
@@ -68,9 +68,7 @@ namespace Rentify.Services.Services
             }
 
             if (search.UserId.HasValue)
-            {
                 query = query.Where(x => x.UserId == search.UserId.Value);
-            }
 
 
             if (search.MinPriceMonth.HasValue)
@@ -107,7 +105,10 @@ namespace Rentify.Services.Services
                 .Distinct()
                 .ToListAsync();
 
-            var candidates = await _context.Properties.Include(p => p.User)
+            var candidates = await _context.Properties
+                .Include(p => p.User)
+                .Include(p => p.City)
+                .Include(p => p.BuildingType)
                 .Where(p => p.IsActiveOnApp && !reservedPropertyIds.Contains(p.Id))
                 .ToListAsync();
 
@@ -116,6 +117,38 @@ namespace Rentify.Services.Services
 
             static string JoinTags(List<string>? tags) =>
                 tags == null ? "" : string.Join(' ', tags.Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => t.Trim()));
+
+            static List<string> NormalizeTags(IEnumerable<string>? tags) =>
+                (tags ?? Enumerable.Empty<string>())
+                    .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .Select(t => t.Trim())
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
+
+            static string BuildRecommendationReason(Property property, IEnumerable<string> profileTags)
+            {
+                var matchingTags = NormalizeTags(property.Tags)
+                    .Where(tag => profileTags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+                    .Take(3)
+                    .ToList();
+
+                if (matchingTags.Any())
+                    return $"Preporuceno jer se poklapa sa tagovima: {string.Join(", ", matchingTags)}.";
+
+                var propertyTags = NormalizeTags(property.Tags).Take(3).ToList();
+                if (propertyTags.Any())
+                    return $"Preporuceno zbog slicnih karakteristika: {string.Join(", ", propertyTags)}.";
+
+                return "Preporuceno na osnovu vase aktivnosti i dostupnih nekretnina.";
+            }
+
+            List<PropertyResponse> MapFallbackWithReason(List<Property> properties, string reason)
+            {
+                var response = _mapper.Map<List<PropertyResponse>>(properties);
+                foreach (var item in response)
+                    item.WhyRecommended = reason;
+                return response;
+            }
 
             List<Property> reservedProps = new();
             if (reservedPropertyIds.Count > 0)
@@ -149,7 +182,10 @@ namespace Rentify.Services.Services
                     .Take(take)
                     .ToList();
 
-                return _mapper.Map<List<PropertyResponse>>(fallback);
+                return MapFallbackWithReason(
+                    fallback,
+                    "Preporuceno jer je medju aktivnim dostupnim nekretninama."
+                );
             }
 
             var ml = new MLContext(seed: 1);
@@ -167,6 +203,7 @@ namespace Rentify.Services.Services
                 .ToDictionary(x => x.Id, x => x.Vec);
 
             float[] userVector;
+            List<string> profileTags;
 
             if (reservedPropertyIds.Count > 0)
             {
@@ -175,11 +212,13 @@ namespace Rentify.Services.Services
                     .Select(id => vecs[id]);
 
                 userVector = RecommendationMath.AverageVectors(reservedVectors);
+                profileTags = NormalizeTags(reservedProps.SelectMany(p => p.Tags ?? new List<string>()));
             }
             else
             {
                 var prefTags = user.PreferedTagsIfNoReservations ?? new List<string>();
                 var prefText = string.Join(' ', prefTags.Where(t => !string.IsNullOrWhiteSpace(t)).Select(t => t.Trim()));
+                profileTags = NormalizeTags(prefTags);
 
                 if (string.IsNullOrWhiteSpace(prefText))
                 {
@@ -188,7 +227,10 @@ namespace Rentify.Services.Services
                         .Take(take)
                         .ToList();
 
-                    return _mapper.Map<List<PropertyResponse>>(fallback);
+                    return MapFallbackWithReason(
+                        fallback,
+                        "Preporuceno jer je medju novijim aktivnim nekretninama."
+                    );
                 }
 
                 var userInput = new[] { new TagVectorInput { Id = -1, TagsText = prefText } };
@@ -206,7 +248,10 @@ namespace Rentify.Services.Services
                     .Take(take)
                     .ToList();
 
-                return _mapper.Map<List<PropertyResponse>>(fallback);
+                return MapFallbackWithReason(
+                    fallback,
+                    "Preporuceno jer nema dovoljno podataka za personalizaciju."
+                );
             }
 
             var scored = candidates
@@ -227,7 +272,10 @@ namespace Rentify.Services.Services
                     .Take(take)
                     .ToList();
 
-                return _mapper.Map<List<PropertyResponse>>(fallback);
+                return MapFallbackWithReason(
+                    fallback,
+                    "Preporuceno jer je medju novijim aktivnim nekretninama."
+                );
             }
 
             var recommended = scored
@@ -235,7 +283,15 @@ namespace Rentify.Services.Services
                 .Select(x => x.Property)
                 .ToList();
 
-            return _mapper.Map<List<PropertyResponse>>(recommended);
+            var response = _mapper.Map<List<PropertyResponse>>(recommended);
+            var propertyById = recommended.ToDictionary(p => p.Id);
+            foreach (var item in response)
+            {
+                if (propertyById.TryGetValue(item.Id, out var property))
+                    item.WhyRecommended = BuildRecommendationReason(property, profileTags);
+            }
+
+            return response;
         }
     }
 }

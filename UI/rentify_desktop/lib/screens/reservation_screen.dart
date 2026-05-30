@@ -38,7 +38,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
   bool _loading = false;
 
   String _fts = "";
-  String? _selectedStatusFilter;
+  int? _selectedStatusFilterId;
 
   List<Reservation> _items = [];
 
@@ -69,7 +69,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
           "includeTotalCount": true,
           "includeUser": true,
           "includeProperty": true,
-          "status": _selectedStatusFilter,
+          "statusId": _selectedStatusFilterId,
         }..removeWhere((k, v) => v == null),
       );
 
@@ -86,6 +86,26 @@ class _ReservationScreenState extends State<ReservationScreen> {
   }
 
   int get _maxPage => _totalCount == 0 ? 0 : ((_totalCount - 1) ~/ _pageSize);
+
+  String _statusName(Reservation r) =>
+      (r.status?.name ?? _statusLabel(r.statusId)).trim();
+
+  String _statusLabel(int statusId) {
+    switch (statusId) {
+      case 1:
+        return "Na cekanju";
+      case 2:
+        return "Odobreno";
+      case 3:
+        return "Zavrseno";
+      case 4:
+        return "Odbijeno";
+      case 5:
+        return "Otkazano";
+      default:
+        return "-";
+    }
+  }
 
   List<String> _getAllowedStatusesForUi(String? currentStatus) {
     final s = (currentStatus ?? "").trim();
@@ -169,14 +189,14 @@ class _ReservationScreenState extends State<ReservationScreen> {
   Future<void> _changeStatus(Reservation r) async {
     final provider = context.read<ReservationProvider>();
 
-    final currentStatus = (r.status?.trim().isNotEmpty == true)
-        ? r.status!.trim()
+    final currentStatus = (_statusName(r).isNotEmpty == true)
+        ? _statusName(r)
         : "Na čekanju";
 
     String selectedStatus = currentStatus;
 
-    final allowedStatuses = _getAllowedStatusesForUi(r.status);
-    final isLocked = _isLockedStatus(r.status);
+    final allowedStatuses = _getAllowedStatusesForUi(currentStatus);
+    final isLocked = _isLockedStatus(currentStatus);
 
     final saved = await showDialog<bool>(
       context: context,
@@ -356,7 +376,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
       if (!mounted) return;
 
       setState(() {
-        _selectedStatusFilter = selectedStatus;
+        _selectedStatusFilterId = null;
         _page = 0;
       });
 
@@ -389,9 +409,9 @@ class _ReservationScreenState extends State<ReservationScreen> {
     }
   }
 
-  Future<void> _setStatusFilter(String? status) async {
+  Future<void> _setStatusFilter(int? statusId) async {
     setState(() {
-      _selectedStatusFilter = status;
+      _selectedStatusFilterId = statusId;
       _page = 0;
     });
 
@@ -405,38 +425,38 @@ class _ReservationScreenState extends State<ReservationScreen> {
       children: [
         _StatusChip(
           label: "Sve",
-          selected: _selectedStatusFilter == null,
+          selected: _selectedStatusFilterId == null,
           onTap: () => _setStatusFilter(null),
           color: const Color(0xFF5F9F3B),
         ),
         _StatusChip(
           label: "Odobrene",
-          selected: _selectedStatusFilter == "Odobreno",
-          onTap: () => _setStatusFilter("Odobreno"),
+          selected: _selectedStatusFilterId == 2,
+          onTap: () => _setStatusFilter(2),
           color: Colors.green,
         ),
         _StatusChip(
           label: "Na čekanju",
-          selected: _selectedStatusFilter == "Na čekanju",
-          onTap: () => _setStatusFilter("Na čekanju"),
+          selected: _selectedStatusFilterId == 1,
+          onTap: () => _setStatusFilter(1),
           color: const Color(0xFF5F9F3B),
         ),
         _StatusChip(
           label: "Završene",
-          selected: _selectedStatusFilter == "Završeno",
-          onTap: () => _setStatusFilter("Završeno"),
+          selected: _selectedStatusFilterId == 3,
+          onTap: () => _setStatusFilter(3),
           color: Colors.blue,
         ),
         _StatusChip(
           label: "Odbijene",
-          selected: _selectedStatusFilter == "Odbijeno",
-          onTap: () => _setStatusFilter("Odbijeno"),
+          selected: _selectedStatusFilterId == 4,
+          onTap: () => _setStatusFilter(4),
           color: const Color(0xFF6B7280),
         ),
         _StatusChip(
           label: "Otkazane",
-          selected: _selectedStatusFilter == "Otkazano",
-          onTap: () => _setStatusFilter("Otkazano"),
+          selected: _selectedStatusFilterId == 5,
+          onTap: () => _setStatusFilter(5),
           color: Colors.red,
         ),
       ],
@@ -548,18 +568,18 @@ class _ReservationScreenState extends State<ReservationScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: _statusColor(x.status).withOpacity(0.12),
+                    color: _statusColor(_statusName(x)).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(
-                      color: _statusColor(x.status).withOpacity(0.28),
+                      color: _statusColor(_statusName(x)).withOpacity(0.28),
                     ),
                   ),
                   child: Text(
-                    x.status ?? "-",
+                    _statusName(x),
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
-                      color: _statusColor(x.status),
+                      color: _statusColor(_statusName(x)),
                     ),
                   ),
                 ),

@@ -38,4 +38,34 @@ class UserProvider extends BaseProvider<User> {
 
   return true;
 }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    final url = Uri.parse(
+      "${ApiConfig.apiBase}/api/User/reset-password",
+    );
+
+    final response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "email": email,
+        "code": code,
+        "newPassword": newPassword,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(
+        "Greska pri resetu lozinke: ${response.body}",
+      );
+    }
+
+    return true;
+  }
 }

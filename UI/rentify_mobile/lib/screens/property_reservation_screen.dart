@@ -950,7 +950,7 @@ class _PropertyReservationUniversalScreenState
         "propertyId": widget.property.id,
         "isMonthly": widget.type == ReservationType.monthly,
         "createdAt": DateHelper.toUtcIso(DateTime.now()),
-        "status": "Na čekanju",
+        "statusId": 1,
       };
 
       if (widget.type == ReservationType.monthly) {
@@ -1033,7 +1033,7 @@ class _PropertyMiniHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final title = property.name.trim();
-    final city = property.city.trim();
+    final city = (property.city?.name ?? "").trim();
 
     return Container(
       padding: const EdgeInsets.all(14),

@@ -3,10 +3,13 @@ import 'package:rentify_desktop/models/property.dart';
 import 'package:rentify_desktop/screens/appointment_screen.dart';
 import 'package:rentify_desktop/screens/home_screen.dart';
 import 'package:rentify_desktop/screens/login_screen.dart';
+import 'package:rentify_desktop/screens/notification_screen.dart';
 import 'package:rentify_desktop/screens/payment_screen.dart';
 import 'package:rentify_desktop/screens/property_detail_or_add_screen.dart';
 import 'package:rentify_desktop/screens/property_screen.dart';
 import 'package:rentify_desktop/screens/question_screen.dart';
+import 'package:rentify_desktop/screens/reference_data_screen.dart';
+import 'package:rentify_desktop/screens/expense_screen.dart';
 import 'package:rentify_desktop/screens/report_screen.dart';
 import 'package:rentify_desktop/screens/reservation_screen.dart';
 import 'package:rentify_desktop/screens/review_screen.dart';
@@ -22,6 +25,9 @@ class AppRoutes {
   static const String login = '/login';
   static const String appointment = '/appointment';
   static const String question = '/question';
+  static const String referenceData = '/reference-data';
+  static const String notifications = '/notifications';
+  static const String expenses = '/expenses';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -51,6 +57,15 @@ class AppRoutes {
 
       case question:
         return MaterialPageRoute(builder: (_) => const QuestionsScreen());
+
+      case referenceData:
+        return MaterialPageRoute(builder: (_) => const ReferenceDataScreen());
+
+      case notifications:
+        return MaterialPageRoute(builder: (_) => const NotificationScreen());
+
+      case expenses:
+        return MaterialPageRoute(builder: (_) => const ExpenseScreen());
 
       case propertyDetails:
         final args = settings.arguments as Map<String, dynamic>?;

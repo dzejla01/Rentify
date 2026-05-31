@@ -67,7 +67,7 @@ stripe listen --forward-to http://localhost:5002/api/payment/webhook
 
 ### Koraci:
 
-🔐 **Šifra arhive:** `FIT`
+🔐 **Šifra arhive:** `fit`
 
 1. Otvoriti šifrirani fajl `Env-Postavke.7z`
 2. Iz njega izvaditi fajl **`.env`**
@@ -86,7 +86,7 @@ firebase-postavke.7z
 
 ### Koraci:
 
-🔐 **Šifra arhive:** `FIT`
+🔐 **Šifra arhive:** `fit`
 
 1. Otvoriti šifrirani folder `firebase-postavke.7z`
 2. Iz njega izvaditi folder **`firebase`**

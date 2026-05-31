@@ -127,6 +127,10 @@ public static class SeedData
             questions: questions,
             properties: properties
         );
+        var expenses = GenerateExpenses(
+            owners: users.Where(x => x.IsVlasnik).ToList(),
+            properties: properties
+        );
 
         modelBuilder.Entity<City>().HasData(
             new City { Id = 1, Name = "Sarajevo" },
@@ -169,6 +173,7 @@ public static class SeedData
         modelBuilder.Entity<Review>().HasData(reviews);
         modelBuilder.Entity<Question>().HasData(questions);
         modelBuilder.Entity<Answer>().HasData(answers);
+        modelBuilder.Entity<Expense>().HasData(expenses);
     }
 
     private static List<Role> GenerateRoles()
@@ -1136,6 +1141,28 @@ public static class SeedData
         }
 
         return email;
+    }
+
+    private static List<Expense> GenerateExpenses(List<User> owners, List<Property> properties)
+    {
+        var owner1 = owners.First(x => x.Username == "owner1");
+        var owner1Props = properties.Where(x => x.UserId == owner1.Id).OrderBy(x => x.Id).ToList();
+
+        var baseDate = new DateTime(2026, 5, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        return new List<Expense>
+        {
+            new Expense { Id = 1, UserId = owner1.Id, PropertyId = owner1Props[0].Id, Description = "Godišnji servis klima uređaja", Amount = 180.00m, Date = baseDate.AddMonths(-10), Category = "Održavanje", CreatedAt = FixedCreatedAt },
+            new Expense { Id = 2, UserId = owner1.Id, PropertyId = owner1Props[1].Id, Description = "Popravak vodovodne instalacije", Amount = 320.50m, Date = baseDate.AddMonths(-9), Category = "Popravak", CreatedAt = FixedCreatedAt },
+            new Expense { Id = 3, UserId = owner1.Id, PropertyId = owner1Props[2].Id, Description = "Komunalne usluge – struja i voda", Amount = 95.00m, Date = baseDate.AddMonths(-8), Category = "Komunalije", CreatedAt = FixedCreatedAt },
+            new Expense { Id = 4, UserId = owner1.Id, PropertyId = owner1Props[3].Id, Description = "Osiguranje nekretnine za 2025. godinu", Amount = 450.00m, Date = baseDate.AddMonths(-7), Category = "Osiguranje", CreatedAt = FixedCreatedAt },
+            new Expense { Id = 5, UserId = owner1.Id, PropertyId = owner1Props[4].Id, Description = "Porez na imovinu", Amount = 210.00m, Date = baseDate.AddMonths(-6), Category = "Porez", CreatedAt = FixedCreatedAt },
+            new Expense { Id = 6, UserId = owner1.Id, PropertyId = owner1Props[0].Id, Description = "Zamjena brave i ključeva na ulaznim vratima", Amount = 85.00m, Date = baseDate.AddMonths(-5), Category = "Popravak", CreatedAt = FixedCreatedAt },
+            new Expense { Id = 7, UserId = owner1.Id, PropertyId = owner1Props[1].Id, Description = "Uklanjanje snijega i zimsko održavanje", Amount = 60.00m, Date = baseDate.AddMonths(-4), Category = "Održavanje", CreatedAt = FixedCreatedAt },
+            new Expense { Id = 8, UserId = owner1.Id, PropertyId = owner1Props[2].Id, Description = "Komunalne usluge – grijanje", Amount = 130.00m, Date = baseDate.AddMonths(-3), Category = "Komunalije", CreatedAt = FixedCreatedAt },
+            new Expense { Id = 9, UserId = owner1.Id, PropertyId = null, Description = "Administrativne takse i notarske naknade", Amount = 75.00m, Date = baseDate.AddMonths(-2), Category = "Ostalo", CreatedAt = FixedCreatedAt },
+            new Expense { Id = 10, UserId = owner1.Id, PropertyId = owner1Props[3].Id, Description = "Farbanje i renovacija fasade", Amount = 680.00m, Date = baseDate.AddMonths(-1), Category = "Održavanje", CreatedAt = FixedCreatedAt },
+        };
     }
 
     private static int GetMonthDifference(DateTime start, DateTime end)

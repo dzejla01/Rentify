@@ -553,6 +553,7 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
 
   final _descCtrl = TextEditingController();
   final _amountCtrl = TextEditingController();
+  final _dateCtrl = TextEditingController();
   String _category = _ExpenseScreenState._categories.first;
   DateTime _date = DateTime.now();
   int? _propertyId;
@@ -570,12 +571,14 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
       _date = e.date.toLocal();
       _propertyId = e.propertyId;
     }
+    _dateCtrl.text = DateFormat('dd.MM.yyyy').format(_date);
   }
 
   @override
   void dispose() {
     _descCtrl.dispose();
     _amountCtrl.dispose();
+    _dateCtrl.dispose();
     super.dispose();
   }
 
@@ -586,7 +589,10 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
     );
-    if (picked != null) setState(() => _date = picked);
+    if (picked != null) {
+      setState(() => _date = picked);
+      _dateCtrl.text = DateFormat('dd.MM.yyyy').format(picked);
+    }
   }
 
   Future<void> _submit() async {
@@ -653,7 +659,6 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.existing != null;
-    final dateStr = DateFormat('dd.MM.yyyy').format(_date);
 
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -718,18 +723,13 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: InkWell(
+                    child: TextField(
+                      controller: _dateCtrl,
+                      readOnly: true,
                       onTap: _pickDate,
-                      borderRadius: BorderRadius.circular(12),
-                      child: InputDecorator(
-                        decoration: _dec(
-                          'Datum',
-                          icon: Icons.calendar_today_rounded,
-                        ),
-                        child: Text(
-                          dateStr,
-                          style: const TextStyle(fontWeight: FontWeight.w700),
-                        ),
+                      decoration: _dec(
+                        'Datum',
+                        icon: Icons.calendar_today_rounded,
                       ),
                     ),
                   ),
@@ -741,6 +741,7 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: _category,
+                      isExpanded: true,
                       decoration: _dec(
                         'Kategorija',
                         icon: Icons.category_rounded,
@@ -751,6 +752,7 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
                               value: c,
                               child: Text(
                                 c,
+                                overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -767,8 +769,9 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
                   Expanded(
                     child: DropdownButtonFormField<int?>(
                       value: _propertyId,
+                      isExpanded: true,
                       decoration: _dec(
-                        'Nekretnina (opciono)',
+                        'Nekretnina',
                         icon: Icons.home_rounded,
                       ),
                       items: [
@@ -776,6 +779,7 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
                           value: null,
                           child: Text(
                             'Bez nekretnine',
+                            overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontWeight: FontWeight.w700),
                           ),
                         ),

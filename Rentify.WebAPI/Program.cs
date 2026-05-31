@@ -257,11 +257,11 @@ if (app.Environment.IsDevelopment())
 }
 
 // MIGRATIONS
-using (var scope = app.Services.CreateScope())
-{
-   var db = scope.ServiceProvider.GetRequiredService<RentifyDbContext>();
-   db.Database.Migrate();
-}
+ using (var scope = app.Services.CreateScope())
+ {
+    var db = scope.ServiceProvider.GetRequiredService<RentifyDbContext>();
+    db.Database.Migrate();
+ }
 
 app.UseStaticFiles();
 

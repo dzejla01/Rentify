@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/models/user.dart';
 import 'package:rentify_desktop/providers/reservation_provider.dart';
 import 'package:rentify_desktop/providers/user_provider.dart';
@@ -73,7 +74,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
 
       setState(() {
         _isLoadingUsers = false;
-        _loadError = "Greška pri učitavanju korisnika.";
+        _loadError = extractErrorMessage(e);
       });
     }
   }

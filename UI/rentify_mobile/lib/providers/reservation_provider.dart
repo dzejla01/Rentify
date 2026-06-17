@@ -70,7 +70,7 @@ Future<Reservation> finish(int id) async {
   return fromJson(data);
 }
 
-Future<Reservation> reject(int id) async {
+Future<Reservation> reject(int id, String reason) async {
   final uri = Uri.parse(
     "${ApiConfig.apiBase}/api/Reservation/$id/reject",
   );
@@ -78,6 +78,7 @@ Future<Reservation> reject(int id) async {
   final response = await http.put(
     uri,
     headers: HttpHelper.getHeaders(),
+    body: jsonEncode({"reason": reason}),
   );
 
   HttpHelper.checkResponse(response);
@@ -86,7 +87,7 @@ Future<Reservation> reject(int id) async {
   return fromJson(data);
 }
 
-Future<Reservation> cancel(int id) async {
+Future<Reservation> cancel(int id, String reason) async {
   final uri = Uri.parse(
     "${ApiConfig.apiBase}/api/Reservation/$id/cancel",
   );
@@ -94,6 +95,7 @@ Future<Reservation> cancel(int id) async {
   final response = await http.put(
     uri,
     headers: HttpHelper.getHeaders(),
+    body: jsonEncode({"reason": reason}),
   );
 
   HttpHelper.checkResponse(response);

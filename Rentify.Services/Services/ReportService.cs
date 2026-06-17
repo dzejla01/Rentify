@@ -2,6 +2,7 @@
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
+using Rentify.Services.Database;
 using Rentify.Services.Interfaces;
 
 
@@ -28,7 +29,7 @@ namespace Rentify.Services.Services
                 .AsNoTracking()
                 .Include(p => p.Reservation)
                   .ThenInclude(p => p.Property)
-                .Where(p => p.StatusId == 7)
+                .Where(p => p.StatusId == PaymentStatus.Paid)
                 .Where(p => p.Reservation.Property != null && p.Reservation.Property.UserId == search.OwnerId);
 
             var monthly = await baseQ
@@ -78,6 +79,8 @@ namespace Rentify.Services.Services
             if (request.Year < 2000 || request.Year > DateTime.UtcNow.Year + 1)
                 throw new ArgumentException("Godina nije validna.");
 
+            // Samo zavrsene rezervacije se racunaju (ne i odobrene koje jos traju/nisu naplacene),
+            // a godina se racuna prema datumu zavrsetka boravka, ne datumu kreiranja zahtjeva.
             var reservations = await _context.Reservations
                 .AsNoTracking()
                 .Include(r => r.Property)
@@ -85,9 +88,19 @@ namespace Rentify.Services.Services
                 .Where(r =>
                     r.Property != null &&
                     r.Property.User != null &&
-                    r.CreatedAt.Year == request.Year &&
-                    (r.StatusId == 3 || r.StatusId == 2))
+                    r.StatusId == ReservationAppointmentStatus.Finished &&
+                    r.EndDateOfRenting.HasValue &&
+                    r.EndDateOfRenting.Value.Year == request.Year)
                 .ToListAsync();
+
+            var reservationIds = reservations.Select(r => r.Id).ToList();
+
+            var incomeByReservationId = await _context.Payments
+                .AsNoTracking()
+                .Where(p => p.StatusId == PaymentStatus.Paid && reservationIds.Contains(p.ReservationId))
+                .GroupBy(p => p.ReservationId)
+                .Select(g => new { ReservationId = g.Key, Total = g.Sum(p => p.Price) })
+                .ToDictionaryAsync(x => x.ReservationId, x => x.Total);
 
             var bestOwner = reservations
                 .GroupBy(r => new
@@ -100,9 +113,11 @@ namespace Rentify.Services.Services
                     Year = request.Year,
                     OwnerId = g.Key.OwnerId,
                     OwnerName = g.Key.OwnerName,
-                    TotalReservations = g.Count()
+                    TotalReservations = g.Count(),
+                    TotalIncome = g.Sum(r => incomeByReservationId.TryGetValue(r.Id, out var amt) ? amt : 0m)
                 })
-                .OrderByDescending(x => x.TotalReservations)
+                .OrderByDescending(x => x.TotalIncome)
+                .ThenByDescending(x => x.TotalReservations)
                 .ThenBy(x => x.OwnerName)
                 .FirstOrDefault();
 

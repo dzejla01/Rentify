@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/base_dialogs.dart';
+import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/providers/appoitment_provider.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
@@ -139,7 +141,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
       if (!mounted) return;
       setState(() {
         _metaLoading = false;
-        _metaError = e.toString();
+        _metaError = extractErrorMessage(e);
       });
     }
   }
@@ -218,18 +220,25 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
     );
 
     if (confirmed == true) {
-      await _cancelAppointment(appointment);
+      if (!mounted) return;
+      final reason = await ConfirmDialogs.reasonPrompt(
+        context,
+        title: "Razlog otkazivanja",
+        message: "Unesite razlog otkazivanja termina:",
+      );
+      if (reason == null) return;
+      await _cancelAppointment(appointment, reason);
     }
   }
 
-  Future<void> _cancelAppointment(Appointment appointment) async {
+  Future<void> _cancelAppointment(Appointment appointment, String reason) async {
     final id = appointment.id;
 
     try {
       if (!mounted) return;
       setState(() => _cancellingAppointmentId = id);
 
-      await _appointmentProvider.cancel(id);
+      await _appointmentProvider.cancel(id, reason);
       await _refreshWithMeta();
 
       if (!mounted) return;
@@ -242,7 +251,7 @@ class _AppointmentListScreenState extends State<AppointmentListScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("$e"), backgroundColor: const Color(0xFFC62828)),
+        SnackBar(content: Text(extractErrorMessage(e)), backgroundColor: const Color(0xFFC62828)),
       );
     } finally {
       if (mounted) {

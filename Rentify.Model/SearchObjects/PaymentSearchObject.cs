@@ -4,6 +4,7 @@ namespace Rentify.Model.SearchObjects
     {
         public int? ReservationId { get; set; }
         public int? UserId { get; set; }
+        public int? OwnerId { get; set; }
         public int? PropertyId { get; set; }
         public bool? IsPayed { get; set; }
         public int? MonthNumber { get; set; }

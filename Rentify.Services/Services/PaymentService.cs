@@ -1,4 +1,5 @@
 ﻿using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,6 +11,7 @@ using Rentify.Services.Database;
 using Rentify.Services.Exceptions;
 using Rentify.Services.Interfaces;
 using Rentify.Services.PaymentStateMachine;
+using System.Security.Claims;
 
 namespace Rentify.Services.Services
 {
@@ -22,6 +24,7 @@ namespace Rentify.Services.Services
         private readonly BasePaymentState _paymentStateService;
         private readonly ILogger<PaymentService> _logger;
         private readonly INotificationService _notificationService;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public PaymentService(
             RentifyDbContext context,
@@ -32,7 +35,8 @@ namespace Rentify.Services.Services
             IOptions<AppConfig> config,
             BasePaymentState paymentStateService,
             ILogger<PaymentService> logger,
-            INotificationService notificationService
+            INotificationService notificationService,
+            IHttpContextAccessor httpContextAccessor
         ) : base(context, mapper)
         {
             _deviceTokenService = deviceToken;
@@ -42,7 +46,18 @@ namespace Rentify.Services.Services
             _paymentStateService = paymentStateService;
             _logger = logger;
             _notificationService = notificationService;
+            _httpContextAccessor = httpContextAccessor;
         }
+
+        private int? GetLoggedInUserId()
+        {
+            var claim = _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(claim, out var id) ? id : null;
+        }
+
+        private bool IsAdmin()
+            => _httpContextAccessor.HttpContext?.User.IsInRole("Admin") ?? false;
 
         public override async Task<PagedResult<PaymentResponse>> GetAsync(PaymentSearchObject search)
         {
@@ -56,6 +71,7 @@ namespace Rentify.Services.Services
 
             var entity = await _context.Payments
                 .Include(p => p.Reservation)
+                    .ThenInclude(r => r.Property)
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (entity == null) return null;
@@ -66,33 +82,135 @@ namespace Rentify.Services.Services
         {
             var now = DateTime.UtcNow;
 
-            var query = _context.Payments
+            // Upozorenje za kasnjenje: WarningDateToPay prošlo, SecondWarningDate još nije
+            var firstWarnQuery = _context.Payments
                 .Include(p => p.Reservation)
+                    .ThenInclude(r => r.Property)
+                .Include(p => p.Reservation)
+                    .ThenInclude(r => r.User)
+                .Where(p => p.WarningDateToPay != null)
+                .Where(p => p.WarningDateToPay!.Value <= now)
+                .Where(p => p.SecondWarningDate == null || p.SecondWarningDate!.Value > now)
+                .Where(p =>
+                    p.StatusId == PaymentStatus.Pending ||
+                    p.StatusId == PaymentStatus.Processing);
+
+            if (paymentId.HasValue)
+                firstWarnQuery = firstWarnQuery.Where(p => p.Id == paymentId.Value);
+
+            var firstWarnPayments = await firstWarnQuery.ToListAsync();
+
+            foreach (var payment in firstWarnPayments)
+            {
+                if (payment.Reservation?.Property == null) continue;
+
+                // Dedulikacija: ne slati upozorenje ako je već poslano za ovaj payment
+                var alreadySent = await _context.AppNotifications
+                    .AnyAsync(n =>
+                        n.ReferenceType == "payment" &&
+                        n.ReferenceId == payment.Id &&
+                        n.Type == "payment_first_warning");
+
+                if (alreadySent) continue;
+
+                var propertyName = payment.Reservation.Property.Name;
+                var tenantName = payment.Reservation.User != null
+                    ? $"{payment.Reservation.User.FirstName} {payment.Reservation.User.LastName}"
+                    : $"Korisnik #{payment.Reservation.UserId}";
+
+                // Obavijest stanaru
+                await _notificationService.CreateForUserAsync(
+                    payment.Reservation.UserId,
+                    "Upozorenje: rok za plaćanje uskoro ističe",
+                    $"Rok za plaćanje za nekretninu '{propertyName}' uskoro ističe. Molimo platite na vrijeme kako biste izbjegli otkazivanje rezervacije.",
+                    type: "payment_first_warning",
+                    referenceType: "payment",
+                    referenceId: payment.Id
+                );
+
+                // Obavijest vlasniku o kasnjenju
+                await _notificationService.CreateForUserAsync(
+                    payment.Reservation.Property.UserId,
+                    "Kasnjenje plaćanja",
+                    $"Korisnik {tenantName} kasni sa plaćanjem za nekretninu '{propertyName}'.",
+                    type: "payment_first_warning",
+                    referenceType: "payment",
+                    referenceId: payment.Id
+                );
+            }
+
+            // Automatsko otkazivanje: SecondWarningDate prošlo
+            var expiredQuery = _context.Payments
+                .Include(p => p.Reservation)
+                    .ThenInclude(r => r.Property)
+                .Include(p => p.Reservation)
+                    .ThenInclude(r => r.User)
                 .Where(p => p.SecondWarningDate != null)
                 .Where(p => p.SecondWarningDate!.Value <= now)
                 .Where(p =>
-                    p.StatusId == 1 ||
-                    p.StatusId == 6);
+                    p.StatusId == PaymentStatus.Pending ||
+                    p.StatusId == PaymentStatus.Processing);
 
             if (paymentId.HasValue)
-                query = query.Where(p => p.Id == paymentId.Value);
+                expiredQuery = expiredQuery.Where(p => p.Id == paymentId.Value);
 
-            var expiredPayments = await query.ToListAsync();
+            var expiredPayments = await expiredQuery.ToListAsync();
 
-            if (!expiredPayments.Any())
+            if (!expiredPayments.Any() && !firstWarnPayments.Any())
                 return;
 
             foreach (var payment in expiredPayments)
             {
-                payment.StatusId = 8;
+                payment.StatusId = PaymentStatus.Unpaid;
                 payment.PaidAt = null;
 
                 if (payment.Reservation != null &&
-                    payment.Reservation.StatusId != 5 &&
-                    payment.Reservation.StatusId != 3 &&
-                    payment.Reservation.StatusId != 4)
+                    payment.Reservation.StatusId != ReservationAppointmentStatus.Cancelled &&
+                    payment.Reservation.StatusId != ReservationAppointmentStatus.Finished &&
+                    payment.Reservation.StatusId != ReservationAppointmentStatus.Rejected)
                 {
-                    payment.Reservation.StatusId = 5;
+                    var oldReservationStatusId = payment.Reservation.StatusId;
+                    payment.Reservation.StatusId = ReservationAppointmentStatus.Cancelled;
+
+                    _context.ReservationHistories.Add(new ReservationHistory
+                    {
+                        ReservationId = payment.Reservation.Id,
+                        StatusId = ReservationAppointmentStatus.Cancelled,
+                        OldStatusId = oldReservationStatusId,
+                        NewStatusId = ReservationAppointmentStatus.Cancelled,
+                        ChangedByUserId = null,
+                        Reason = "Automatski otkazano - rok za plaćanje je istekao.",
+                        Note = $"Sistemska akcija (payment Id={payment.Id}).",
+                        ChangedAt = now
+                    });
+
+                    var propertyName = payment.Reservation.Property?.Name ?? "nekretnina";
+                    var tenantName = payment.Reservation.User != null
+                        ? $"{payment.Reservation.User.FirstName} {payment.Reservation.User.LastName}"
+                        : $"Korisnik #{payment.Reservation.UserId}";
+
+                    // Obavijest stanaru
+                    await _notificationService.CreateForUserAsync(
+                        payment.Reservation.UserId,
+                        "Rezervacija otkazana",
+                        $"Vaša rezervacija za nekretninu '{propertyName}' je automatski otkazana jer rok za plaćanje nije ispoštovan.",
+                        type: "reservation_status",
+                        referenceType: "reservation",
+                        referenceId: payment.Reservation.Id
+                    );
+
+                    // Obavijest vlasniku o kašnjenju i automatskom otkazivanju
+                    if (payment.Reservation.Property != null)
+                    {
+                        await _notificationService.CreateForUserAsync(
+                            payment.Reservation.Property.UserId,
+                            "Korisnik zakasnio sa uplatom",
+                            $"Korisnik {tenantName} je zakasnio sa uplatom za nekretninu '{propertyName}'. Rezervacija je automatski otkazana.",
+                            type: "payment_expired",
+                            referenceType: "reservation",
+                            referenceId: payment.Reservation.Id
+                        );
+                    }
                 }
             }
 
@@ -115,16 +233,16 @@ namespace Rentify.Services.Services
                     || (x.Reservation != null && x.Reservation.User != null && (x.Reservation.User.LastName + " " + x.Reservation.User.FirstName).ToLower().Contains(fts))
                     || (x.MonthNumber.ToString().PadLeft(2, '0') + "." + x.YearNumber.ToString()).Contains(fts)
                     || (x.Status != null && x.Status.Name.ToLower().Contains(fts))
-                    || (fts.Contains("plaćeno") && x.StatusId == 7)
-                    || (fts.Contains("placeno") && x.StatusId == 7)
-                    || (fts.Contains("na čekanju") && x.StatusId == 1)
-                    || (fts.Contains("na cekanju") && x.StatusId == 1)
-                    || (fts.Contains("procesiranje") && x.StatusId == 6)
-                    || (fts.Contains("neplaćeno") && x.StatusId == 8)
-                    || (fts.Contains("neplaceno") && x.StatusId == 8)
-                    || (fts.Contains("otkazano") && x.StatusId == 5)
-                    || (fts.Contains("neuspješno") && x.StatusId == 9)
-                    || (fts.Contains("neuspjesno") && x.StatusId == 9)
+                    || (fts.Contains("plaćeno") && x.StatusId == PaymentStatus.Paid)
+                    || (fts.Contains("placeno") && x.StatusId == PaymentStatus.Paid)
+                    || (fts.Contains("na čekanju") && x.StatusId == PaymentStatus.Pending)
+                    || (fts.Contains("na cekanju") && x.StatusId == PaymentStatus.Pending)
+                    || (fts.Contains("procesiranje") && x.StatusId == PaymentStatus.Processing)
+                    || (fts.Contains("neplaćeno") && x.StatusId == PaymentStatus.Unpaid)
+                    || (fts.Contains("neplaceno") && x.StatusId == PaymentStatus.Unpaid)
+                    || (fts.Contains("otkazano") && x.StatusId == PaymentStatus.Cancelled)
+                    || (fts.Contains("neuspješno") && x.StatusId == PaymentStatus.Failed)
+                    || (fts.Contains("neuspjesno") && x.StatusId == PaymentStatus.Failed)
                 );
             }
 
@@ -133,6 +251,9 @@ namespace Rentify.Services.Services
 
             if (search.UserId.HasValue)
                 query = query.Where(x => x.Reservation != null && x.Reservation.UserId == search.UserId.Value);
+
+            if (search.OwnerId.HasValue)
+                query = query.Where(x => x.Reservation != null && x.Reservation.Property != null && x.Reservation.Property.UserId == search.OwnerId.Value);
 
             if (search.PropertyId.HasValue)
                 query = query.Where(x => x.Reservation != null && x.Reservation.PropertyId == search.PropertyId.Value);
@@ -171,12 +292,37 @@ namespace Rentify.Services.Services
 
         protected override async Task BeforeInsert(Payment entity, PaymentUpsertRequest request)
         {
-            if (entity.StatusId == 0)
-                entity.StatusId = 1;
+            var reservation = await _context.Reservations
+                .Include(r => r.Property)
+                .FirstOrDefaultAsync(r => r.Id == entity.ReservationId);
 
-            entity.PaidAt = entity.StatusId == 7
-                ? entity.PaidAt ?? DateTime.UtcNow
-                : null;
+            if (reservation == null)
+                throw new NotFoundException("Rezervacija ne postoji.");
+
+            if (!IsAdmin())
+            {
+                var loggedInId = GetLoggedInUserId()
+                    ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+                if (reservation.Property == null || reservation.Property.UserId != loggedInId)
+                    throw new ForbiddenException("Možete kreirati uplate samo za rezervacije na vlastitim nekretninama.");
+            }
+
+            if (reservation.StatusId != ReservationAppointmentStatus.Approved)
+                throw new UserException("Uplata se može kreirati samo za odobrenu rezervaciju.");
+
+            var duplicateExists = await _context.Payments.AnyAsync(p =>
+                p.ReservationId == entity.ReservationId &&
+                p.MonthNumber == entity.MonthNumber &&
+                p.YearNumber == entity.YearNumber);
+
+            if (duplicateExists)
+                throw new InvalidOperationException("Uplata za ovaj mjesec i godinu već postoji za ovu rezervaciju.");
+
+            // Ručno kreiranje uvijek kreće kao 'Na čekanju' — status se dalje mijenja
+            // isključivo kroz Stripe webhook tok ili admin Update, nikad direktno iz Create requesta.
+            entity.StatusId = PaymentStatus.Pending;
+            entity.PaidAt = null;
 
             await base.BeforeInsert(entity, request);
         }
@@ -185,10 +331,10 @@ namespace Rentify.Services.Services
         {
             var newStatusId = request.StatusId != 0 ? request.StatusId : entity.StatusId;
 
-            if (newStatusId == 7 && entity.PaidAt == null)
+            if (newStatusId == PaymentStatus.Paid && entity.PaidAt == null)
                 entity.PaidAt = DateTime.UtcNow;
 
-            if (newStatusId != 7)
+            if (newStatusId != PaymentStatus.Paid)
                 entity.PaidAt = null;
 
             await base.BeforeUpdate(entity, request);
@@ -196,21 +342,24 @@ namespace Rentify.Services.Services
 
         protected override async Task AfterInsert(Payment entity, PaymentUpsertRequest request)
         {
-            if (entity.StatusId != 1)
+            if (entity.StatusId != PaymentStatus.Pending)
                 return;
 
-            var reservationUserId = await _context.Reservations
+            var reservationData = await _context.Reservations
                 .Where(x => x.Id == entity.ReservationId)
-                .Select(x => x.UserId)
+                .Select(x => new { x.UserId, PropertyName = x.Property != null ? x.Property.Name : "" })
                 .FirstOrDefaultAsync();
 
-            if (reservationUserId == 0)
+            if (reservationData == null || reservationData.UserId == 0)
                 return;
+
+            var reservationUserId = reservationData.UserId;
+            var propertyName = string.IsNullOrEmpty(reservationData.PropertyName) ? "nekretnina" : reservationData.PropertyName;
 
             await _notificationService.CreateForUserAsync(
                 reservationUserId,
-                "Novi zahtjev za placanje",
-                "Imate novi zahtjev za placanje.",
+                "Novi zahtjev za plaćanje",
+                $"Imate novi zahtjev za plaćanje za nekretninu '{propertyName}'.",
                 type: "payment_request",
                 referenceType: "payment",
                 referenceId: entity.Id
@@ -223,7 +372,7 @@ namespace Rentify.Services.Services
                 await _pushService.SendToTokensAsync(
                     tokens,
                     "Rentify",
-                    "Imate novi zahtjev za plaćanje.",
+                    $"Imate novi zahtjev za plaćanje za nekretninu '{propertyName}'.",
                     new Dictionary<string, string>
                     {
                         ["type"] = "payment_request",
@@ -252,19 +401,19 @@ namespace Rentify.Services.Services
             if (payment.Reservation.UserId != req.UserId)
                 throw new UserException("Payment ne pripada korisniku.");
 
-            if (payment.StatusId == 7)
+            if (payment.StatusId == PaymentStatus.Paid)
                 throw new UserException("Uplata je već plaćena.");
 
-            if (payment.StatusId == 6 && !string.IsNullOrWhiteSpace(payment.StripePaymentIntentId))
+            if (payment.StatusId == PaymentStatus.Processing && !string.IsNullOrWhiteSpace(payment.StripePaymentIntentId))
                 throw new UserException("Plaćanje je već u toku. Sačekajte završetak tekuće transakcije.");
 
-            if (payment.StatusId == 5)
+            if (payment.StatusId == PaymentStatus.Cancelled)
                 throw new UserException("Uplata je otkazana.");
 
-            if (payment.StatusId == 8)
+            if (payment.StatusId == PaymentStatus.Unpaid)
                 throw new UserException("Uplata je označena kao neplaćena.");
 
-            if (payment.StatusId == 9)
+            if (payment.StatusId == PaymentStatus.Failed)
                 throw new UserException("Uplata je neuspješna. Kreirajte novi zahtjev za plaćanje.");
 
             var metadata = new Dictionary<string, string>
@@ -305,7 +454,7 @@ namespace Rentify.Services.Services
             if (payment == null)
                 return;
 
-            if (payment.StatusId == 7)
+            if (payment.StatusId == PaymentStatus.Paid)
                 return;
 
             var state = GetPaymentStateForStatus(payment.StatusId);
@@ -362,6 +511,15 @@ namespace Rentify.Services.Services
                 payment.StripePaymentIntentId = paymentIntentId;
                 await _context.SaveChangesAsync();
             }
+            else if (payment.StripePaymentIntentId != paymentIntentId)
+            {
+                // Webhook event pripada starom/napuštenom intentu koji više nije aktivan
+                // za ovaj payment (npr. korisnik je pokrenuo novi pokušaj plaćanja) — odbij ga.
+                _logger.LogWarning(
+                    "Odbijen webhook za payment {PaymentId}: intent {IncomingIntent} ne odgovara aktivnom intentu {ActiveIntent}.",
+                    payment.Id, paymentIntentId, payment.StripePaymentIntentId);
+                return null;
+            }
 
             return payment;
         }
@@ -370,12 +528,12 @@ namespace Rentify.Services.Services
         {
             return statusId switch
             {
-                1    => _paymentStateService.GetState(nameof(PendingPaymentState)),
-                6 => _paymentStateService.GetState(nameof(ProcessingPaymentState)),
-                7       => _paymentStateService.GetState(nameof(PaidPaymentState)),
-                8     => _paymentStateService.GetState(nameof(UnpaidPaymentState)),
-                5  => _paymentStateService.GetState(nameof(CancelledPaymentState)),
-                9     => _paymentStateService.GetState(nameof(FailedPaymentState)),
+                PaymentStatus.Pending => _paymentStateService.GetState(nameof(PendingPaymentState)),
+                PaymentStatus.Processing => _paymentStateService.GetState(nameof(ProcessingPaymentState)),
+                PaymentStatus.Paid => _paymentStateService.GetState(nameof(PaidPaymentState)),
+                PaymentStatus.Unpaid => _paymentStateService.GetState(nameof(UnpaidPaymentState)),
+                PaymentStatus.Cancelled => _paymentStateService.GetState(nameof(CancelledPaymentState)),
+                PaymentStatus.Failed => _paymentStateService.GetState(nameof(FailedPaymentState)),
 
                 _ => throw new UserException($"Status uplate '{statusId}' nije podržan.")
             };

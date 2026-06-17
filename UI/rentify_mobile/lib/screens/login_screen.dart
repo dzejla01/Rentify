@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:rentify_mobile/config/token_storage.dart';
 
 import 'package:rentify_mobile/dialogs/forgot_password_dialog.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/helper/snackBar_helper.dart';
 import 'package:rentify_mobile/models/login_request.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
@@ -107,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     SnackbarHelper.showError(
       context,
-      '$e',
+      extractErrorMessage(e),
     );
   } finally {
     if (mounted) setState(() => _isLoading = false);

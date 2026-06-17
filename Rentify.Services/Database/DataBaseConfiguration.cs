@@ -18,8 +18,9 @@ namespace Rentify.Services.Database
             LoadDotEnv();
 
             var connectionString =
-                //Environment.GetEnvironmentVariable("CONNECTION_STRING_LOCAL"); //??
-                Environment.GetEnvironmentVariable("CONNECTION_STRING_DOCKER");
+                Environment.GetEnvironmentVariable("ConnectionStrings__DefaultConnection")
+                ?? Environment.GetEnvironmentVariable("CONNECTION_STRING_DOCKER")
+                ?? Environment.GetEnvironmentVariable("CONNECTION_STRING_LOCAL");
 
             if (string.IsNullOrWhiteSpace(connectionString))
                 throw new InvalidOperationException("Missing env var: CONNECTION_STRING_DOCKER or CONNECTION_STRING_LOCAL");

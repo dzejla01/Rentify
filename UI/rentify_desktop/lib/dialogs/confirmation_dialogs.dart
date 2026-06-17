@@ -194,6 +194,114 @@ class ConfirmDialogs {
     );
   }
 
+  static Future<String?> reasonPrompt(
+    BuildContext context, {
+    required String title,
+    String message = 'Molimo unesite razlog:',
+    String confirmText = 'Potvrdi',
+    String cancelText = 'Otkaži',
+  }) async {
+    final controller = TextEditingController();
+
+    final result = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withOpacity(0.4),
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (dialogContext, setState) {
+            String? error;
+
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(_radius),
+              ),
+              child: SizedBox(
+                width: 420,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                      decoration: const BoxDecoration(
+                        color: _primaryGreen,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(_radius)),
+                      ),
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 22, 22, 0),
+                      child: Text(
+                        message,
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                          color: _text,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(22, 12, 22, 18),
+                      child: TextField(
+                        controller: controller,
+                        autofocus: true,
+                        maxLines: 3,
+                        decoration: InputDecoration(
+                          hintText: 'Unesite razlog...',
+                          errorText: error,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          OutlinedButton(
+                            onPressed: () => Navigator.of(dialogContext).pop(),
+                            style: _outlineBtn(color: _muted),
+                            child: Text(cancelText, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          ),
+                          const SizedBox(width: 12),
+                          ElevatedButton(
+                            onPressed: () {
+                              final value = controller.text.trim();
+                              if (value.isEmpty) {
+                                setState(() => error = 'Razlog je obavezan.');
+                                return;
+                              }
+                              Navigator.of(dialogContext).pop(value);
+                            },
+                            style: _filledBtn(bg: _primaryGreen),
+                            child: Text(confirmText, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    controller.dispose();
+    return result;
+  }
+
   static Future<bool> badGoodConfirmation(
     BuildContext context, {
     required String question,
@@ -201,7 +309,7 @@ class ConfirmDialogs {
     required String goodText,
     required String badText,
     bool barrierDismissible = false,
-    bool goodIsGreen = true, 
+    bool goodIsGreen = true,
   }) async {
     final res = await _baseDialog<bool>(
       context,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:rentify_desktop/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/helper/univerzal_pagging_helper.dart';
 
@@ -131,7 +132,7 @@ class _ReviewScreenState extends State<ReviewScreen> {
       }
     } catch (e) {
       if (mounted) {
-        SnackbarHelper.showError(context, e.toString());
+        SnackbarHelper.showError(context, extractErrorMessage(e));
       }
     }
   }

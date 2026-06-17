@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/helper/date_helper.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/models/payment.dart';
 import 'package:rentify_desktop/models/property.dart';
 import 'package:rentify_desktop/models/reservation.dart';
@@ -133,7 +134,7 @@ class _PaymentListScreenState extends State<PaymentListScreen> {
       });
     } catch (e) {
       setState(() {
-        _metaError = e.toString();
+        _metaError = extractErrorMessage(e);
         _metaLoading = false;
       });
     }

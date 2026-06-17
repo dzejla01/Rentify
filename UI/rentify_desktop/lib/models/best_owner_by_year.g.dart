@@ -12,6 +12,7 @@ BestOwnerByYear _$BestOwnerByYearFromJson(Map<String, dynamic> json) =>
       ownerId: (json['ownerId'] as num).toInt(),
       ownerName: json['ownerName'] as String,
       totalReservations: (json['totalReservations'] as num).toInt(),
+      totalIncome: (json['totalIncome'] as num?)?.toDouble() ?? 0,
     );
 
 Map<String, dynamic> _$BestOwnerByYearToJson(BestOwnerByYear instance) =>
@@ -20,4 +21,5 @@ Map<String, dynamic> _$BestOwnerByYearToJson(BestOwnerByYear instance) =>
       'ownerId': instance.ownerId,
       'ownerName': instance.ownerName,
       'totalReservations': instance.totalReservations,
+      'totalIncome': instance.totalIncome,
     };

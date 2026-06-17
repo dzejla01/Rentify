@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/snackbar_helper.dart';
 import 'package:rentify_desktop/models/best_owner_by_year.dart';
 import 'package:rentify_desktop/models/monthly_income.dart';
@@ -73,7 +74,7 @@ class _ReportScreenState extends State<ReportScreen> {
       await _loadBestOwner();
     } catch (e) {
       if (!mounted) return;
-      SnackbarHelper.showError(context, e.toString());
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -234,7 +235,7 @@ class _ReportScreenState extends State<ReportScreen> {
       await OpenFilex.open(file.path);
     } catch (e) {
       if (!mounted) return;
-      SnackbarHelper.showError(context, "Ne mogu napraviti PDF: $e");
+      SnackbarHelper.showError(context, "Ne mogu napraviti PDF: ${extractErrorMessage(e)}");
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -268,7 +269,7 @@ class _ReportScreenState extends State<ReportScreen> {
       await OpenFilex.open(file.path);
     } catch (e) {
       if (!mounted) return;
-      SnackbarHelper.showError(context, "Ne mogu napraviti PDF: $e");
+      SnackbarHelper.showError(context, "Ne mogu napraviti PDF: ${extractErrorMessage(e)}");
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -544,7 +545,15 @@ class _ReportScreenState extends State<ReportScreen> {
                   ),
                   pw.SizedBox(height: 8),
                   pw.Text(
-                    "Ukupan broj rezervacija: ${bestOwner.totalReservations}",
+                    "Ukupan prihod od završenih rezervacija: ${_km(bestOwner.totalIncome)}",
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
+                  pw.SizedBox(height: 4),
+                  pw.Text(
+                    "Ukupan broj završenih rezervacija: ${bestOwner.totalReservations}",
                     style: pw.TextStyle(
                       fontSize: 14,
                       fontWeight: pw.FontWeight.bold,
@@ -565,8 +574,9 @@ class _ReportScreenState extends State<ReportScreen> {
                     data: [
                       ["Godina", bestOwner.year.toString()],
                       ["Ime vlasnika", bestOwner.ownerName],
+                      ["Ukupan prihod", _km(bestOwner.totalIncome)],
                       [
-                        "Ukupno rezervacija",
+                        "Ukupno završenih rezervacija",
                         bestOwner.totalReservations.toString(),
                       ],
                     ],
@@ -635,7 +645,7 @@ class _ReportScreenState extends State<ReportScreen> {
                             ? "Period: $selectedLabel"
                             : (_bestOwner == null
                                   ? "Za odabranu godinu nema podataka."
-                                  : "${_bestOwner!.totalReservations} rezervacija u ${_bestOwner!.year}. godini"),
+                                  : "${_km(_bestOwner!.totalIncome)} prihoda (${_bestOwner!.totalReservations} rezervacija) u ${_bestOwner!.year}. godini"),
                         icon: _selectedTab == _ReportTab.income
                             ? Icons.payments_rounded
                             : Icons.workspace_premium_rounded,
@@ -722,7 +732,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     await _loadSelectedIncomeByProperty();
                                   } catch (e) {
                                     if (!mounted) return;
-                                    SnackbarHelper.showError(context, e.toString());
+                                    SnackbarHelper.showError(context, extractErrorMessage(e));
                                   } finally {
                                     if (mounted) {
                                       setState(() => _loading = false);
@@ -786,7 +796,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     await _loadSelectedIncomeByProperty();
                                   } catch (e) {
                                     if (!mounted) return;
-                                    SnackbarHelper.showError(context, e.toString());
+                                    SnackbarHelper.showError(context, extractErrorMessage(e));
                                   } finally {
                                     if (mounted) {
                                       setState(() => _loading = false);
@@ -865,7 +875,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                     await _loadBestOwner();
                                   } catch (e) {
                                     if (!mounted) return;
-                                    SnackbarHelper.showError(context, e.toString());
+                                    SnackbarHelper.showError(context, extractErrorMessage(e));
                                   } finally {
                                     if (mounted) {
                                       setState(() => _loading = false);
@@ -1246,7 +1256,7 @@ class _ReportScreenState extends State<ReportScreen> {
                                                         ),
                                                       ),
                                                       child: Text(
-                                                        "${_bestOwner!.totalReservations} rezervacija",
+                                                        "${_km(_bestOwner!.totalIncome)} • ${_bestOwner!.totalReservations} rezervacija",
                                                         style: const TextStyle(
                                                           fontWeight:
                                                               FontWeight.w900,
@@ -1302,6 +1312,18 @@ class _ReportScreenState extends State<ReportScreen> {
                                                     title: "Ime vlasnika",
                                                     value:
                                                         _bestOwner!.ownerName,
+                                                    accent: _greenDark,
+                                                    soft: _greenSoft2,
+                                                    border: _border,
+                                                  ),
+                                                  const SizedBox(height: 12),
+                                                  _InfoTile(
+                                                    icon:
+                                                        Icons.payments_rounded,
+                                                    title: "Ukupan prihod",
+                                                    value: _km(
+                                                      _bestOwner!.totalIncome,
+                                                    ),
                                                     accent: _greenDark,
                                                     soft: _greenSoft2,
                                                     border: _border,

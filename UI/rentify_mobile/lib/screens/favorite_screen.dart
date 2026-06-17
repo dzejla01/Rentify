@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
+import 'package:rentify_mobile/helper/snackBar_helper.dart';
 import 'package:rentify_mobile/models/favorite.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
@@ -50,7 +52,7 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = extractErrorMessage(e);
         _loading = false;
       });
     }
@@ -60,11 +62,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     try {
       await _favoriteProvider.delete(item.id);
       await _loadData();
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Greška pri uklanjanju favorita.")),
-      );
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 

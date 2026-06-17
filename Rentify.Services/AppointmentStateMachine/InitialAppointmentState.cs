@@ -20,7 +20,7 @@ namespace Rentify.Services.AppointmentStateMachine
             var entity = _mapper.Map<Appointment>(request);
 
             if (entity.StatusId == 0)
-                entity.StatusId = 1;
+                entity.StatusId = ReservationAppointmentStatus.Pending;
 
             _context.Appointments.Add(entity);
             await _context.SaveChangesAsync();

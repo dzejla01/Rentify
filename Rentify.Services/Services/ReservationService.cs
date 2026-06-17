@@ -68,11 +68,11 @@ namespace Rentify.Services.Services
                     || (fts.Contains("najamnina") && r.IsMonthly)
                     || (fts.Contains("kratki boravak") && !r.IsMonthly)
                     || (r.Status != null && r.Status.Name.ToLower().Contains(fts))
-                    || (fts.Contains("odobreno") && r.StatusId == 2)
-                    || ((fts.Contains("zavrseno") || fts.Contains("završeno")) && r.StatusId == 3)
-                    || ((fts.Contains("na cekanju") || fts.Contains("na čekanju")) && r.StatusId == 1)
-                    || (fts.Contains("otkazano") && r.StatusId == 5)
-                    || (fts.Contains("odbijeno") && r.StatusId == 4));
+                    || (fts.Contains("odobreno") && r.StatusId == ReservationAppointmentStatus.Approved)
+                    || ((fts.Contains("zavrseno") || fts.Contains("završeno")) && r.StatusId == ReservationAppointmentStatus.Finished)
+                    || ((fts.Contains("na cekanju") || fts.Contains("na čekanju")) && r.StatusId == ReservationAppointmentStatus.Pending)
+                    || (fts.Contains("otkazano") && r.StatusId == ReservationAppointmentStatus.Cancelled)
+                    || (fts.Contains("odbijeno") && r.StatusId == ReservationAppointmentStatus.Rejected));
             }
 
             if (search.UserId.HasValue)
@@ -134,9 +134,9 @@ namespace Rentify.Services.Services
 
         protected override async Task BeforeDelete(Reservation entity)
         {
-            if (entity.StatusId != 5 &&
-                entity.StatusId != 3 &&
-                entity.StatusId != 4)
+            if (entity.StatusId != ReservationAppointmentStatus.Cancelled &&
+                entity.StatusId != ReservationAppointmentStatus.Finished &&
+                entity.StatusId != ReservationAppointmentStatus.Rejected)
             {
                 throw new UserException(
                     "Brisanje je dozvoljeno samo za rezervacije sa statusom 'Otkazano', 'Završeno' ili 'Odbijeno'."
@@ -163,7 +163,7 @@ namespace Rentify.Services.Services
                 .AsNoTracking()
                 .Where(r => r.PropertyId == propertyId)
                 .Where(r => r.IsMonthly == true)
-                .Where(r => r.StatusId == 2)
+                .Where(r => r.StatusId == ReservationAppointmentStatus.Approved)
                 .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                 .Where(r =>
                     r.StartDateOfRenting!.Value.Date <= toUtc &&
@@ -218,7 +218,7 @@ namespace Rentify.Services.Services
      
         public override Task<ReservationResponse?> UpdateAsync(int id, ReservationUpsertRequest request)
         {
-            throw new InvalidOperationException("Metoda nije implementirana");
+            throw new NotSupportedException("Direktno ažuriranje rezervacije nije dozvoljeno. Koristite akcije: approve, finish, reject, cancel.");
         }
 
         public List<string> AllowedActions(int id)
@@ -244,12 +244,12 @@ namespace Rentify.Services.Services
         {
             return statusId switch
             {
-                0                    => "InitialReservationState",
-                1    => "PendingReservationState",
-                2   => "ApprovedReservationState",
-                3   => "FinishedReservationState",
-                4   => "RejectedReservationState",
-                5  => "CancelledReservationState",
+                0 => "InitialReservationState",
+                ReservationAppointmentStatus.Pending => "PendingReservationState",
+                ReservationAppointmentStatus.Approved => "ApprovedReservationState",
+                ReservationAppointmentStatus.Finished => "FinishedReservationState",
+                ReservationAppointmentStatus.Rejected => "RejectedReservationState",
+                ReservationAppointmentStatus.Cancelled => "CancelledReservationState",
                 _ => throw new UserException($"Nepoznat status rezervacije: {statusId}")
             };
         }
@@ -279,7 +279,7 @@ namespace Rentify.Services.Services
                         r.UserId == request.UserId &&
                         r.PropertyId == request.PropertyId &&
                         r.IsMonthly == true &&
-                        r.StatusId == 1);
+                        r.StatusId == ReservationAppointmentStatus.Pending);
 
                 if (hasPendingMonthlyForSameUserAndProperty)
                 {
@@ -294,7 +294,7 @@ namespace Rentify.Services.Services
                         r.UserId == request.UserId &&
                         r.PropertyId == request.PropertyId &&
                         r.IsMonthly == true &&
-                        r.StatusId == 2);
+                        r.StatusId == ReservationAppointmentStatus.Approved);
 
                 if (hasApprovedMonthlyForSameUserAndProperty)
                 {
@@ -308,11 +308,11 @@ namespace Rentify.Services.Services
                     .Where(r => r.UserId == request.UserId)
                     .Where(r => r.PropertyId != request.PropertyId)
                     .Where(r => r.IsMonthly == true)
-                    .Where(r => r.StatusId == 1 || r.StatusId == 2)
+                    .Where(r => r.StatusId == ReservationAppointmentStatus.Pending || r.StatusId == ReservationAppointmentStatus.Approved)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
-                        start <= r.EndDateOfRenting!.Value &&
-                        end >= r.StartDateOfRenting!.Value
+                        start < r.EndDateOfRenting!.Value &&
+                        end > r.StartDateOfRenting!.Value
                     );
 
                 if (hasMonthlyConflictForSameUserOnDifferentProperty)
@@ -330,7 +330,7 @@ namespace Rentify.Services.Services
                         r.UserId == request.UserId &&
                         r.PropertyId == request.PropertyId &&
                         r.IsMonthly == false &&
-                        r.StatusId == 1);
+                        r.StatusId == ReservationAppointmentStatus.Pending);
 
                 if (hasPendingShortStayForSameUserAndProperty)
                 {
@@ -346,7 +346,7 @@ namespace Rentify.Services.Services
                     .AsNoTracking()
                     .Where(r => r.PropertyId == request.PropertyId)
                     .Where(r => r.IsMonthly == false)
-                    .Where(r => r.StatusId == 2)
+                    .Where(r => r.StatusId == ReservationAppointmentStatus.Approved)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start < r.EndDateOfRenting!.Value &&
@@ -367,11 +367,11 @@ namespace Rentify.Services.Services
                     .AsNoTracking()
                     .Where(r => r.PropertyId == request.PropertyId)
                     .Where(r => r.IsMonthly == true)
-                    .Where(r => r.StatusId == 2)
+                    .Where(r => r.StatusId == ReservationAppointmentStatus.Approved)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
-                        start <= r.EndDateOfRenting!.Value &&
-                        end >= r.StartDateOfRenting!.Value
+                        start < r.EndDateOfRenting!.Value &&
+                        end > r.StartDateOfRenting!.Value
                     );
 
                 if (hasApprovedMonthlyConflict)
@@ -385,7 +385,7 @@ namespace Rentify.Services.Services
                     .AsNoTracking()
                     .Where(r => r.PropertyId == request.PropertyId)
                     .Where(r => r.IsMonthly == false)
-                    .Where(r => r.StatusId == 2)
+                    .Where(r => r.StatusId == ReservationAppointmentStatus.Approved)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start < r.EndDateOfRenting!.Value &&
@@ -422,7 +422,7 @@ namespace Rentify.Services.Services
             var dateTimes = await _context.Appointments
                 .AsNoTracking()
                 .Where(a => a.PropertyId == propertyId)
-                .Where(a => a.StatusId == 2)
+                .Where(a => a.StatusId == ReservationAppointmentStatus.Approved)
                 .Where(a => a.DateAppointment != null)
                 .Where(a => a.DateAppointment!.Value >= fromUtc &&
                             a.DateAppointment!.Value < toUtc)
@@ -475,6 +475,30 @@ namespace Rentify.Services.Services
                 throw new ForbiddenException("Nemate pravo mijenjati rezervaciju za tuđu nekretninu.");
         }
 
+        private async Task CheckCancelAuthorizationAsync(int reservationId, int reservationUserId)
+        {
+            if (IsAdmin()) return;
+
+            var loggedInId = GetLoggedInUserId()
+                ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+            var isVlasnik = _httpContextAccessor.HttpContext?.User.IsInRole("Vlasnik") ?? false;
+
+            if (isVlasnik)
+            {
+                var propertyUserId = await _context.Reservations
+                    .Where(r => r.Id == reservationId)
+                    .Select(r => r.Property!.UserId)
+                    .FirstOrDefaultAsync();
+
+                if (propertyUserId == loggedInId) return;
+            }
+
+            if (reservationUserId == loggedInId) return;
+
+            throw new ForbiddenException("Nemate pravo otkazati ovu rezervaciju.");
+        }
+
         private async Task NotifyReservationUserAsync(int userId, int reservationId, string title, string message)
         {
             await _notificationService.CreateForUserAsync(
@@ -489,7 +513,9 @@ namespace Rentify.Services.Services
 
         public async Task<ReservationResponse> ApproveAsync(int id)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            var entity = await _context.Reservations
+                .Include(r => r.Property)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
@@ -501,12 +527,13 @@ namespace Rentify.Services.Services
             var baseState = _baseState.GetState(stateName);
 
             var result = await baseState.ToApprovedAsync(id);
-            AddHistory(id, oldStatusId, 2);
+            AddHistory(id, oldStatusId, ReservationAppointmentStatus.Approved);
+            var propertyName = entity.Property?.Name ?? "nekretnina";
             await NotifyReservationUserAsync(
                 entity.UserId,
                 id,
                 "Rezervacija odobrena",
-                "Vasa rezervacija je odobrena."
+                $"Vaša rezervacija za nekretninu '{propertyName}' je odobrena."
             );
             await _context.SaveChangesAsync();
             return result;
@@ -514,7 +541,9 @@ namespace Rentify.Services.Services
 
         public async Task<ReservationResponse> FinishAsync(int id)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            var entity = await _context.Reservations
+                .Include(r => r.Property)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
@@ -526,12 +555,13 @@ namespace Rentify.Services.Services
             var baseState = _baseState.GetState(stateName);
 
             var result = await baseState.ToFinishedAsync(id);
-            AddHistory(id, oldStatusId, 3);
+            AddHistory(id, oldStatusId, ReservationAppointmentStatus.Finished);
+            var propertyName = entity.Property?.Name ?? "nekretnina";
             await NotifyReservationUserAsync(
                 entity.UserId,
                 id,
-                "Rezervacija zavrsena",
-                "Vasa rezervacija je oznacena kao zavrsena."
+                "Rezervacija završena",
+                $"Vaša rezervacija za nekretninu '{propertyName}' je označena kao završena."
             );
             await _context.SaveChangesAsync();
             return result;
@@ -539,7 +569,12 @@ namespace Rentify.Services.Services
 
         public async Task<ReservationResponse> RejectAsync(int id, string? reason = null)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new UserException("Razlog odbijanja je obavezan.");
+
+            var entity = await _context.Reservations
+                .Include(r => r.Property)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
@@ -551,14 +586,15 @@ namespace Rentify.Services.Services
             var baseState = _baseState.GetState(stateName);
 
             var result = await baseState.ToRejectedAsync(id);
-            AddHistory(id, oldStatusId, 4, reason);
+            AddHistory(id, oldStatusId, ReservationAppointmentStatus.Rejected, reason);
+            var propertyName = entity.Property?.Name ?? "nekretnina";
             await NotifyReservationUserAsync(
                 entity.UserId,
                 id,
                 "Rezervacija odbijena",
                 string.IsNullOrWhiteSpace(reason)
-                    ? "Vasa rezervacija je odbijena."
-                    : $"Vasa rezervacija je odbijena. Razlog: {reason}"
+                    ? $"Vaša rezervacija za nekretninu '{propertyName}' je odbijena."
+                    : $"Vaša rezervacija za nekretninu '{propertyName}' je odbijena. Razlog: {reason}"
             );
             await _context.SaveChangesAsync();
             return result;
@@ -566,24 +602,32 @@ namespace Rentify.Services.Services
 
         public async Task<ReservationResponse> CancelAsync(int id, string? reason = null)
         {
-            var entity = await _context.Reservations.FindAsync(id);
+            if (string.IsNullOrWhiteSpace(reason))
+                throw new UserException("Razlog otkazivanja je obavezan.");
+
+            var entity = await _context.Reservations
+                .Include(r => r.Property)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
+
+            await CheckCancelAuthorizationAsync(id, entity.UserId);
 
             var oldStatusId = entity.StatusId;
             var stateName = MapStatusToState(oldStatusId);
             var baseState = _baseState.GetState(stateName);
 
             var result = await baseState.ToCancelledAsync(id);
-            AddHistory(id, oldStatusId, 5, reason);
+            AddHistory(id, oldStatusId, ReservationAppointmentStatus.Cancelled, reason);
+            var propertyName = entity.Property?.Name ?? "nekretnina";
             await NotifyReservationUserAsync(
                 entity.UserId,
                 id,
                 "Rezervacija otkazana",
                 string.IsNullOrWhiteSpace(reason)
-                    ? "Rezervacija je otkazana."
-                    : $"Rezervacija je otkazana. Razlog: {reason}"
+                    ? $"Vaša rezervacija za nekretninu '{propertyName}' je otkazana."
+                    : $"Vaša rezervacija za nekretninu '{propertyName}' je otkazana. Razlog: {reason}"
             );
             await _context.SaveChangesAsync();
             return result;
@@ -606,7 +650,7 @@ namespace Rentify.Services.Services
                 .AsNoTracking()
                 .Where(r => r.PropertyId == propertyId)
                 .Where(r => r.IsMonthly == false)
-                .Where(r => r.StatusId == 2)
+                .Where(r => r.StatusId == ReservationAppointmentStatus.Approved)
                 .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                 .Where(r =>
                     r.StartDateOfRenting!.Value.Date <= toUtc &&

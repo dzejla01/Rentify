@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/providers/user_provider.dart';
 
 class ForgotPasswordDialog extends StatefulWidget {
@@ -53,11 +54,11 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
         codeSent = true;
         success = "Kod je poslan. Provjerite inbox/spam folder.";
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
 
       setState(() {
-        error = "Neuspjesno slanje. Provjerite email ili pokusajte ponovo.";
+        error = extractErrorMessage(e);
       });
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -103,11 +104,11 @@ class _ForgotPasswordDialogState extends State<ForgotPasswordDialog> {
       setState(() {
         success = "Lozinka je promijenjena. Mozete se prijaviti.";
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
 
       setState(() {
-        error = "Kod nije validan ili je istekao.";
+        error = extractErrorMessage(e);
       });
     } finally {
       if (mounted) setState(() => isLoading = false);

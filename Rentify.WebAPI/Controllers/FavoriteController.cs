@@ -26,5 +26,10 @@ namespace Rentify.API.Controllers
                 request.UserId = userId;
             return base.Create(request);
         }
+
+        public override Task<FavoriteResponse?> Update(int id, [FromBody] FavoriteUpsertRequest request)
+        {
+            throw new NotSupportedException("Ažuriranje favorita nije dozvoljeno. Dodajte ili uklonite favorit.");
+        }
     }
 }

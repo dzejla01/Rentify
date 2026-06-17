@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/models/building_type.dart';
 import 'package:rentify_desktop/models/city.dart';
@@ -141,7 +142,7 @@ class _ReferenceTabState<T> extends State<_ReferenceTab<T>> {
       });
     } catch (e) {
       if (!mounted) return;
-      SnackbarHelper.showError(context, "$e");
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -230,7 +231,7 @@ class _ReferenceTabState<T> extends State<_ReferenceTab<T>> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      SnackbarHelper.showError(context, "$e");
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 
@@ -249,7 +250,7 @@ class _ReferenceTabState<T> extends State<_ReferenceTab<T>> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      SnackbarHelper.showError(context, "$e");
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 

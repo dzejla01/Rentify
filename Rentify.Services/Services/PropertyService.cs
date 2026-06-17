@@ -12,6 +12,7 @@ using Rentify.Services.Recommendations;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,9 +20,45 @@ namespace Rentify.Services.Services
 {
     public class PropertyService : BaseCRUDService<PropertyResponse, PropertySearchObject, Database.Property, PropertyInsertRequest, PropertyUpdateRequest>, IPropertyService
     {
-        public PropertyService(RentifyDbContext context, IMapper mapper) : base(context, mapper)
-        {
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
+        public PropertyService(RentifyDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor) : base(context, mapper)
+        {
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private int? GetLoggedInUserId()
+        {
+            var claim = _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(claim, out var id) ? id : null;
+        }
+
+        private bool IsAdmin()
+            => _httpContextAccessor.HttpContext?.User.IsInRole("Admin") ?? false;
+
+        private void EnsureCurrentUserOwnsProperty(Property entity)
+        {
+            if (IsAdmin())
+                return;
+
+            var loggedInId = GetLoggedInUserId()
+                ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+            if (entity.UserId != loggedInId)
+                throw new ForbiddenException("Nemate pravo mijenjati tuđu nekretninu.");
+        }
+
+        protected override async Task BeforeUpdate(Property entity, PropertyUpdateRequest request)
+        {
+            EnsureCurrentUserOwnsProperty(entity);
+            await base.BeforeUpdate(entity, request);
+        }
+
+        protected override async Task BeforeDelete(Property entity)
+        {
+            EnsureCurrentUserOwnsProperty(entity);
+            await base.BeforeDelete(entity);
         }
 
         protected override IQueryable<Property> AddInclude(IQueryable<Property> query, PropertySearchObject search)

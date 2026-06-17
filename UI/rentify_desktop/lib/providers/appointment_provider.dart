@@ -50,7 +50,7 @@ class AppoitmentProvider extends BaseProvider<Appointment> {
     return fromJson(data);
   }
 
-  Future<Appointment> reject(int id) async {
+  Future<Appointment> reject(int id, String reason) async {
     final uri = Uri.parse(
       "${ApiConfig.apiBase}/api/Appointment/$id/reject",
     );
@@ -58,6 +58,7 @@ class AppoitmentProvider extends BaseProvider<Appointment> {
     final response = await http.put(
       uri,
       headers: HttpHelper.getHeaders(),
+      body: jsonEncode({"reason": reason}),
     );
 
     HttpHelper.checkResponse(response);
@@ -66,7 +67,7 @@ class AppoitmentProvider extends BaseProvider<Appointment> {
     return fromJson(data);
   }
 
-  Future<Appointment> cancel(int id) async {
+  Future<Appointment> cancel(int id, String reason) async {
     final uri = Uri.parse(
       "${ApiConfig.apiBase}/api/Appointment/$id/cancel",
     );
@@ -74,6 +75,7 @@ class AppoitmentProvider extends BaseProvider<Appointment> {
     final response = await http.put(
       uri,
       headers: HttpHelper.getHeaders(),
+      body: jsonEncode({"reason": reason}),
     );
 
     HttpHelper.checkResponse(response);

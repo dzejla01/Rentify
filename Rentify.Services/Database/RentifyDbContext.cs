@@ -21,6 +21,7 @@ public class RentifyDbContext : DbContext
     public DbSet<Question> Questions { get; set; }
     public DbSet<Answer> Answers { get; set; }
     public DbSet<ReservationHistory> ReservationHistories { get; set; }
+    public DbSet<AppointmentHistory> AppointmentHistories { get; set; }
     public DbSet<Favorite> Favorites { get; set; }
     public DbSet<City> Cities { get; set; }
     public DbSet<Status> Statuses { get; set; }
@@ -82,6 +83,18 @@ public class RentifyDbContext : DbContext
             .HasOne(rh => rh.Status)
             .WithMany()
             .HasForeignKey(rh => rh.StatusId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<AppointmentHistory>()
+            .HasOne(ah => ah.Appointment)
+            .WithMany()
+            .HasForeignKey(ah => ah.AppointmentId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<AppointmentHistory>()
+            .HasOne(ah => ah.Status)
+            .WithMany()
+            .HasForeignKey(ah => ah.StatusId)
             .OnDelete(DeleteBehavior.Restrict);
 
         modelBuilder.Entity<Favorite>()

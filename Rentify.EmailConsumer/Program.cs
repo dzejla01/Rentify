@@ -15,7 +15,9 @@ var rabbitSettings = new RabbitMqSettings
 {
     Host = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost",
     Port = int.Parse(Environment.GetEnvironmentVariable("RABBITMQ_PORT") ?? "5672"),
-    User = Environment.GetEnvironmentVariable("RABBITMQ_USERNAME") ?? "guest",
+    User = Environment.GetEnvironmentVariable("RABBITMQ_USER")
+        ?? Environment.GetEnvironmentVariable("RABBITMQ_USERNAME")
+        ?? "guest",
     Password = Environment.GetEnvironmentVariable("RABBITMQ_PASSWORD") ?? "guest",
     VirtualHost = Environment.GetEnvironmentVariable("RABBITMQ_VIRTUALHOST") ?? "/"
 };

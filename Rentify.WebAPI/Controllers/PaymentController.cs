@@ -38,7 +38,11 @@ namespace Rentify.WebAPI.Controllers
             if (!isAdmin)
             {
                 search ??= new PaymentSearchObject();
-                search.UserId = loggedInId;
+
+                if (User.IsInRole("Vlasnik"))
+                    search.OwnerId = loggedInId;
+                else
+                    search.UserId = loggedInId;
             }
 
             return await base.Get(search);
@@ -50,12 +54,20 @@ namespace Rentify.WebAPI.Controllers
             var result = await base.GetById(id);
             if (result == null) return null;
 
-            if (User.IsInRole("Admin") || User.IsInRole("Vlasnik"))
+            if (User.IsInRole("Admin"))
                 return result;
 
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (!int.TryParse(userIdClaim, out var loggedInId))
                 throw new UnauthorizedAccessException("Neispravan token.");
+
+            if (User.IsInRole("Vlasnik"))
+            {
+                if (result.Reservation?.Property?.UserId != loggedInId)
+                    throw new UnauthorizedAccessException("Nemate pristup ovoj uplati.");
+
+                return result;
+            }
 
             if (result.Reservation?.UserId != loggedInId)
                 throw new UnauthorizedAccessException("Nemate pristup ovoj uplati.");

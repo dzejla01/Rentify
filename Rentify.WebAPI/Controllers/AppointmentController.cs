@@ -53,16 +53,16 @@ namespace Rentify.WebAPI.Controllers
 
         [HttpPut("{id}/reject")]
         [Authorize(Roles = "Vlasnik")]
-        public async Task<AppointmentResponse> Reject(int id)
+        public async Task<AppointmentResponse> Reject(int id, [FromBody] ReasonRequest? body = null)
         {
-            return await _appointmentService.RejectAsync(id);
+            return await _appointmentService.RejectAsync(id, body?.Reason);
         }
 
         [HttpPut("{id}/cancel")]
         [Authorize(Roles = "Vlasnik,Korisnik")]
-        public async Task<AppointmentResponse> Cancel(int id)
+        public async Task<AppointmentResponse> Cancel(int id, [FromBody] ReasonRequest? body = null)
         {
-            return await _appointmentService.CancelAsync(id);
+            return await _appointmentService.CancelAsync(id, body?.Reason);
         }
 
         [Authorize(Roles = "Vlasnik")]
@@ -74,7 +74,7 @@ namespace Rentify.WebAPI.Controllers
         [Authorize(Roles = "Vlasnik,Korisnik")]
         public override Task<AppointmentResponse?> Update(int id, [FromBody] AppointmentUpsertRequest request)
         {
-            return _appointmentService.UpdateAsync(id, request);
+            throw new NotSupportedException("Direktno ažuriranje termina nije dozvoljeno. Koristite akcije: approve, finish, reject, cancel.");
         }
 
         [Authorize(Roles = "Korisnik")]

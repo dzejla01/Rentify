@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/helper/date_helper.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/helper/image_helper.dart';
 import 'package:rentify_mobile/helper/snackBar_helper.dart';
 import 'package:rentify_mobile/helper/text_editing_controller_helper.dart';
@@ -120,7 +121,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = extractErrorMessage(e);
         _loading = false;
       });
     }
@@ -260,7 +261,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _loadUser();
     } catch (e) {
       if (!mounted) return;
-      SnackbarHelper.showUpdate(context, "$e");
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 

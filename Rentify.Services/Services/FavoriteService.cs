@@ -1,19 +1,32 @@
 using MapsterMapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Rentify.Model.RequestObjects;
 using Rentify.Model.ResponseObjects;
 using Rentify.Model.SearchObjects;
 using Rentify.Services.Database;
+using Rentify.Services.Exceptions;
 using Rentify.Services.Interfaces;
+using System.Security.Claims;
 
 namespace Rentify.Services.Services
 {
-    public class FavoriteService 
+    public class FavoriteService
         : BaseCRUDService<FavoriteResponse, FavoriteSearchObject, Favorite, FavoriteUpsertRequest, FavoriteUpsertRequest>, IFavoriteService
     {
-        public FavoriteService(RentifyDbContext context, IMapper mapper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public FavoriteService(RentifyDbContext context, IMapper mapper, IHttpContextAccessor httpContextAccessor)
             : base(context, mapper)
         {
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        private int? GetLoggedInUserId()
+        {
+            var claim = _httpContextAccessor.HttpContext?.User
+                .FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            return int.TryParse(claim, out var id) ? id : null;
         }
 
         protected override IQueryable<Favorite> ApplyFilter(IQueryable<Favorite> query,FavoriteSearchObject search)
@@ -71,6 +84,22 @@ namespace Rentify.Services.Services
             entity.CreatedAt = DateTime.UtcNow;
 
             await base.BeforeInsert(entity, request);
+        }
+
+        protected override async Task BeforeDelete(Favorite entity)
+        {
+            var isAdmin = _httpContextAccessor.HttpContext?.User.IsInRole("Admin") ?? false;
+
+            if (!isAdmin)
+            {
+                var loggedInId = GetLoggedInUserId()
+                    ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+                if (entity.UserId != loggedInId)
+                    throw new ForbiddenException("Ne možete obrisati tuđi favorit.");
+            }
+
+            await base.BeforeDelete(entity);
         }
     }
 }

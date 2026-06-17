@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/helper/date_helper.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/helper/tags.dart';
 
 import 'package:rentify_mobile/routes/app_routes.dart';
@@ -213,7 +214,7 @@ class _TaggsOnboardingScreenState extends State<TaggsOnboardingScreen> {
       if (!mounted) return;
       SnackbarHelper.showError(
         context,
-        "Greška pri spremanju tagova. Pokušaj ponovo. ${e}",
+        extractErrorMessage(e),
       );
     } finally {
       if (mounted) setState(() => _saving = false);

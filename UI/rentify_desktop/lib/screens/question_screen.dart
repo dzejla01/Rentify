@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:rentify_desktop/dialogs/base_dialogs.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/snackbar_helper.dart';
 import 'package:rentify_desktop/helper/univerzal_pagging_helper.dart';
 import 'package:rentify_desktop/models/answer.dart';
@@ -211,13 +212,6 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                     });
                                   }
 
-                                  await _questionProvider.update(q.id, {
-                                    "userId": q.user!.id,
-                                    "propertyId": q.property!.id,
-                                    "content": q.content,
-                                    "isAnswered": true,
-                                  });
-
                                   await _paging.refresh();
 
                                   if (!mounted) return;
@@ -231,7 +225,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                                   if (!mounted) return;
                                   SnackbarHelper.showError(
                                     context,
-                                    e.toString(),
+                                    extractErrorMessage(e),
                                   );
                                 } finally {
                                   if (mounted) {

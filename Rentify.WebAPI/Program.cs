@@ -49,8 +49,10 @@ bool GetBoolEnv(string key, bool defaultValue = false)
     return bool.TryParse(raw, out var value) ? value : defaultValue;
 }
 
-// var connectionString = GetRequiredEnv("CONNECTION_STRING_LOCAL");
-var connectionString = GetRequiredEnv("CONNECTION_STRING_DOCKER"); 
+var connectionString =
+    GetOptionalEnv("ConnectionStrings__DefaultConnection")
+    ?? GetOptionalEnv("CONNECTION_STRING_DOCKER")
+    ?? GetRequiredEnv("CONNECTION_STRING_LOCAL");
 
 builder.Services.AddDbContext<RentifyDbContext>(options =>
     options.UseNpgsql(connectionString)
@@ -182,8 +184,9 @@ builder.Services.AddSingleton<IConnection>(_ =>
 });
 
 var firebasePath =
-    //GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_LOCAL");
-    GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_DOCKER");
+    GetOptionalEnv("FIREBASE_CREDENTIALS_PATH")
+    ?? GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_DOCKER")
+    ?? GetOptionalEnv("FIREBASE_CREDENTIALS_PATH_LOCAL");
 
 if (string.IsNullOrWhiteSpace(firebasePath))
     throw new Exception("Firebase credentials path nije definisan!");

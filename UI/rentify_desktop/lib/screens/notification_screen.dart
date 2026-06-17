@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/models/notification_item.dart';
 import 'package:rentify_desktop/providers/notification_provider.dart';
 import 'package:rentify_desktop/screens/base_screen.dart';
@@ -61,7 +62,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = e.toString();
+        _error = extractErrorMessage(e);
       });
     }
   }

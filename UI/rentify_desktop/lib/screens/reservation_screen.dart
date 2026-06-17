@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/dialogs/base_dialogs.dart';
 import 'package:rentify_desktop/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/models/reservation.dart';
 import 'package:rentify_desktop/providers/reservation_provider.dart';
@@ -79,7 +80,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
         _totalCount = result.totalCount ?? result.items.length;
       });
     } catch (e) {
-      SnackbarHelper.showError(context, e.toString());
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -140,7 +141,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
     return s == "Završeno" || s == "Odbijeno" || s == "Otkazano";
   }
 
-  Future<void> _executeStatusChange(
+  Future<bool> _executeStatusChange(
     ReservationProvider provider,
     Reservation reservation,
     String oldStatus,
@@ -151,7 +152,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
       throw Exception("Rezervacija nema validan ID.");
     }
 
-    if (newStatus == oldStatus) return;
+    if (newStatus == oldStatus) return true;
 
     switch (newStatus) {
       case "Odobreno":
@@ -161,14 +162,28 @@ class _ReservationScreenState extends State<ReservationScreen> {
         await provider.finish(id);
         break;
       case "Odbijeno":
-        await provider.reject(id);
+        final reason = await ConfirmDialogs.reasonPrompt(
+          context,
+          title: "Razlog odbijanja",
+          message: "Unesite razlog odbijanja rezervacije:",
+        );
+        if (reason == null) return false;
+        await provider.reject(id, reason);
         break;
       case "Otkazano":
-        await provider.cancel(id);
+        final reason = await ConfirmDialogs.reasonPrompt(
+          context,
+          title: "Razlog otkazivanja",
+          message: "Unesite razlog otkazivanja rezervacije:",
+        );
+        if (reason == null) return false;
+        await provider.cancel(id, reason);
         break;
       default:
         throw Exception("Nedozvoljena promjena statusa.");
     }
+
+    return true;
   }
 
   String _statusActionSuccessMessage(String newStatus) {
@@ -371,9 +386,8 @@ class _ReservationScreenState extends State<ReservationScreen> {
     if (saved != true) return;
 
     try {
-      await _executeStatusChange(provider, r, currentStatus, selectedStatus);
-
-      if (!mounted) return;
+      final proceeded = await _executeStatusChange(provider, r, currentStatus, selectedStatus);
+      if (!proceeded || !mounted) return;
 
       setState(() {
         _selectedStatusFilterId = null;
@@ -383,7 +397,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
       await _load(page: 0);
       SnackbarHelper.showSuccess(context, _statusActionSuccessMessage(selectedStatus));
     } catch (e) {
-      SnackbarHelper.showError(context, e.toString());
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 
@@ -405,7 +419,7 @@ class _ReservationScreenState extends State<ReservationScreen> {
       await _load();
       SnackbarHelper.showSuccess(context, "Rezervacija je uspjesno obrisana");
     } catch (e) {
-      SnackbarHelper.showError(context, e.toString());
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 

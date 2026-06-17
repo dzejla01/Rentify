@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/helper/date_helper.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/helper/text_editing_controller_helper.dart';
 import 'package:rentify_desktop/models/payment.dart';
@@ -301,7 +302,7 @@ class _PaymentAddingScreenState extends State<PaymentAddingScreen> {
       SnackbarHelper.showSuccess(context, "Zahtjev uspješno poslan.");
       Navigator.pop(context, true);
     } catch (e) {
-      SnackbarHelper.showError(context, "Greška prilikom slanja zahtjeva.");
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 

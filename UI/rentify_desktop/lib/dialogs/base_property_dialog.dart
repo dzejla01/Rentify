@@ -5,6 +5,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/image_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/helper/tags.dart';
@@ -426,9 +427,8 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
           });
         }
       } catch (e) {
-        debugPrint('saveChanges error: $e');
         if (mounted) {
-          SnackbarHelper.showError(context, "Došlo je do greške pri spremanju");
+          SnackbarHelper.showError(context, extractErrorMessage(e));
         }
       }
     }
@@ -469,12 +469,8 @@ class _RetifyBasePropertyDialogState extends State<RetifyBasePropertyDialog> {
       SnackbarHelper.showDelete(context, "Nekretnina je uspješno obrisana");
       Navigator.pop(context, true);
     } catch (e) {
-      debugPrint('_deleteProperty error: $e');
       if (mounted) {
-        SnackbarHelper.showError(
-          context,
-          "Došlo je do greške pri brisanju nekretnine",
-        );
+        SnackbarHelper.showError(context, extractErrorMessage(e));
       }
     }
   }

@@ -27,7 +27,7 @@ namespace Rentify.Services.ReservationStateMachine
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            entity.StatusId = 3;
+            entity.StatusId = ReservationAppointmentStatus.Finished;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);
@@ -52,7 +52,7 @@ namespace Rentify.Services.ReservationStateMachine
 
             if (isOwner)
             {
-                entity.StatusId = 5;
+                entity.StatusId = ReservationAppointmentStatus.Cancelled;
 
                 await _context.SaveChangesAsync();
                 return _mapper.Map<ReservationResponse>(entity);
@@ -69,9 +69,9 @@ namespace Rentify.Services.ReservationStateMachine
                     if (payments.Any())
                     {
                         var hasBlockingPayments = payments.Any(p =>
-    p.StatusId == 1 ||
-    p.StatusId == 6 ||
-    p.StatusId == 8);
+    p.StatusId == PaymentStatus.Pending ||
+    p.StatusId == PaymentStatus.Processing ||
+    p.StatusId == PaymentStatus.Unpaid);
 
                         if (hasBlockingPayments)
                         {
@@ -99,7 +99,7 @@ namespace Rentify.Services.ReservationStateMachine
                 }
             }
 
-            entity.StatusId = 5;
+            entity.StatusId = ReservationAppointmentStatus.Cancelled;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
-import 'package:rentify_mobile/helper/date_helper.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/helper/snackBar_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/providers/appoitment_provider.dart';
@@ -112,8 +112,9 @@ class _PropertyAppointmentUniversalScreenState
 
       setState(() => _loadingUnavailable = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Ne mogu učitati zauzete termine: $e")),
+      SnackbarHelper.showError(
+        context,
+        "Ne mogu učitati zauzete termine: ${extractErrorMessage(e)}",
       );
     }
   }
@@ -154,6 +155,7 @@ class _PropertyAppointmentUniversalScreenState
       _selectedTime = null;
       _fieldErrors.remove("dateAppointment");
       _fieldErrors.remove("timeAppointment");
+      _fieldErrors.remove("submit");
     });
   }
 
@@ -164,6 +166,7 @@ class _PropertyAppointmentUniversalScreenState
     setState(() {
       _selectedTime = slot;
       _fieldErrors.remove("timeAppointment");
+      _fieldErrors.remove("submit");
     });
   }
 
@@ -261,8 +264,10 @@ class _PropertyAppointmentUniversalScreenState
       ).pushNamedAndRemoveUntil(AppRoutes.home, (route) => false);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _submitting = false);
-      SnackbarHelper.showError(context, e.toString());
+      setState(() {
+        _submitting = false;
+        _fieldErrors["submit"] = extractErrorMessage(e);
+      });
     }
   }
 

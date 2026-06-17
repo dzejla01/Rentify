@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/base_dialogs.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/helper/univerzal_pagging_helper.dart';
 import 'package:rentify_mobile/models/answer.dart';
 import 'package:rentify_mobile/models/question.dart';
@@ -267,13 +268,13 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
           ),
         ),
       );
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
 
       await ConfirmDialogs.okConfirmation(
         context,
         title: "Greška",
-        message: "Došlo je do greške pri učitavanju odgovora.",
+        message: extractErrorMessage(e),
       );
     }
   }

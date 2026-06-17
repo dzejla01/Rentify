@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/dialogs/forgot_password_dialog.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/models/login_request.dart';
 import 'package:rentify_desktop/providers/auth_provider.dart';
@@ -35,32 +36,40 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
 
-  Future<void> login() async{
-    final result = await _authProvider.prijava(
-    LoginRequest(
-      username: _username.text.trim(),
-      password: _password.text,
-    ),
-  );
+  Future<void> login() async {
+    try {
+      final result = await _authProvider.prijava(
+        LoginRequest(
+          username: _username.text.trim(),
+          password: _password.text,
+        ),
+      );
 
-  if (result == "ZABRANJENO") {
-    SnackbarHelper.showError(
-      context,
-      'Nemate privilegije za pristup aplikaciji',
-    );
-    return;
+      if (result == "ZABRANJENO") {
+        if (!mounted) return;
+        SnackbarHelper.showError(
+          context,
+          'Nemate privilegije za pristup aplikaciji',
+        );
+        return;
+      }
+
+      if (result != "OK") {
+        if (!mounted) return;
+        SnackbarHelper.showError(
+          context,
+          'Pogrešno korisničko ime ili lozinka',
+        );
+        return;
+      }
+
+      if (!mounted) return;
+      Navigator.pushReplacementNamed(context, AppRoutes.home);
+    } catch (e) {
+      if (!mounted) return;
+      SnackbarHelper.showError(context, extractErrorMessage(e));
+    }
   }
-
-  if (result != "OK") {
-    SnackbarHelper.showError(
-      context,
-      'Pogrešno korisničko ime ili lozinka',
-    );
-    return;
-  }
-
-  Navigator.pushReplacementNamed(context, AppRoutes.home);
- }
 
  @override
  void dispose() {

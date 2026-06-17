@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_mobile/helper/date_helper.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/helper/text_editing_controller_helper.dart';
 import 'package:rentify_mobile/providers/user_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
@@ -570,7 +571,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await ConfirmDialogs.okConfirmation(
         context,
         title: "Greška",
-        message: "Ne mogu otvoriti galeriju.\n$e",
+        message: "Ne mogu otvoriti galeriju.\n${extractErrorMessage(e)}",
       );
     }
   }
@@ -687,7 +688,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       await ConfirmDialogs.okConfirmation(
         context,
         title: "Greška",
-        message: e.toString(),
+        message: extractErrorMessage(e),
       );
     } finally {
       if (mounted) setState(() => _submitting = false);

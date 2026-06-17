@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/models/expense.dart';
 import 'package:rentify_desktop/models/property.dart';
@@ -81,7 +82,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      SnackbarHelper.showError(context, e.toString());
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 
@@ -140,7 +141,7 @@ class _ExpenseScreenState extends State<ExpenseScreen> {
         await _load();
       } catch (err) {
         if (!mounted) return;
-        SnackbarHelper.showError(context, err.toString());
+        SnackbarHelper.showError(context, extractErrorMessage(err));
       }
     }
   }
@@ -630,7 +631,7 @@ class _ExpenseDialogState extends State<_ExpenseDialog> {
       if (!mounted) return;
       setState(() {
         _saving = false;
-        _error = e.toString();
+        _error = extractErrorMessage(e);
       });
     }
   }

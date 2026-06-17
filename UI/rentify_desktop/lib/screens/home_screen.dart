@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_desktop/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_desktop/helper/date_helper.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/image_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/helper/text_editing_controller_helper.dart';
 import 'package:rentify_desktop/models/user.dart';
 import 'package:rentify_desktop/providers/image_provider.dart';
+import 'package:rentify_desktop/providers/notification_provider.dart';
 import 'package:rentify_desktop/providers/user_provider.dart';
 import 'package:rentify_desktop/routes/app_routes.dart';
 import 'package:rentify_desktop/dialogs/base_dialogs.dart';
@@ -110,7 +112,8 @@ class _HomeScreenState extends State<HomeScreen> {
         _loadedUser = user;
       });
     } catch (e) {
-      debugPrint("Nesto nije uredu $e");
+      if (!mounted) return;
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 
@@ -127,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'birthDate',
     ]);
     loadUser();
+    Provider.of<NotificationProvider>(context, listen: false).refreshUnreadCount();
   }
 
   @override
@@ -194,6 +198,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const Spacer(),
+          _notificationBell(),
+          const SizedBox(width: 14),
           PopupMenuButton<String>(
             tooltip: '',
             offset: const Offset(0, 52),
@@ -252,6 +258,64 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _notificationBell() {
+    return Consumer<NotificationProvider>(
+      builder: (context, notificationProvider, _) {
+        final unreadCount = notificationProvider.unreadCount;
+
+        return InkWell(
+          borderRadius: BorderRadius.circular(23),
+          onTap: () => Navigator.pushNamed(context, AppRoutes.notifications),
+          child: Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.25),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withOpacity(0.6),
+                width: 2,
+              ),
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                const Icon(
+                  Icons.notifications_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+                if (unreadCount > 0)
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      decoration: const BoxDecoration(
+                        color: Colors.redAccent,
+                        shape: BoxShape.circle,
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        unreadCount > 9 ? "9+" : "$unreadCount",
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -393,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   if (!context.mounted) return;
                   SnackbarHelper.showError(
                     context,
-                    "$e",
+                    extractErrorMessage(e),
                   );
                 }
               },

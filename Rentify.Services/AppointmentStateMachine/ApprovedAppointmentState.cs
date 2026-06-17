@@ -21,7 +21,7 @@ namespace Rentify.Services.AppointmentStateMachine
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            entity.StatusId = 3;
+            entity.StatusId = ReservationAppointmentStatus.Finished;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);
@@ -33,7 +33,7 @@ namespace Rentify.Services.AppointmentStateMachine
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            entity.StatusId = 5;
+            entity.StatusId = ReservationAppointmentStatus.Cancelled;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);

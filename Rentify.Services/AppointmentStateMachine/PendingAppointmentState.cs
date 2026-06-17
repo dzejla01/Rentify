@@ -42,7 +42,7 @@ namespace Rentify.Services.AppointmentStateMachine
                 .AsNoTracking()
                 .Where(x => x.Id != entity.Id)
                 .Where(x => x.PropertyId == entity.PropertyId)
-                .Where(x => x.StatusId == 2)
+                .Where(x => x.StatusId == ReservationAppointmentStatus.Approved)
                 .Where(x => x.DateAppointment != null)
                 .AnyAsync(x => x.DateAppointment == entity.DateAppointment);
 
@@ -53,7 +53,7 @@ namespace Rentify.Services.AppointmentStateMachine
                 );
             }
 
-            entity.StatusId = 2;
+            entity.StatusId = ReservationAppointmentStatus.Approved;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);
@@ -65,7 +65,7 @@ namespace Rentify.Services.AppointmentStateMachine
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            entity.StatusId = 4;
+            entity.StatusId = ReservationAppointmentStatus.Rejected;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);
@@ -77,7 +77,7 @@ namespace Rentify.Services.AppointmentStateMachine
             if (entity == null)
                 throw new UserException("Termin nije pronađen.");
 
-            entity.StatusId = 5;
+            entity.StatusId = ReservationAppointmentStatus.Cancelled;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<AppointmentResponse>(entity);

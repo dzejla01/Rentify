@@ -8,12 +8,14 @@ class BestOwnerByYear {
   final int ownerId;
   final String ownerName;
   final int totalReservations;
+  final double totalIncome;
 
   BestOwnerByYear({
     required this.year,
     required this.ownerId,
     required this.ownerName,
     required this.totalReservations,
+    required this.totalIncome,
   });
 
   factory BestOwnerByYear.fromJson(Map<String, dynamic> json) =>

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/helper/stripe_payment_helper.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
@@ -81,7 +82,7 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
   }
 
   bool _canPay() {
-    return _paymentStatus == "Na čekanju" || _paymentStatus == "Procesiranje";
+    return _paymentStatus == "Na čekanju";
   }
 
   String _additionalDeadlineMessage() {
@@ -101,9 +102,9 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
 
     final confirmed = await ConfirmDialogs.yesNoConfirmation(
       context,
-      title: "Potvrda placanja",
+      title: "Potvrda plaćanja",
       question:
-          "Potvrdjujete placanje zahtjeva za '${widget.property.name}' u iznosu od ${p.price.toStringAsFixed(2)} KM?",
+          "Potvrđujete plaćanje zahtjeva za '${widget.property.name}' u iznosu od ${p.price.toStringAsFixed(2)} KM?",
       yesText: "Plati",
       noText: "Odustani",
     );
@@ -138,22 +139,35 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
         return;
       }
 
-      await Future.delayed(const Duration(seconds: 4));
+      // Stripe je primio uplatu — čekamo webhook (polling 5x2s = max 10s)
+      String status = "Procesiranje";
+      const maxAttempts = 5;
 
-      final refreshed = await _paymentProvider.getById(p.id);
+      for (var attempt = 0; attempt < maxAttempts; attempt++) {
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+
+        try {
+          final refreshed = await _paymentProvider.getById(p.id);
+          status = (refreshed.status?.name ?? "").trim();
+          if (status == "Plaćeno" ||
+              status == "Neuspješno" ||
+              status == "Otkazano") {
+            break;
+          }
+        } catch (_) {
+          // webhook još nije stigao — nastavi polling
+        }
+      }
 
       if (!mounted) return;
-
       setState(() => _loading = false);
-
-      final status = (refreshed.status?.name ?? "").trim();
 
       if (status == "Plaćeno") {
         await ConfirmDialogs.paymentSuccessDialog(
           context,
           message: "Plaćanje je uspješno evidentirano.",
         );
-
         if (!mounted) return;
         Navigator.pop(context, true);
         return;
@@ -164,7 +178,6 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
           context,
           message: "Plaćanje nije uspješno završeno.",
         );
-
         if (!mounted) return;
         Navigator.pop(context, true);
         return;
@@ -175,18 +188,18 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
           context,
           message: "Plaćanje je otkazano.",
         );
-
         if (!mounted) return;
         Navigator.pop(context, true);
         return;
       }
 
-      await ConfirmDialogs.paymentErrorDialog(
+      // Stripe potvrdio transakciju, ali webhook još nije stigao do servera
+      await ConfirmDialogs.paymentSuccessDialog(
         context,
+        title: "Plaćanje u obradi",
         message:
-            "Status plaćanja još nije potvrđen ili je došlo do greške na serveru. Provjerite ponovo za nekoliko sekundi.",
+            "Uplata je primljena i obrađuje se. Status će se ažurirati u narednih nekoliko sekundi — možete provjeriti ponovo na listi plaćanja.",
       );
-
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
@@ -194,13 +207,12 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
 
       setState(() {
         _loading = false;
-        _error = e.toString();
+        _error = extractErrorMessage(e);
       });
 
       await ConfirmDialogs.paymentErrorDialog(
         context,
-        message:
-            "Došlo je do greške pri provjeri statusa plaćanja. Pokušajte ponovo kasnije.",
+        message: extractErrorMessage(e),
       );
     }
   }
@@ -571,6 +583,8 @@ class _PaymentPreviewScreenState extends State<PaymentPreviewScreen> {
                             ? "Ovaj zahtjev je otkazan."
                             : _paymentStatus == "Neuspješno"
                             ? "Plaćanje nije uspješno završeno."
+                            : _paymentStatus == "Procesiranje"
+                            ? "Plaćanje je već u toku. Sačekajte da se transakcija završi."
                             : "Za ovaj zahtjev trenutno nije moguće izvršiti uplatu.",
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),

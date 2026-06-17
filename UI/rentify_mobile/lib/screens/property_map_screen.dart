@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/providers/property_provider.dart';
 import 'package:rentify_mobile/screens/property_details_screen.dart';
@@ -73,7 +74,7 @@ class _PropertyMapScreenState extends State<PropertyMapScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = extractErrorMessage(e);
         _loading = false;
       });
     }

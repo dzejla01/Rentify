@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/base_dialogs.dart';
+import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/providers/user_provider.dart';
@@ -182,7 +184,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _metaError = e.toString();
+        _metaError = extractErrorMessage(e);
       });
     }
 
@@ -216,7 +218,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
       if (!mounted) return;
       setState(() {
         _metaLoading = false;
-        _metaError = e.toString();
+        _metaError = extractErrorMessage(e);
       });
     }
   }
@@ -295,11 +297,18 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     );
 
     if (confirmed == true) {
-      await _cancelReservation(reservation);
+      if (!mounted) return;
+      final reason = await ConfirmDialogs.reasonPrompt(
+        context,
+        title: "Razlog otkazivanja",
+        message: "Unesite razlog otkazivanja rezervacije:",
+      );
+      if (reason == null) return;
+      await _cancelReservation(reservation, reason);
     }
   }
 
-  Future<void> _cancelReservation(Reservation reservation) async {
+  Future<void> _cancelReservation(Reservation reservation, String reason) async {
     final id = reservation.id;
     if (id == null) return;
 
@@ -307,7 +316,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
       if (!mounted) return;
       setState(() => _cancellingReservationId = id);
 
-      await _reservationProvider.cancel(id);
+      await _reservationProvider.cancel(id, reason);
       await _refreshWithMeta();
 
       if (!mounted) return;
@@ -320,7 +329,7 @@ class _ReservationListScreenState extends State<ReservationListScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("$e"), backgroundColor: const Color(0xFFC62828)),
+        SnackBar(content: Text(extractErrorMessage(e)), backgroundColor: const Color(0xFFC62828)),
       );
     } finally {
       if (mounted) {
@@ -569,7 +578,7 @@ class _ReviewDialogState extends State<_ReviewDialog> {
       if (!mounted) return;
       setState(() {
         _sending = false;
-        _error = "Greška pri slanju recenzije. $e";
+        _error = extractErrorMessage(e);
       });
     }
   }

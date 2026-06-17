@@ -93,5 +93,21 @@ namespace Rentify.Services.Services
 
             await base.BeforeDelete(entity);
         }
+
+        protected override async Task BeforeUpdate(Answer entity, AnswerUpsertRequest request)
+        {
+            var loggedInId = GetLoggedInUserId()
+                ?? throw new ForbiddenException("Korisnik nije autentificiran.");
+
+            var isAdmin = _httpContextAccessor.HttpContext?.User.IsInRole("Admin") ?? false;
+
+            if (!isAdmin && entity.UserId != loggedInId)
+                throw new ForbiddenException("Samo autor odgovora ili admin može mijenjati odgovor.");
+
+            request.UserId = entity.UserId;
+            request.QuestionId = entity.QuestionId;
+
+            await base.BeforeUpdate(entity, request);
+        }
     }
 }

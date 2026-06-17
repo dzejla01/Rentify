@@ -26,10 +26,7 @@ namespace Rentify.Model.RequestObjects
         public string? PhoneNumber { get; set; }
         public string? UserImage { get; set; }
 
-        public bool IsActive { get; set; } = true;
         public bool? IsLoggingFirstTime {get; set;} = true;
-
-        public List<int>? RoleIds { get; set; }
 
         public List<string>? PreferedTagsIfNoReservations { get; set; }
  

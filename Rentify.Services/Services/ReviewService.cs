@@ -109,7 +109,7 @@ namespace Rentify.Services.Services
             if (reservation == null)
                 throw new NotFoundException("Rezervacija ne postoji.");
 
-            if (reservation.StatusId != 3)
+            if (reservation.StatusId != ReservationAppointmentStatus.Finished)
             {
                 throw new InvalidOperationException(
                     "Recenziju je moguće ostaviti samo za završenu rezervaciju."

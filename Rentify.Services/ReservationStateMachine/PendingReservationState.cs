@@ -48,11 +48,11 @@ namespace Rentify.Services.ReservationStateMachine
                     .Where(r => r.Id != entity.Id)
                     .Where(r => r.PropertyId == entity.PropertyId)
                     .Where(r => r.IsMonthly == true)
-                    .Where(r => r.StatusId == 2)
+                    .Where(r => r.StatusId == ReservationAppointmentStatus.Approved)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
-                        start <= r.EndDateOfRenting!.Value &&
-                        end >= r.StartDateOfRenting!.Value
+                        start < r.EndDateOfRenting!.Value &&
+                        end > r.StartDateOfRenting!.Value
                     );
 
                 if (hasApprovedMonthlyConflict)
@@ -67,7 +67,7 @@ namespace Rentify.Services.ReservationStateMachine
                     .Where(r => r.Id != entity.Id)
                     .Where(r => r.PropertyId == entity.PropertyId)
                     .Where(r => r.IsMonthly == false)
-                    .Where(r => r.StatusId == 2)
+                    .Where(r => r.StatusId == ReservationAppointmentStatus.Approved)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start < r.EndDateOfRenting!.Value &&
@@ -88,7 +88,7 @@ namespace Rentify.Services.ReservationStateMachine
                     .Where(r => r.Id != entity.Id)
                     .Where(r => r.PropertyId == entity.PropertyId)
                     .Where(r => r.IsMonthly == false)
-                    .Where(r => r.StatusId == 2)
+                    .Where(r => r.StatusId == ReservationAppointmentStatus.Approved)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
                         start < r.EndDateOfRenting!.Value &&
@@ -107,11 +107,11 @@ namespace Rentify.Services.ReservationStateMachine
                     .Where(r => r.Id != entity.Id)
                     .Where(r => r.PropertyId == entity.PropertyId)
                     .Where(r => r.IsMonthly == true)
-                    .Where(r => r.StatusId == 2)
+                    .Where(r => r.StatusId == ReservationAppointmentStatus.Approved)
                     .Where(r => r.StartDateOfRenting != null && r.EndDateOfRenting != null)
                     .AnyAsync(r =>
-                        start <= r.EndDateOfRenting!.Value &&
-                        end >= r.StartDateOfRenting!.Value
+                        start < r.EndDateOfRenting!.Value &&
+                        end > r.StartDateOfRenting!.Value
                     );
 
                 if (hasApprovedMonthlyConflict)
@@ -122,7 +122,7 @@ namespace Rentify.Services.ReservationStateMachine
                 }
             }
 
-            entity.StatusId = 2;
+            entity.StatusId = ReservationAppointmentStatus.Approved;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);
@@ -134,7 +134,7 @@ namespace Rentify.Services.ReservationStateMachine
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            entity.StatusId = 4;
+            entity.StatusId = ReservationAppointmentStatus.Rejected;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);
@@ -146,7 +146,7 @@ namespace Rentify.Services.ReservationStateMachine
             if (entity == null)
                 throw new UserException("Rezervacija nije pronađena.");
 
-            entity.StatusId = 5;
+            entity.StatusId = ReservationAppointmentStatus.Cancelled;
 
             await _context.SaveChangesAsync();
             return _mapper.Map<ReservationResponse>(entity);

@@ -27,7 +27,7 @@ class ConfirmDialogs {
     return showDialog<T>(
       context: context,
       barrierDismissible: barrierDismissible,
-      barrierColor: Colors.black.withOpacity(0.4),
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       builder: (dialogContext) {
         return Dialog(
           shape: RoundedRectangleBorder(
@@ -53,11 +53,7 @@ class ConfirmDialogs {
                   child: Row(
                     children: [
                       if (headerIcon != null) ...[
-                        Icon(
-                          headerIcon,
-                          color: Colors.white,
-                          size: 22,
-                        ),
+                        Icon(headerIcon, color: Colors.white, size: 22),
                         const SizedBox(width: 10),
                       ],
                       Expanded(
@@ -82,10 +78,10 @@ class ConfirmDialogs {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.18),
+                              color: Colors.white.withValues(alpha: 0.18),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(
-                                color: Colors.white.withOpacity(0.22),
+                                color: Colors.white.withValues(alpha: 0.22),
                               ),
                             ),
                             child: const Icon(
@@ -249,6 +245,26 @@ class ConfirmDialogs {
     return res;
   }
 
+  static Future<String?> reasonPrompt(
+    BuildContext context, {
+    required String title,
+    String message = 'Molimo unesite razlog:',
+    String confirmText = 'Potvrdi',
+    String cancelText = 'Otkaži',
+  }) {
+    return showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.4),
+      builder: (_) => _ReasonPromptDialog(
+        title: title,
+        message: message,
+        confirmText: confirmText,
+        cancelText: cancelText,
+      ),
+    );
+  }
+
   static Future<bool?> badGoodConfirmationWithDisable(
     BuildContext context, {
     required String question,
@@ -375,6 +391,182 @@ class ConfirmDialogs {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ReasonPromptDialog extends StatefulWidget {
+  const _ReasonPromptDialog({
+    required this.title,
+    required this.message,
+    required this.confirmText,
+    required this.cancelText,
+  });
+
+  final String title;
+  final String message;
+  final String confirmText;
+  final String cancelText;
+
+  @override
+  State<_ReasonPromptDialog> createState() => _ReasonPromptDialogState();
+}
+
+class _ReasonPromptDialogState extends State<_ReasonPromptDialog> {
+  late final TextEditingController _controller;
+  String? _error;
+
+  static const Color _primaryGreen = Color(0xFF5F9F3B);
+  static const Color _muted = Color(0xFF6B7280);
+  static const Color _text = Color(0xFF374151);
+  static const double _radius = 14;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final value = _controller.text.trim();
+    if (value.isEmpty) {
+      setState(() => _error = 'Razlog je obavezan.');
+      return;
+    }
+    FocusScope.of(context).unfocus();
+    Navigator.of(context).pop(value);
+  }
+
+  void _cancel() {
+    FocusScope.of(context).unfocus();
+    Navigator.of(context).pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final mediaQuery = MediaQuery.of(context);
+    final maxDialogHeight =
+        (mediaQuery.size.height - mediaQuery.viewInsets.bottom - 48).clamp(
+          280.0,
+          560.0,
+        );
+
+    return Dialog(
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_radius),
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxWidth: 420, maxHeight: maxDialogHeight),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              decoration: BoxDecoration(
+                color: _primaryGreen,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(_radius),
+                ),
+              ),
+              child: Text(
+                widget.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        widget.message,
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w600,
+                          color: _text,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _controller,
+                      autofocus: true,
+                      minLines: 3,
+                      maxLines: 4,
+                      decoration: InputDecoration(
+                        hintText: 'Unesite razlog...',
+                        errorText: _error,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton(
+                          onPressed: _cancel,
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: _muted,
+                            side: const BorderSide(color: _muted, width: 1.2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            widget.cancelText,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          onPressed: _submit,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _primaryGreen,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 12,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            widget.confirmText,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

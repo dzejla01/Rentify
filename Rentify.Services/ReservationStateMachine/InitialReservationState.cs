@@ -19,7 +19,7 @@ namespace Rentify.Services.ReservationStateMachine
             var entity = new Database.Reservation();
             _mapper.Map(request, entity);
 
-            entity.StatusId = 1;
+            entity.StatusId = ReservationAppointmentStatus.Pending;
             entity.CreatedAt = DateTime.UtcNow;
 
             _context.Reservations.Add(entity);

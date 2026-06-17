@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:rentify_desktop/dialogs/base_dialogs.dart';
 import 'package:rentify_desktop/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_desktop/helper/exception_read_helper.dart';
 import 'package:rentify_desktop/helper/snackBar_helper.dart';
 import 'package:rentify_desktop/models/appointment.dart';
 import 'package:rentify_desktop/providers/appointment_provider.dart';
@@ -74,7 +75,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         _totalCount = result.totalCount ?? result.items.length;
       });
     } catch (e) {
-      SnackbarHelper.showError(context, e.toString());
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -136,7 +137,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     return s == "Odbijeno" || s == "Otkazano" || s == "Završeno";
   }
 
-  Future<void> _executeStatusChange(
+  Future<bool> _executeStatusChange(
     AppoitmentProvider provider,
     Appointment appointment,
     String oldStatus,
@@ -147,17 +148,29 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       throw Exception("Termin nema validan ID.");
     }
 
-    if (newStatus == oldStatus) return;
+    if (newStatus == oldStatus) return true;
 
     switch (newStatus) {
       case "Odobreno":
         await provider.approve(id);
         break;
       case "Odbijeno":
-        await provider.reject(id);
+        final reason = await ConfirmDialogs.reasonPrompt(
+          context,
+          title: "Razlog odbijanja",
+          message: "Unesite razlog odbijanja termina:",
+        );
+        if (reason == null) return false;
+        await provider.reject(id, reason);
         break;
       case "Otkazano":
-        await provider.cancel(id);
+        final reason = await ConfirmDialogs.reasonPrompt(
+          context,
+          title: "Razlog otkazivanja",
+          message: "Unesite razlog otkazivanja termina:",
+        );
+        if (reason == null) return false;
+        await provider.cancel(id, reason);
         break;
       case "Završeno":
         await provider.finish(id);
@@ -165,6 +178,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       default:
         throw Exception("Nedozvoljena promjena statusa.");
     }
+
+    return true;
   }
 
   String _statusActionSuccessMessage(String newStatus) {
@@ -361,9 +376,8 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     if (saved != true) return;
 
     try {
-      await _executeStatusChange(provider, a, currentStatus, selectedStatus);
-
-      if (!mounted) return;
+      final proceeded = await _executeStatusChange(provider, a, currentStatus, selectedStatus);
+      if (!proceeded || !mounted) return;
 
       setState(() {
         _selectedStatusId = null;
@@ -373,7 +387,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       await _load(page: 0);
       SnackbarHelper.showSuccess(context, _statusActionSuccessMessage(selectedStatus));
     } catch (e) {
-      SnackbarHelper.showError(context, e.toString());
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 
@@ -395,7 +409,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       await _load();
       SnackbarHelper.showSuccess(context, "Termin je uspjesno obrisan");
     } catch (e) {
-      SnackbarHelper.showError(context, e.toString());
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:rentify_mobile/helper/image_helper.dart';
+import 'package:rentify_mobile/providers/notification_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
 import 'package:rentify_mobile/screens/payment_screen.dart';
 
@@ -70,11 +72,51 @@ class BaseMobileScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: textDark),
 
         actions: [
+          Consumer<NotificationProvider>(
+            builder: (context, notificationProvider, _) {
+              final unreadCount = notificationProvider.unreadCount;
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    tooltip: "Notifikacije",
+                    icon: const Icon(Icons.notifications_rounded, size: 26),
+                    onPressed: () =>
+                        Navigator.pushNamed(context, AppRoutes.notifications),
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        decoration: const BoxDecoration(
+                          color: Colors.redAccent,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          unreadCount > 9 ? "9+" : "$unreadCount",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
           Builder(
             builder: (context) => IconButton(
               tooltip: "Menu",
               icon: const Icon(Icons.menu_rounded, size: 28),
-              onPressed: () => Scaffold.of(context).openEndDrawer(), 
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
             ),
           ),
           const SizedBox(width: 10),

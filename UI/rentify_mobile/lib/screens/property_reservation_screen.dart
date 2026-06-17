@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
 import 'package:rentify_mobile/helper/date_helper.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/helper/snackBar_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/providers/reservation_provider.dart';
@@ -112,8 +113,9 @@ class _PropertyReservationUniversalScreenState
 
     setState(() => _loadingUnavailable = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Ne mogu učitati zauzete datume: $e")),
+    SnackbarHelper.showError(
+      context,
+      "Ne mogu učitati zauzete datume: ${extractErrorMessage(e)}",
     );
   }
 }
@@ -155,8 +157,9 @@ class _PropertyReservationUniversalScreenState
 
     setState(() => _loadingUnavailable = false);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Ne mogu učitati zauzete mjesece: $e")),
+    SnackbarHelper.showError(
+      context,
+      "Ne mogu učitati zauzete mjesece: ${extractErrorMessage(e)}",
     );
   }
 }
@@ -618,7 +621,7 @@ class _PropertyReservationUniversalScreenState
 
   bool _rangeHasUnavailable(DateTime start, DateTime end) {
     DateTime d = start;
-    while (!d.isAfter(end)) {
+    while (d.isBefore(end)) {
       if (_unavailable.contains(d)) return true;
       d = d.add(const Duration(days: 1));
     }
@@ -1010,7 +1013,7 @@ class _PropertyReservationUniversalScreenState
       if (!mounted) return;
       setState(() => _submitting = false);
 
-      SnackbarHelper.showError(context, e.toString());
+      SnackbarHelper.showError(context, extractErrorMessage(e));
     }
   }
 

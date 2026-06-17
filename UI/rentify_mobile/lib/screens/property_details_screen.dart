@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:rentify_mobile/dialogs/base_dialogs.dart';
 import 'package:rentify_mobile/dialogs/confirmation_dialogs.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/helper/image_helper.dart';
 import 'package:rentify_mobile/models/property.dart';
 import 'package:rentify_mobile/models/property_images.dart';
@@ -141,9 +142,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
         _showSnackBar("Nekretnina je dodana u favorite.");
       }
-    } catch (_) {
+    } catch (e) {
       _showSnackBar(
-        "Greška pri radu sa favoritima.",
+        extractErrorMessage(e),
         isError: true,
       );
     } finally {
@@ -889,10 +890,10 @@ class _AskQuestionDialogState extends State<_AskQuestionDialog> {
 
       if (!mounted) return;
       Navigator.of(context).pop(true);
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = "Greška pri slanju pitanja. Pokušajte ponovo.";
+        _error = extractErrorMessage(e);
         _sending = false;
       });
     }

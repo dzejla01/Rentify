@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:rentify_mobile/helper/exception_read_helper.dart';
 import 'package:rentify_mobile/providers/auth_provider.dart';
 import 'package:rentify_mobile/providers/device_token_provider.dart';
 import 'package:rentify_mobile/routes/app_routes.dart';
@@ -133,7 +134,7 @@ class _PropertyScreenState extends State<PropertyScreen> {
       if (!mounted) return;
 
       setState(() {
-        _userError = e.toString();
+        _userError = extractErrorMessage(e);
         _loadingUser = false;
       });
     }
